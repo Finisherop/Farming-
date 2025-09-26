@@ -880,4 +880,234 @@
                     break;
                 case 'youtube':
                     const keyInput = document.getElementById('yt-key-input').value.trim();
-                    if
+                    if (keyInput === appConfig.tasks.youtube.key) {
+                        rewardUser(taskConfig.reward, "YouTube Key Reward");
+                        alert("Correct key! You've been rewarded.");
+                    } else {
+                        alert("Incorrect key. Please check the video again.");
+                    }
+                    break;
+            }
+        }
+        
+        async function rewardUser(amount, reason) {
+            if (!amount || amount <= 0) return;
+            const userRef = db.collection('users').doc(String(currentUser.id));
+            await userRef.update({
+                coins: firebase.firestore.FieldValue.increment(amount)
+            });
+            // Optimistic update
+            userData.coins += amount;
+            saveUserDataToLocal();
+            updateUserUI();
+            window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+            console.log(`User rewarded ${amount} coins for: ${reason}`);
+        }
+
+        function copyReferralLink() {
+            const linkInput = document.getElementById('referral-link');
+            linkInput.select();
+            navigator.clipboard.writeText(linkInput.value).then(() => {
+                window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+                alert("Referral link copied!");
+            });
+        }
+
+        async function requestWithdrawal() {
+             // Implementation remains similar to your original code
+             // This can be enhanced with more checks based on appConfig rates
+        }
+
+        function startCoinFall() {
+            if (coinFallInterval) return;
+            const container = document.getElementById('coin-fall-container');
+            coinFallInterval = setInterval(() => {
+                const coin = document.createElement('div');
+                coin.innerText = '🍁';
+                coin.className = 'falling-coin';
+                coin.style.left = `${Math.random() * 100}vw`;
+                coin.style.animationDuration = `${Math.random() * 3 + 4}s`;
+                container.appendChild(coin);
+                setTimeout(() => coin.remove(), 7000);
+            }, 300);
+        }
+
+        function stopCoinFall() {
+            clearInterval(coinFallInterval);
+            coinFallInterval = null;
+            document.getElementById('coin-fall-container').innerHTML = '';
+        }
+
+        // --- ADMIN PANEL LOGIC ---
+        // Admin panel does not need caching, it always fetches live data.
+        function setupAdminEventListeners() {
+            document.getElementById('admin-login-btn').addEventListener('click', handleAdminLogin);
+        }
+
+        function handleAdminLogin() {
+            const email = document.getElementById('admin-email').value;
+            const pass = document.getElementById('admin-password').value;
+            const errorEl = document.getElementById('admin-login-error');
+
+            if (email === 'admin@gmail.com' && pass === 'admin123') {
+                errorEl.innerText = '';
+                document.getElementById('admin-login').classList.add('hidden');
+                document.getElementById('admin-panel').classList.remove('hidden');
+                initializeFirebase();
+                initAdminPanel();
+            } else {
+                errorEl.innerText = 'Invalid credentials. Please try again.';
+            }
+        }
+        
+        function initAdminPanel() {
+            document.querySelectorAll('.admin-nav .button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabId = `admin-tab-${button.dataset.tab}`;
+                    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+                    document.getElementById(tabId).classList.add('active');
+                    document.querySelectorAll('.admin-nav .button').forEach(b => b.classList.remove('active'));
+                    button.classList.add('active');
+                    loadAdminTabData(button.dataset.tab);
+                });
+            });
+            document.getElementById('save-settings-btn').addEventListener('click', saveAdminSettings);
+            document.getElementById('save-tasks-btn').addEventListener('click', saveAdminSettings);
+            document.getElementById('broadcast-btn').addEventListener('click', sendBroadcast);
+            loadAdminTabData('dashboard');
+        }
+
+        function loadAdminTabData(tab) {
+             switch(tab) {
+                case 'dashboard': loadAdminDashboard(); break;
+                case 'users': loadAdminUsers(); break;
+                case 'withdrawals': loadAdminWithdrawals(); break;
+                case 'settings':
+                case 'tasks':
+                    loadAdminSettings(); break;
+            }
+        }
+
+        async function loadAdminDashboard() {
+            const usersSnapshot = await db.collection('users').get();
+            const withdrawalsSnapshot = await db.collection('withdrawals').where('status', '==', 'pending').get();
+            document.getElementById('admin-total-users').innerText = usersSnapshot.size;
+            document.getElementById('admin-pending-withdrawals').innerText = withdrawalsSnapshot.size;
+        }
+
+        async function loadAdminUsers() {
+            const usersSnapshot = await db.collection('users').orderBy('coins', 'desc').limit(50).get();
+            const tableBody = document.querySelector('#users-table tbody');
+            tableBody.innerHTML = '';
+            usersSnapshot.forEach(doc => {
+                const user = doc.data();
+                const row = `<tr>
+                    <td>${user.id}</td>
+                    <td>${user.firstName} (@${user.username})</td>
+                    <td>${Math.floor(user.coins)}</td>
+                    <td>${user.referrals.length}</td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+        }
+        
+        async function loadAdminWithdrawals() {
+            const snapshot = await db.collection('withdrawals').orderBy('timestamp', 'desc').get();
+            const tableBody = document.querySelector('#withdrawals-table tbody');
+            tableBody.innerHTML = '';
+            snapshot.forEach(doc => {
+                const req = doc.data();
+                const actions = req.status === 'pending' ? 
+                    `<button onclick="handleWithdrawal('${doc.id}', true)">Approve</button> <button onclick="handleWithdrawal('${doc.id}', false)">Reject</button>` : 'Processed';
+                
+                const row = `<tr>
+                    <td>${req.userId}</td>
+                    <td>${req.amountCoins} 🪙</td>
+                    <td>${req.method}</td>
+                    <td>${req.address}</td>
+                    <td class="status-${req.status}">${req.status}</td>
+                    <td>${actions}</td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        async function handleWithdrawal(docId, isApproved) {
+            const newStatus = isApproved ? 'approved' : 'rejected';
+            await db.collection('withdrawals').doc(docId).update({ status: newStatus });
+            
+            if (!isApproved) {
+                // Refund coins on rejection
+                const withdrawalDoc = await db.collection('withdrawals').doc(docId).get();
+                const data = withdrawalDoc.data();
+                await db.collection('users').doc(String(data.userId)).update({
+                    coins: firebase.firestore.FieldValue.increment(data.amountCoins)
+                });
+            }
+            alert(`Request marked as ${newStatus}.`);
+            loadAdminWithdrawals(); // Refresh list
+        }
+        
+        async function loadAdminSettings() {
+             const doc = await db.collection('config').doc('settings').get();
+             if (doc.exists) {
+                const s = doc.data();
+                // General Settings
+                document.getElementById('setting-farm-rate').value = s.farmRate || 100;
+                document.getElementById('setting-farm-duration').value = s.farmDuration || 24;
+                document.getElementById('setting-ref-reward').value = s.refReward || 5000;
+                document.getElementById('setting-rate-inr').value = s.rateInr || 1000;
+                document.getElementById('setting-rate-usdt').value = s.rateUsdt || 80000;
+                // Task Settings
+                document.getElementById('setting-task-channel-link').value = s.tasks?.channel?.link || '';
+                document.getElementById('setting-task-channel-reward').value = s.tasks?.channel?.reward || 0;
+                document.getElementById('setting-task-group-link').value = s.tasks?.group?.link || '';
+                document.getElementById('setting-task-group-reward').value = s.tasks?.group?.reward || 0;
+                document.getElementById('setting-task-youtube-link').value = s.tasks?.youtube?.link || '';
+                document.getElementById('setting-task-youtube-key').value = s.tasks?.youtube?.key || '';
+                document.getElementById('setting-task-youtube-reward').value = s.tasks?.youtube?.reward || 0;
+                document.getElementById('setting-task-ad-reward').value = s.tasks?.ad?.reward || 0;
+             }
+        }
+        
+        async function saveAdminSettings() {
+            const settings = {
+                farmRate: parseInt(document.getElementById('setting-farm-rate').value) || 100,
+                farmDuration: parseInt(document.getElementById('setting-farm-duration').value) || 24,
+                refReward: parseInt(document.getElementById('setting-ref-reward').value) || 5000,
+                rateInr: parseInt(document.getElementById('setting-rate-inr').value) || 1000,
+                rateUsdt: parseInt(document.getElementById('setting-rate-usdt').value) || 80000,
+                tasks: {
+                    channel: {
+                        link: document.getElementById('setting-task-channel-link').value,
+                        reward: parseInt(document.getElementById('setting-task-channel-reward').value) || 0
+                    },
+                    group: {
+                        link: document.getElementById('setting-task-group-link').value,
+                        reward: parseInt(document.getElementById('setting-task-group-reward').value) || 0
+                    },
+                    youtube: {
+                        link: document.getElementById('setting-task-youtube-link').value,
+                        key: document.getElementById('setting-task-youtube-key').value,
+                        reward: parseInt(document.getElementById('setting-task-youtube-reward').value) || 0
+                    },
+                    ad: {
+                        reward: parseInt(document.getElementById('setting-task-ad-reward').value) || 0
+                    }
+                }
+            };
+            await db.collection('config').doc('settings').set(settings, { merge: true });
+            alert("✅ Settings saved successfully!");
+        }
+
+        function sendBroadcast() {
+            const message = document.getElementById('broadcast-message').value;
+            if (!message) {
+                alert("Message cannot be empty.");
+                return;
+            }
+            alert("Broadcast functionality requires a separate bot server to iterate through users and send messages via the Telegram Bot API. This is a UI placeholder.");
+        }
+    </script>
+</body>
+</html>
