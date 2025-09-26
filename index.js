@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 // Library ko import karein
 const TelegramBot = require('node-telegram-bot-api');
 
