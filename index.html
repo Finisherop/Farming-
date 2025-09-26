@@ -453,4 +453,431 @@
                 <table id="withdrawals-table">
                     <thead><tr><th>User ID</th><th>Amount</th><th>Method</th><th>Address</th><th>Status</th><th>Actions</th></tr></thead>
                     <tbody></tbody>
-    
+                                     </table>
+            </div>
+            
+            <div id="admin-tab-settings" class="admin-tab">
+                <h2>⚙️ General Settings</h2>
+                <div class="form-group">
+                    <label>Farming Rate (coins/min)</label>
+                    <input type="number" id="setting-farm-rate">
+                </div>
+                <div class="form-group">
+                    <label>Farming Duration (hours)</label>
+                    <input type="number" id="setting-farm-duration">
+                </div>
+                 <div class="form-group">
+                    <label>Referral Reward (coins)</label>
+                    <input type="number" id="setting-ref-reward">
+                </div>
+                <div class="form-group">
+                    <label>Coin to INR Rate (e.g., for 1000 coins = 1 INR, enter 1000)</label>
+                    <input type="number" id="setting-rate-inr">
+                </div>
+                <div class="form-group">
+                    <label>Coin to USDT Rate (e.g., for 80000 coins = 1 USDT, enter 80000)</label>
+                    <input type="number" id="setting-rate-usdt">
+                </div>
+                <button class="button" id="save-settings-btn">Save General Settings</button>
+            </div>
+            
+            <div id="admin-tab-tasks" class="admin-tab">
+                <h2>📝 Task Settings</h2>
+                <div class="form-group">
+                    <label>📢 Telegram Channel Link</label>
+                    <input type="text" id="setting-task-channel-link" placeholder="https://t.me/yourchannel">
+                    <label>Reward</label>
+                    <input type="number" id="setting-task-channel-reward">
+                </div>
+                 <div class="form-group">
+                    <label>💬 Telegram Group Link</label>
+                    <input type="text" id="setting-task-group-link" placeholder="https://t.me/yourgroup">
+                    <label>Reward</label>
+                    <input type="number" id="setting-task-group-reward">
+                </div>
+                <div class="form-group">
+                    <label>▶️ YouTube Video Link (optional)</label>
+                    <input type="text" id="setting-task-youtube-link" placeholder="https://youtube.com/watch?v=...">
+                    <label>Secret Key</label>
+                    <input type="text" id="setting-task-youtube-key">
+                    <label>Reward</label>
+                    <input type="number" id="setting-task-youtube-reward">
+                </div>
+                 <div class="form-group">
+                    <label>📺 Rewarded Ad Reward</label>
+                    <input type="number" id="setting-task-ad-reward">
+                </div>
+                <button class="button" id="save-tasks-btn">Save Task Settings</button>
+            </div>
+
+            <div id="admin-tab-broadcast" class="admin-tab">
+                <h2>📣 Broadcast Message</h2>
+                <p style="color: #ffc107;">Note: This requires a backend bot server to send messages to all users.</p>
+                <textarea id="broadcast-message" rows="5" style="width: 100%;" placeholder="Enter message for all users..."></textarea>
+                <button class="button" id="broadcast-btn">Send Broadcast</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- START: CONFIGURATION ---
+        const firebaseConfig = {
+            // IMPORTANT: PASTE YOUR FIREBASE WEB APP CONFIG HERE
+            apiKey: "AIza....",
+            authDomain: "your-project.firebaseapp.com",
+            projectId: "your-project",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "...",
+            appId: "1:..."
+        };
+
+        const TELEGRAM_BOT_NAME = "Finisher_farming_bot"; // Change to your bot's username
+        // --- END: CONFIGURATION ---
+
+        let db;
+        let currentUser = null;
+        let userData = null;
+        let appConfig = {};
+        let farmingInterval = null;
+        let coinFallInterval = null;
+        
+        // ---- APP INITIALIZATION ----
+        window.onload = function() {
+            try {
+                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
+                    window.Telegram.WebApp.ready();
+                    window.Telegram.WebApp.expand();
+                    initUserPanel();
+                } else {
+                    console.warn("Not in Telegram. Initializing Admin Panel.");
+                    document.getElementById('loader').classList.add('hidden');
+                    document.getElementById('admin-login').classList.remove('hidden');
+                    setupAdminEventListeners();
+                }
+            } catch (error) {
+                console.error("Initialization error:", error);
+                document.getElementById('loader').innerText = "Error initializing app.";
+            }
+        };
+        
+        function initializeFirebase() {
+             if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+             }
+        }
+        
+        // --- CACHING (LocalStorage) LOGIC ---
+        function saveUserDataToLocal() {
+            if (!userData || !currentUser) return;
+            const serializableUserData = { ...userData };
+            if (serializableUserData.farmingStartTime && serializableUserData.farmingStartTime.toDate) {
+                serializableUserData.farmingStartTime = serializableUserData.farmingStartTime.toDate().toISOString();
+            }
+            localStorage.setItem(`userData_${currentUser.id}`, JSON.stringify(serializableUserData));
+        }
+
+        function loadUserDataFromLocal() {
+            if (!currentUser) return;
+            const localData = localStorage.getItem(`userData_${currentUser.id}`);
+            if (localData) {
+                userData = JSON.parse(localData);
+                // Convert stored date strings back to Date objects for calculations
+                if (userData.farmingStartTime) {
+                    userData.farmingStartTime = new Date(userData.farmingStartTime);
+                }
+            }
+        }
+
+        function saveConfigToLocal() {
+            localStorage.setItem('appConfig', JSON.stringify(appConfig));
+        }
+
+        function loadConfigFromLocal() {
+            const localConfig = localStorage.getItem('appConfig');
+            if (localConfig) {
+                appConfig = JSON.parse(localConfig);
+                updateConfigUI();
+            }
+        }
+
+        // --- USER PANEL LOGIC ---
+        async function initUserPanel() {
+            initializeFirebase();
+            currentUser = window.Telegram.WebApp.initDataUnsafe.user;
+            if (!currentUser) {
+                alert("Could not verify user.");
+                return;
+            }
+
+            document.getElementById('user-panel').classList.remove('hidden');
+            document.getElementById('loader').classList.add('hidden');
+            
+            document.getElementById('user-name').innerText = currentUser.first_name;
+            document.getElementById('user-photo').src = currentUser.photo_url || 'https://via.placeholder.com/40';
+            
+            // Load from cache first for speed
+            loadConfigFromLocal();
+            loadUserDataFromLocal();
+            
+            // Immediately update UI with cached data
+            if (userData) {
+                updateUserUI();
+                updateFarmingState();
+            }
+            
+            setupUserEventListeners();
+            
+            // Then, fetch fresh data from Firebase to sync
+            await Promise.all([fetchAppConfig(), fetchUserData()]);
+        }
+
+        async function fetchAppConfig() {
+            try {
+                const doc = await db.collection('config').doc('settings').get();
+                if (doc.exists) {
+                    appConfig = doc.data();
+                    updateConfigUI();
+                    saveConfigToLocal();
+                }
+            } catch (error) {
+                console.error("Error fetching app config:", error);
+            }
+        }
+        
+        function updateConfigUI() {
+             document.getElementById('farming-rate-display').innerText = `Earn ${appConfig.farmRate || 100} coins per minute`;
+             document.getElementById('reward-channel').innerText = appConfig.tasks?.channel?.reward || '...';
+             document.getElementById('reward-group').innerText = appConfig.tasks?.group?.reward || '...';
+             document.getElementById('reward-ad').innerText = appConfig.tasks?.ad?.reward || '...';
+             document.getElementById('referral-reward').innerText = appConfig.refReward || '...';
+        }
+
+        async function fetchUserData() {
+            try {
+                const userRef = db.collection('users').doc(String(currentUser.id));
+                const doc = await userRef.get();
+
+                if (!doc.exists) {
+                    userData = {
+                        id: currentUser.id, username: currentUser.username || 'N/A',
+                        firstName: currentUser.first_name, coins: 0, xp: 0, level: 1,
+                        farmingStartTime: null, lastClaimTime: null, referrals: [], completedTasks: [],
+                    };
+                    await userRef.set(userData);
+                } else {
+                    userData = doc.data();
+                }
+                updateUserUI();
+                updateFarmingState();
+                saveUserDataToLocal();
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+            }
+        }
+        
+        function updateUserUI() {
+            // This function updates the UI based on the global `userData` object
+            if (!userData) return;
+            const coins = Math.floor(userData.coins);
+            document.getElementById('user-coins').innerText = coins;
+            document.querySelectorAll('.user-coins-display').forEach(el => el.innerText = `${coins} 🪙`);
+
+            document.getElementById('profile-photo-large').src = currentUser.photo_url || 'https://via.placeholder.com/100';
+            document.getElementById('profile-name').innerText = `${currentUser.first_name} ${currentUser.last_name || ''}`;
+            document.getElementById('profile-userid').innerText = currentUser.id;
+            document.getElementById('profile-coins').innerText = `${coins} 🪙`;
+            const referralCount = userData.referrals?.length || 0;
+            document.getElementById('profile-referrals').innerText = referralCount;
+            document.getElementById('referral-count').innerText = referralCount;
+
+            const referralLink = `http://t.me/${TELEGRAM_BOT_NAME}?start=${currentUser.id}`;
+            document.getElementById('referral-link').value = referralLink;
+        }
+        
+        function updateFarmingState() {
+            if (!userData) return;
+
+            const farmButton = document.getElementById('farm-button');
+            const farmTimer = document.getElementById('farming-timer');
+            const progressBar = document.getElementById('farming-progress');
+
+            if (farmingInterval) clearInterval(farmingInterval);
+
+            if (userData.farmingStartTime) {
+                let startTime;
+                // Handle both Firestore Timestamp and JS Date (from localStorage)
+                if (userData.farmingStartTime.toDate) {
+                    startTime = userData.farmingStartTime.toDate();
+                } else {
+                    startTime = new Date(userData.farmingStartTime);
+                }
+
+                const durationMs = (appConfig.farmDuration || 24) * 60 * 60 * 1000;
+                const endTime = new Date(startTime.getTime() + durationMs);
+                
+                farmButton.disabled = true;
+                startCoinFall();
+
+                farmingInterval = setInterval(() => {
+                    const now = new Date();
+                    const remainingMs = endTime.getTime() - now.getTime();
+                    
+                    if (remainingMs <= 0) {
+                        farmTimer.innerText = "Ready to Claim!";
+                        progressBar.style.width = '100%';
+                        farmButton.innerText = '🎁 Claim Reward';
+                        farmButton.disabled = false;
+                        clearInterval(farmingInterval);
+                        stopCoinFall();
+                    } else {
+                        const elapsedMs = durationMs - remainingMs;
+                        const progress = (elapsedMs / durationMs) * 100;
+                        progressBar.style.width = `${progress}%`;
+                        
+                        const h = Math.floor(remainingMs / 3600000);
+                        const m = Math.floor((remainingMs % 3600000) / 60000);
+                        const s = Math.floor((remainingMs % 60000) / 1000);
+                        farmTimer.innerText = `Farming... ${h}h ${m}m ${s}s`;
+                        farmButton.innerText = 'Farming in Progress...';
+                    }
+                }, 1000);
+            } else {
+                farmTimer.innerText = "Start Farming!";
+                progressBar.style.width = '0%';
+                farmButton.innerText = '🚀 Start Farming';
+                farmButton.disabled = false;
+                stopCoinFall();
+            }
+        }
+        
+        async function handleFarmButtonClick() {
+            const farmButton = document.getElementById('farm-button');
+            farmButton.disabled = true;
+            try {
+                if (userData.farmingStartTime) {
+                    await claimReward();
+                } else {
+                    await startFarming();
+                }
+            } catch (error) {
+                console.error("Farming action failed:", error);
+                alert("An error occurred. Please try again.");
+                farmButton.disabled = false;
+            }
+        }
+
+        async function startFarming() {
+            const userRef = db.collection('users').doc(String(currentUser.id));
+            await userRef.update({ farmingStartTime: firebase.firestore.FieldValue.serverTimestamp() });
+            await fetchUserData(); // Re-fetch to get server-generated timestamp and sync
+        }
+
+        async function claimReward() {
+            const farmRate = appConfig.farmRate || 100;
+            const farmDurationHours = appConfig.farmDuration || 24;
+            const coinsEarned = farmDurationHours * 60 * farmRate;
+            const xpEarned = 100;
+            
+            const userRef = db.collection('users').doc(String(currentUser.id));
+            await userRef.update({
+                coins: firebase.firestore.FieldValue.increment(coinsEarned),
+                xp: firebase.firestore.FieldValue.increment(xpEarned),
+                farmingStartTime: null,
+                lastClaimTime: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // Optimistically update local state before re-fetching for faster UI
+            userData.coins += coinsEarned;
+            userData.xp += xpEarned;
+            userData.farmingStartTime = null;
+            saveUserDataToLocal();
+            updateUserUI();
+            updateFarmingState();
+            
+            window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+            alert(`You claimed ${coinsEarned} coins!`);
+            
+            checkLevelUp();
+            await fetchUserData(); // Sync with server state
+        }
+
+        function checkLevelUp() {
+            const newLevel = Math.floor(userData.xp / 1000) + 1;
+            if (newLevel > userData.level) {
+                userData.level = newLevel;
+                db.collection('users').doc(String(currentUser.id)).update({ level: newLevel });
+                
+                const popup = document.getElementById('level-up-popup');
+                document.getElementById('new-level').innerText = `Level ${newLevel}`;
+                popup.classList.remove('hidden');
+                setTimeout(() => popup.classList.add('hidden'), 3000);
+            }
+        }
+
+        function setupUserEventListeners() {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const tabName = item.dataset.tab;
+                    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    
+                    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                    document.getElementById(`tab-${tabName}`).classList.add('active');
+                });
+            });
+            
+            document.getElementById('farm-button').addEventListener('click', handleFarmButtonClick);
+            document.getElementById('copy-referral-btn').addEventListener('click', copyReferralLink);
+            document.getElementById('request-withdrawal-btn').addEventListener('click', requestWithdrawal);
+
+            // Task Buttons
+            document.getElementById('task-channel').addEventListener('click', () => handleTaskClick('channel'));
+            document.getElementById('task-group').addEventListener('click', () => handleTaskClick('group'));
+            document.getElementById('task-ad').addEventListener('click', () => handleTaskClick('ad'));
+            document.getElementById('task-youtube').addEventListener('click', () => handleTaskClick('youtube'));
+
+            document.getElementById('withdraw-method').addEventListener('change', (e) => {
+                const label = document.getElementById('wallet-label');
+                const input = document.getElementById('wallet-address');
+                const rateDisplay = document.getElementById('exchange-rate-display');
+                if (e.target.value === 'UPI') {
+                    label.innerText = 'UPI ID:';
+                    input.placeholder = 'yourname@upi';
+                    rateDisplay.innerText = `${appConfig.rateInr || '...'} 🪙 = 1 INR`;
+                } else {
+                    label.innerText = 'USDT Wallet Address (TRC20):';
+                    input.placeholder = 'T...';
+                    rateDisplay.innerText = `${appConfig.rateUsdt || '...'} 🪙 = 1 USDT`;
+                }
+            });
+        }
+        
+        function handleTaskClick(taskType) {
+            const taskConfig = appConfig.tasks?.[taskType];
+            if (!taskConfig) {
+                alert("This task is not configured by the admin yet.");
+                return;
+            }
+
+            switch(taskType) {
+                case 'channel':
+                case 'group':
+                    window.Telegram.WebApp.openTelegramLink(taskConfig.link);
+                    // NOTE: Real verification requires a backend bot using getChatMember API.
+                    // For this frontend-only version, we can give a reward on click, but it's not secure.
+                    // This example will not give the reward until a backend is implemented.
+                    alert("Please join the channel/group. Verification must be done by the bot.");
+                    break;
+                case 'ad':
+                    show_9933674('pop').then(() => {
+                        console.log("Ad watched successfully.");
+                        rewardUser(taskConfig.reward, "Ad Reward");
+                    }).catch(e => {
+                        console.error("Ad error:", e);
+                        alert("Could not load ad. Please try again later.");
+                    });
+                    break;
+                case 'youtube':
+                    const keyInput = document.getElementById('yt-key-input').value.trim();
+                    if
