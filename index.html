@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>CRYPTO FARMING</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --primary-color: #2e2e2e;
+            --secondary-color: #444;
+            --text-color: #ffffff;
+            --accent-color: #f7931a;
+            --green-color: #28a745;
+            --red-color: #dc3545;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overscroll-behavior: none;
+        }
+
+        /* --- Main App Loader --- */
+        #loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-size: 20px;
+        }
+        
+        /* --- Shared Styles --- */
+        .hidden { display: none !important; }
+        .container { padding: 20px; }
+        .button {
+            background-color: var(--accent-color);
+            color: var(--text-color);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+        .button:disabled {
+            background-color: var(--secondary-color);
+            cursor: not-allowed;
+        }
+        .button:hover:not(:disabled) { background-color: #e68917; }
+
+        /* --- User Panel Styles --- */
+        #user-panel {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 500px;
+            margin: auto;
+        }
+
+        .main-content { flex-grow: 1; overflow-y: auto; padding-bottom: 70px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background-color: var(--primary-color);
+        }
+        .profile-info { display: flex; align-items: center; }
+        .profile-info img { width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; }
+        .coin-balance { font-weight: bold; font-size: 18px; }
+
+        /* Farming Tab */
+        .farming-container {
+            text-align: center;
+            padding-top: 20px;
+            position: relative;
+            height: 100%;
+        }
+        #coin-fall-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .falling-coin {
+            position: absolute;
+            font-size: 20px;
+            animation: fall linear forwards;
+        }
+        @keyframes fall {
+            to {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+        }
+        .logo-container {
+            position: relative;
+            z-index: 2;
+            margin-top: 30px;
+        }
+        .logo-container img { width: 150px; height: 150px; }
+        .farming-status { margin: 20px 0; font-size: 18px; }
+        .progress-bar {
+            width: 80%;
+            height: 10px;
+            background-color: var(--secondary-color);
+            border-radius: 5px;
+            margin: 10px auto;
+            overflow: hidden;
+        }
+        .progress-bar-inner {
+            height: 100%;
+            width: 0%;
+            background-color: var(--accent-color);
+            transition: width 1s linear;
+        }
+
+        /* Tabs and Forms */
+        .task, .referral-item, .history-item {
+            background-color: var(--primary-color);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            background-color: var(--secondary-color);
+            border: 1px solid var(--primary-color);
+            border-radius: 8px;
+            color: var(--text-color);
+            box-sizing: border-box;
+        }
+        
+        /* Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 500px;
+            margin: auto;
+            display: flex;
+            justify-content: space-around;
+            background-color: var(--primary-color);
+            padding: 10px 0;
+            border-top: 1px solid var(--secondary-color);
+        }
+        .nav-item {
+            cursor: pointer;
+            text-align: center;
+            color: #888;
+            transition: color 0.2s;
+        }
+        .nav-item.active { color: var(--accent-color); font-weight: bold; }
+        .nav-item svg { width: 24px; height: 24px; }
+
+        /* Level Up Popup */
+        #level-up-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0,0,0,0.8);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            z-index: 100;
+            animation: popup-fade 0.5s ease;
+        }
+        @keyframes popup-fade {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* --- Admin Panel Styles --- */
+        #admin-login, #admin-panel {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: var(--primary-color);
+            border-radius: 10px;
+        }
+        #admin-login h1, #admin-panel h1 { text-align: center; color: var(--accent-color); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; }
+        #admin-login input { width: calc(100% - 22px); }
+
+        .admin-nav { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .admin-nav .button { width: auto; background-color: var(--secondary-color); }
+        .admin-nav .button.active { background-color: var(--accent-color); }
+        .admin-tab { display: none; }
+        .admin-tab.active { display: block; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid var(--secondary-color);
+            text-align: left;
+        }
+        th { background-color: #252525; }
+        .status-pending { color: #ffc107; }
+        .status-approved { color: var(--green-color); }
+        .status-rejected { color: var(--red-color); }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="loader">Loading CRYPTO FARMING...</div>
+
+        <div id="user-panel" class="hidden">
+            <header class="header">
+                <div class="coin-balance">
+                    <span id="user-coins">0</span> 🪙
+                </div>
+                <div class="profile-info">
+                    <span id="user-name">User</span>
+                    <img id="user-photo" src="https://via.placeholder.com/40" alt="P">
+                </div>
+            </header>
+
+            <main class="main-content">
+                <div id="tab-farming" class="tab-content active container">
+                    <div class="farming-container">
+                        <div id="coin-fall-container"></div>
+                        <div class="logo-container">
+                            <img src="https://i.ibb.co/L5w2WzX/crypto-logo.png" alt="Crypto Farming Logo">
+                            <h2 class="farming-status" id="farming-timer">Start Farming!</h2>
+                            <p>Earn 100 coins per minute</p>
+                            <div class="progress-bar">
+                                <div class="progress-bar-inner" id="farming-progress"></div>
+                            </div>
+                        </div>
+                        <button id="farm-button" class="button" style="margin-top: 30px;">Start Farming</button>
+                    </div>
+                </div>
+
+                <div id="tab-tasks" class="tab-content container">
+                    <h3>Complete Tasks to Earn More</h3>
+                    <div class="task">
+                        <div>
+                            <h4>Join Telegram Channel</h4>
+                            <p>Reward: <span id="reward-channel">1000</span> 🪙</p>
+                        </div>
+                        <button class="button" style="width: auto;" onclick="verifyTask('channel')">Join & Verify</button>
+                    </div>
+                    <div class="task">
+                        <div>
+                            <h4>Join Telegram Group</h4>
+                            <p>Reward: <span id="reward-group">1000</span> 🪙</p>
+                        </div>
+                        <button class="button" style="width: auto;" onclick="verifyTask('group')">Join & Verify</button>
+                    </div>
+                    <div class="task">
+                       <div>
+                           <h4>Watch Ad</h4>
+                           <p>Reward: <span id="reward-ad">250</span> 🪙</p>
+                       </div>
+                       <button class="button" style="width: auto;" onclick="verifyTask('ad')">Watch Ad</button>
+                    </div>
+                    <div class="task" style="flex-direction: column; align-items: flex-start;">
+                        <h4>YouTube Video Key</h4>
+                        <p>Enter the key from our latest YouTube video.</p>
+                        <input type="text" id="yt-key-input" placeholder="Enter key...">
+                        <button class="button" onclick="verifyTask('youtube')">Claim Reward</button>
+                    </div>
+                </div>
+
+                <div id="tab-referral" class="tab-content container">
+                    <h3>Refer Friends & Earn</h3>
+                    <p>Invite friends and earn <span id="referral-reward">5000</span> 🪙 for each referral!</p>
+                    <div class="task" style="flex-direction: column;">
+                        <h4>Your Referral Link</h4>
+                        <input type="text" id="referral-link" readonly>
+                        <button class="button" onclick="copyReferralLink()">Copy Link</button>
+                    </div>
+                    <h4>Your Referrals</h4>
+                    <div id="referral-list">
+                        <p>No referrals yet.</p>
+                    </div>
+                </div>
+
+                <div id="tab-exchange" class="tab-content container">
+                    <h3>Exchange & Withdraw</h3>
+                    <div class="task" style="flex-direction: column; align-items: flex-start;">
+                        <h4>Convert Coins</h4>
+                        <p>Your balance: <span class="user-coins-display">0</span> 🪙</p>
+                        <p>Rate: <span id="exchange-rate-display">1000 🪙 = 1 INR</span></p>
+                        <label for="coins-to-convert">Coins to Convert:</label>
+                        <input type="number" id="coins-to-convert" placeholder="e.g., 10000">
+                        <label for="withdraw-method">Withdrawal Method:</label>
+                        <select id="withdraw-method">
+                            <option value="UPI">UPI (INR)</option>
+                            <option value="USDT">USDT Wallet</option>
+                        </select>
+                        <label for="wallet-address" id="wallet-label">UPI ID:</label>
+                        <input type="text" id="wallet-address" placeholder="yourname@upi">
+                        <button class="button" onclick="requestWithdrawal()">Request Withdrawal</button>
+                    </div>
+                    <h4>Withdrawal History</h4>
+                    <div id="withdrawal-history">
+                        <p>No withdrawal history.</p>
+                    </div>
+                </div>
+
+                <div id="tab-profile" class="tab-content container">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <img id="profile-photo-large" src="https://via.placeholder.com/100" style="width: 100px; height: 100px; border-radius: 50%;">
+                        <h3 id="profile-name">User Name</h3>
+                        <p>User ID: <span id="profile-userid">...</span></p>
+                    </div>
+                    <div class="task">
+                        <span>Total Coins:</span>
+                        <span id="profile-coins" class="user-coins-display">0 🪙</span>
+                    </div>
+                    <div class="task">
+                        <span>Total Referrals:</span>
+                        <span id="profile-referrals">0</span>
+                    </div>
+                     <div class="task">
+                        <span>Total Exchanged (INR):</span>
+                        <span id="profile-exchanged-inr">0</span>
+                    </div>
+                     <div class="task">
+                        <span>Total Exchanged (USDT):</span>
+                        <span id="profile-exchanged-usdt">0</span>
+                    </div>
+                </div>
+            </main>
+
+            <nav class="bottom-nav">
+                <div class="nav-item active" data-tab="farming">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 0 0-5 5c0 1.62.77 3.09 2 4.06V19h2v-2h2v2h2v-7.94c1.23-.97 2-2.44 2-4.06a5 5 0 0 0-5-5zM9 7a3 3 0 0 1 6 0v1H9V7z"/></svg>
+                    <span>Farming</span>
+                </div>
+                <div class="nav-item" data-tab="tasks">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14 4.14 5.57 2 7.71l1.43 1.43L2 10.57 3.43 12l3.57-3.57L17 18.43 15.57 20l1.43 1.43 1.43-1.43 1.43 1.43 2.14-2.14 1.43-1.43-1.43-1.43z"/></svg>
+                    <span>Tasks</span>
+                </div>
+                <div class="nav-item" data-tab="referral">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                    <span>Referral</span>
+                </div>
+                <div class="nav-item" data-tab="exchange">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                    <span>Exchange</span>
+                </div>
+                <div class="nav-item" data-tab="profile">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    <span>Profile</span>
+                </div>
+            </nav>
+            <div id="level-up-popup" class="hidden">
+                <h2>LEVEL UP!</h2>
+                <p>You have reached <span id="new-level">Level 2</span>!</p>
+            </div>
+        </div>
+
+        <div id="admin-login" class="hidden">
+            <h1>Admin Panel Login</h1>
+            <div class="form-group">
+                <label for="admin-email">Email</label>
+                <input type="text" id="admin-email" value="admin@gmail.com">
+            </div>
+            <div class="form-group">
+                <label for="admin-password">Password</label>
+                <input type="password" id="admin-password" value="admin123">
+            </div>
+            <button class="button" onclick="handleAdminLogin()">Login</button>
+            <p id="admin-login-error" style="color: var(--red-color); text-align: center; margin-top: 10px;"></p>
+        </div>
+
+        <div id="admin-panel" class="hidden">
+            <h1>CRYPTO FARMING Admin</h1>
+            <nav class="admin-nav">
+                <button class="button active" data-tab="dashboard">Dashboard</button>
+                <button class="button" data-tab="users">Users</button>
+                <button class="button" data-tab="withdrawals">Withdrawals</button>
+                <button class="button" data-tab="settings">Settings</button>
+                <button class="button" data-tab="broadcast">Broadcast</button>
+            </nav>
+
+            <div id="admin-tab-dashboard" class="admin-tab active">
+                <h2>Dashboard</h2>
+                <p>Total Users: <span id="admin-total-users">0</span></p>
+                <p>Pending Withdrawals: <span id="admin-pending-withdrawals">0</span></p>
+            </div>
+
+            <div id="admin-tab-users" class="admin-tab">
+                <h2>Users List</h2>
+                <table id="users-table">
+                    <thead><tr><th>User ID</th><th>Name</th><th>Coins</th><th>Referrals</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <div id="admin-tab-withdrawals" class="admin-tab">
+                <h2>Withdrawal Requests</h2>
+                <table id="withdrawals-table">
+                    <thead><tr><th>User ID</th><th>Amount</th><th>Method</th><th>Address</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            
+            <div id="admin-tab-settings" class="admin-tab">
+                <h2>App Settings</h2>
+                <div class="form-group">
+                    <label>Farming Rate (coins/min)</label>
+                    <input type="number" id="setting-farm-rate">
+                </div>
+                <div class="form-group">
+                    <label>Farming Duration (hours)</label>
+                    <input type="number" id="setting-farm-duration">
+                </div>
+                 <div class="form-group">
+                    <label>Referral Reward (coins)</label>
+                    <input type="number" id="setting-ref-reward">
+                </div>
+                <div class="form-group">
+                    <label>YouTube Task Key</label>
+                    <input type="text" id="setting-yt-key">
+                </div>
+                <div class="form-group">
+                    <label>Coin to INR Rate (e.g., 1000 coins = 1 INR)</label>
+                    <input type="number" id="setting-rate-inr" placeholder="1000">
+                </div>
+                <div class="form-group">
+                    <label>Coin to USDT Rate (e.g., 80000 coins = 1 USDT)</label>
+                    <input type="number" id="setting-rate-usdt" placeholder="80000">
+                </div>
+                <button class="button" onclick="saveAdminSettings()">Save Settings</button>
+            </div>
+
+            <div id="admin-tab-broadcast" class="admin-tab">
+                <h2>Broadcast Message</h2>
+                <p style="color: #ffc107;">Note: This requires a backend bot server to send messages to all users.</p>
+                <textarea id="broadcast-message" rows="5" style="width: 100%;" placeholder="Enter message for all users..."></textarea>
+                <button class="button" onclick="sendBroadcast()">Send Broadcast</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- START: CONFIGURATION ---
+        const firebaseConfig = {
+            // PASTE FIREBASE CONFIG HERE
+            apiKey: "AIza....",
+            authDomain: "your-project.firebaseapp.com",
+            projectId: "your-project",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "...",
+            appId: "1:..."
+        };
+
+        const TELEGRAM_BOT_NAME = "Finisher_farming_bot"; // Change to your bot's username
+        // --- END: CONFIGURATION ---
+
+        let db;
+        let currentUser = null;
+        let userData = null;
+        let farmingInterval = null;
+
+        // Initialize App on load
+        window.onload = function() {
+            try {
+                // Check if running inside Telegram
+                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
+                    window.Telegram.WebApp.ready();
+                    window.Telegram.WebApp.expand();
+                    initializeApp(true);
+                } else {
+                    console.warn("Not running in Telegram WebApp environment. Showing Admin Panel.");
+                    initializeApp(false);
+                }
+            } catch (error) {
+                console.error("Initialization error:", error);
+                document.getElementById('loader').innerText = "Error initializing app.";
+                initializeApp(false);
+            }
+        };
+
+        function initializeApp(isTelegram) {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+
+            document.getElementById('loader').classList.add('hidden');
+
+            if (isTelegram) {
+                document.getElementById('user-panel').classList.remove('hidden');
+                initUserPanel();
+            } else {
+                document.getElementById('admin-login').classList.remove('hidden');
+            }
+        }
+        
+        // --- USER PANEL LOGIC ---
+
+        async function initUserPanel() {
+            currentUser = window.Telegram.WebApp.initDataUnsafe.user;
+            if (!currentUser) {
+                alert("Could not verify user. Please open through Telegram.");
+                return;
+            }
+
+            // Bind UI elements with user data
+            document.getElementById('user-name').innerText = currentUser.first_name;
+            document.getElementById('user-photo').src = currentUser.photo_url || 'https://via.placeholder.com/40';
+            
+            await loadUserData();
+            setupEventListeners();
+            updateFarmingState();
+        }
+
+        async function loadUserData() {
+            const userRef = db.collection('users').doc(String(currentUser.id));
+            const doc = await userRef.get();
+
+            if (!doc.exists) {
+                userData = {
+                    id: currentUser.id,
+                    username: currentUser.username || 'N/A',
+                    firstName: currentUser.first_name,
+                    coins: 0,
+                    xp: 0,
+                    level: 1,
+                    farmingStartTime: null,
+                    lastClaimTime: null,
+                    referrals: [],
+                    completedTasks: [],
+                };
+                await userRef.set(userData);
+            } else {
+                userData = doc.data();
+            }
+            updateUI();
+        }
+        
+        function updateUI() {
+            document.getElementById('user-coins').innerText = Math.floor(userData.coins);
+            document.querySelectorAll('.user-coins-display').forEach(el => el.innerText = Math.floor(userData.coins) + ' 🪙');
+
+            // Profile Tab
+            document.getElementById('profile-photo-large').src = currentUser.photo_url || 'https://via.placeholder.com/100';
+            document.getElementById('profile-name').innerText = `${currentUser.first_name} ${currentUser.last_name || ''}`;
+            document.getElementById('profile-userid').innerText = currentUser.id;
+            document.getElementById('profile-coins').innerText = Math.floor(userData.coins) + ' 🪙';
+            document.getElementById('profile-referrals').innerText = userData.referrals.length;
+
+            // Referral Tab
+            const referralLink = `http://t.me/${TELEGRAM_BOT_NAME}?start=${currentUser.id}`;
+            document.getElementById('referral-link').value = referralLink;
+            // TODO: Load and display referral list
+        }
+        
+        function updateFarmingState() {
+            const farmButton = document.getElementById('farm-button');
+            const farmTimer = document.getElementById('farming-timer');
+            const progressBar = document.getElementById('farming-progress');
+
+            if (farmingInterval) clearInterval(farmingInterval);
+
+            if (userData.farmingStartTime) {
+                const startTime = userData.farmingStartTime.toDate();
+                const durationMs = 24 * 60 * 60 * 1000; // 24 hours
+                const endTime = new Date(startTime.getTime() + durationMs);
+                
+                farmButton.disabled = true;
+                startCoinFall();
+
+                farmingInterval = setInterval(() => {
+                    const now = new Date();
+                    const remainingMs = endTime.getTime() - now.getTime();
+                    
+                    if (remainingMs <= 0) {
+                        farmTimer.innerText = "Ready to Claim!";
+                        progressBar.style.width = '100%';
+                        farmButton.innerText = 'Claim Reward';
+                        farmButton.disabled = false;
+                        farmButton.onclick = claimReward;
+                        clearInterval(farmingInterval);
+                        stopCoinFall();
+                    } else {
+                        const elapsedMs = durationMs - remainingMs;
+                        const progress = (elapsedMs / durationMs) * 100;
+                        progressBar.style.width = `${progress}%`;
+                        
+                        const hours = Math.floor(remainingMs / (1000 * 60 * 60));
+                        const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((remainingMs % (1000 * 60)) / 1000);
+                        farmTimer.innerText = `Farming... ${hours}h ${minutes}m ${seconds}s`;
+                        farmButton.innerText = 'Farming in Progress';
+                    }
+                }, 1000);
+            } else {
+                farmTimer.innerText = "Start Farming!";
+                progressBar.style.width = '0%';
+                farmButton.innerText = 'Start Farming';
+                farmButton.disabled = false;
+                farmButton.onclick = startFarming;
+                stopCoinFall();
+            }
+        }
+        
+        async function startFarming() {
+            const userRef = db.collection('users').doc(String(currentUser.id));
+            await userRef.update({ farmingStartTime: firebase.firestore.FieldValue.serverTimestamp() });
+            
+            // Re-fetch data to get server timestamp
+            const doc = await userRef.get();
+            userData = doc.data();
+            
+            updateFarmingState();
+        }
+
+        async function claimReward() {
+            // Simple logic: 24h * 60min * 100coins/min
+            const coinsEarned = 24 * 60 * 100;
+            const xpEarned = 100;
+            
+            const userRef = db.collection('users').doc(String(currentUser.id));
+            await userRef.update({
+                coins: firebase.firestore.FieldValue.increment(coinsEarned),
+                xp: firebase.firestore.FieldValue.increment(xpEarned),
+                farmingStartTime: null,
+                lastClaimTime: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            userData.coins += coinsEarned;
+            userData.xp += xpEarned;
+            userData.farmingStartTime = null;
+            
+            window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+            alert(`You claimed ${coinsEarned} coins!`);
+            
+            updateUI();
+            updateFarmingState();
+            checkLevelUp();
+        }
+
+        function checkLevelUp() {
+            // Example level up logic
+            const newLevel = Math.floor(userData.xp / 1000) + 1;
+            if (newLevel > userData.level) {
+                userData.level = newLevel;
+                db.collection('users').doc(String(currentUser.id)).update({ level: newLevel });
+                
+                const popup = document.getElementById('level-up-popup');
+                document.getElementById('new-level').innerText = `Level ${newLevel}`;
+                popup.classList.remove('hidden');
+                setTimeout(() => popup.classList.add('hidden'), 3000);
+            }
+        }
+
+        function setupEventListeners() {
+            // Navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const tabName = item.dataset.tab;
+                    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    
+                    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                    document.getElementById(`tab-${tabName}`).classList.add('active');
+                });
+            });
+
+            // Exchange tab logic
+            document.getElementById('withdraw-method').addEventListener('change', (e) => {
+                const label = document.getElementById('wallet-label');
+                const input = document.getElementById('wallet-address');
+                if (e.target.value === 'UPI') {
+                    label.innerText = 'UPI ID:';
+                    input.placeholder = 'yourname@upi';
+                } else {
+                    label.innerText = 'USDT Wallet Address (TRC20):';
+                    input.placeholder = 'T...';
+                }
+            });
+        }
+
+        function copyReferralLink() {
+            const linkInput = document.getElementById('referral-link');
+            linkInput.select();
+            document.execCommand('copy');
+            window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+            alert("Referral link copied!");
+        }
+
+        function verifyTask(taskType) {
+            // This is a placeholder. Real verification needs backend logic.
+            // For example, for channel join, your bot server would use getChatMember API.
+            alert(`Verification for '${taskType}' task is a placeholder. A reward of 100 coins will be given for demo.`);
+            const userRef = db.collection('users').doc(String(currentUser.id));
+            userRef.update({
+                coins: firebase.firestore.FieldValue.increment(100)
+            });
+            userData.coins += 100;
+            updateUI();
+        }
+
+        async function requestWithdrawal() {
+            const coinsToConvert = parseInt(document.getElementById('coins-to-convert').value);
+            const method = document.getElementById('withdraw-method').value;
+            const address = document.getElementById('wallet-address').value.trim();
+
+            if (isNaN(coinsToConvert) || coinsToConvert <= 0) {
+                alert("Please enter a valid amount of coins.");
+                return;
+            }
+            if (coinsToConvert > userData.coins) {
+                alert("You don't have enough coins.");
+                return;
+            }
+            if (!address) {
+                alert("Please enter your withdrawal address/ID.");
+                return;
+            }
+
+            // Deduct coins immediately, can be reverted if admin rejects
+            const userRef = db.collection('users').doc(String(currentUser.id));
+            await userRef.update({
+                coins: firebase.firestore.FieldValue.increment(-coinsToConvert)
+            });
+
+            // Add to withdrawals collection
+            await db.collection('withdrawals').add({
+                userId: currentUser.id,
+                username: currentUser.username,
+                amountCoins: coinsToConvert,
+                method: method,
+                address: address,
+                status: 'pending',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            userData.coins -= coinsToConvert;
+            updateUI();
+            alert("Withdrawal request submitted! It will be reviewed by the admin.");
+        }
+
+        let coinFallInterval;
+        function startCoinFall() {
+            if (coinFallInterval) return;
+            const container = document.getElementById('coin-fall-container');
+            coinFallInterval = setInterval(() => {
+                const coin = document.createElement('div');
+                coin.innerText = ['🍂', '🍁'][Math.floor(Math.random() * 2)];
+                coin.className = 'falling-coin';
+                coin.style.left = `${Math.random() * 100}vw`;
+                coin.style.animationDuration = `${Math.random() * 3 + 4}s`; // 4 to 7 seconds
+                container.appendChild(coin);
+                setTimeout(() => coin.remove(), 7000);
+            }, 300);
+        }
+
+        function stopCoinFall() {
+            clearInterval(coinFallInterval);
+            coinFallInterval = null;
+            document.getElementById('coin-fall-container').innerHTML = '';
+        }
+
+        // --- ADMIN PANEL LOGIC ---
+        
+        function handleAdminLogin() {
+            const email = document.getElementById('admin-email').value;
+            const pass = document.getElementById('admin-password').value;
+            const errorEl = document.getElementById('admin-login-error');
+
+            if (email === 'admin@gmail.com' && pass === 'admin123') {
+                errorEl.innerText = '';
+                document.getElementById('admin-login').classList.add('hidden');
+                document.getElementById('admin-panel').classList.remove('hidden');
+                initAdminPanel();
+            } else {
+                errorEl.innerText = 'Invalid credentials. Please try again.';
+            }
+        }
+        
+        function initAdminPanel() {
+            // Admin nav logic
+            document.querySelectorAll('.admin-nav .button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabId = `admin-tab-${button.dataset.tab}`;
+                    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+                    document.getElementById(tabId).classList.add('active');
+                    document.querySelectorAll('.admin-nav .button').forEach(b => b.classList.remove('active'));
+                    button.classList.add('active');
+                    
+                    // Load data for the clicked tab
+                    loadAdminTabData(button.dataset.tab);
+                });
+            });
+            // Initial load
+            loadAdminTabData('dashboard');
+        }
+
+        function loadAdminTabData(tab) {
+            switch(tab) {
+                case 'dashboard':
+                    loadAdminDashboard();
+                    break;
+                case 'users':
+                    loadAdminUsers();
+                    break;
+                case 'withdrawals':
+                    loadAdminWithdrawals();
+                    break;
+                case 'settings':
+                    loadAdminSettings();
+                    break;
+            }
+        }
+
+        async function loadAdminDashboard() {
+            const usersSnapshot = await db.collection('users').get();
+            const withdrawalsSnapshot = await db.collection('withdrawals').where('status', '==', 'pending').get();
+            document.getElementById('admin-total-users').innerText = usersSnapshot.size;
+            document.getElementById('admin-pending-withdrawals').innerText = withdrawalsSnapshot.size;
+        }
+
+        async function loadAdminUsers() {
+            const usersSnapshot = await db.collection('users').orderBy('coins', 'desc').limit(50).get();
+            const tableBody = document.querySelector('#users-table tbody');
+            tableBody.innerHTML = '';
+            usersSnapshot.forEach(doc => {
+                const user = doc.data();
+                const row = `<tr>
+                    <td>${user.id}</td>
+                    <td>${user.firstName} (@${user.username})</td>
+                    <td>${Math.floor(user.coins)}</td>
+                    <td>${user.referrals.length}</td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+        }
+        
+        async function loadAdminWithdrawals() {
+            const snapshot = await db.collection('withdrawals').orderBy('timestamp', 'desc').get();
+            const tableBody = document.querySelector('#withdrawals-table tbody');
+            tableBody.innerHTML = '';
+            snapshot.forEach(doc => {
+                const req = doc.data();
+                const actions = req.status === 'pending' ? 
+                    `<button onclick="handleWithdrawal('${doc.id}', true)">Approve</button> <button onclick="handleWithdrawal('${doc.id}', false)">Reject</button>` : 'Processed';
+                
+                const row = `<tr>
+                    <td>${req.userId}</td>
+                    <td>${req.amountCoins} 🪙</td>
+                    <td>${req.method}</td>
+                    <td>${req.address}</td>
+                    <td class="status-${req.status}">${req.status}</td>
+                    <td>${actions}</td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        async function handleWithdrawal(docId, isApproved) {
+            const newStatus = isApproved ? 'approved' : 'rejected';
+            await db.collection('withdrawals').doc(docId).update({ status: newStatus });
+            
+            if (!isApproved) {
+                // Refund coins on rejection
+                const withdrawalDoc = await db.collection('withdrawals').doc(docId).get();
+                const data = withdrawalDoc.data();
+                await db.collection('users').doc(String(data.userId)).update({
+                    coins: firebase.firestore.FieldValue.increment(data.amountCoins)
+                });
+            }
+            alert(`Request marked as ${newStatus}.`);
+            loadAdminWithdrawals(); // Refresh list
+        }
+        
+        async function loadAdminSettings() {
+             const doc = await db.collection('config').doc('settings').get();
+             if (doc.exists) {
+                const settings = doc.data();
+                document.getElementById('setting-farm-rate').value = settings.farmRate || 100;
+                document.getElementById('setting-farm-duration').value = settings.farmDuration || 24;
+                document.getElementById('setting-ref-reward').value = settings.refReward || 5000;
+                document.getElementById('setting-yt-key').value = settings.ytKey || '';
+                document.getElementById('setting-yt-key').value = settings.ytKey || '';
+                document.getElementById('setting-rate-inr').value = settings.rateInr || 1000;
+                document.getElementById('setting-rate-usdt').value = settings.rateUsdt || 80000;
+             }
+        }
+        
+        async function saveAdminSettings() {
+            const settings = {
+                farmRate: parseInt(document.getElementById('setting-farm-rate').value),
+                farmDuration: parseInt(document.getElementById('setting-farm-duration').value),
+                refReward: parseInt(document.getElementById('setting-ref-reward').value),
+                ytKey: document.getElementById('setting-yt-key').value,
+                rateInr: parseInt(document.getElementById('setting-rate-inr').value),
+                rateUsdt: parseInt(document.getElementById('setting-rate-usdt').value),
+            };
+            await db.collection('config').doc('settings').set(settings, { merge: true });
+            alert("Settings saved!");
+        }
+
+        function sendBroadcast() {
+            const message = document.getElementById('broadcast-message').value;
+            if (!message) {
+                alert("Message cannot be empty.");
+                return;
+            }
+            alert("Broadcast functionality requires a separate bot server to iterate through users and send messages via the Telegram Bot API. This is a UI placeholder.");
+        }
+
+    </script>
+</body>
+</html>
