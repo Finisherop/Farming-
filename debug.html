@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mreward PRO - Connection Test (Fixed)</title>
+  
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #333;
+    }
+    
+    .test-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      backdrop-filter: blur(20px);
+    }
+    
+    .test-item {
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 10px;
+      border-left: 5px solid #ccc;
+      font-weight: 500;
+    }
+    
+    .success {
+      background: linear-gradient(135deg, #d4edda, #c3e6cb);
+      border-left-color: #28a745;
+      color: #155724;
+    }
+    
+    .error {
+      background: linear-gradient(135deg, #f8d7da, #f1b0b7);
+      border-left-color: #dc3545;
+      color: #721c24;
+    }
+    
+    .info {
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      border-left-color: #2196f3;
+      color: #0d47a1;
+    }
+    
+    .warning {
+      background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+      border-left-color: #ffc107;
+      color: #856404;
+    }
+    
+    button {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 8px 5px;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, #28a745, #20c997);
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, #dc3545, #e74c3c);
+    }
+    
+    .btn-warning {
+      background: linear-gradient(135deg, #ffc107, #f39c12);
+    }
+    
+    #log {
+      background: #2c3e50;
+      color: #ecf0f1;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      white-space: pre-wrap;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      max-height: 500px;
+      overflow-y: auto;
+      border: 2px solid #34495e;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .test-section {
+      margin: 25px 0;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="test-container">
+    <div class="header">
+      <h1>🔧 Mreward PRO - System Test & Debug (Fixed)</h1>
+      <p>Comprehensive testing tool for Firebase connection and functionality</p>
+    </div>
+    
+    <div class="test-section">
+      <h3>🔍 System Status</h3>
+      <div class="test-item info" id="firebase-status">
+        🔄 Initializing Firebase...
+      </div>
+      
+      <div class="test-item info" id="auth-status">
+        🔄 Checking authentication...
+      </div>
+      
+      <div class="test-item info" id="database-status">
+        🔄 Testing database connection...
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <h3>🧪 Manual Tests</h3>
+      <button onclick="testFirebaseInit()" class="btn-success">🔥 Test Firebase Init</button>
+      <button onclick="testAuth()" class="btn-success">🔐 Test Auth</button>
+      <button onclick="testDatabase()" class="btn-success">💾 Test Database</button>
+      <button onclick="testTaskOps()" class="btn-warning">📋 Test Task Operations</button>
+      <button onclick="runAllTests()" class="btn-success">🚀 Run All Tests</button>
+      <button onclick="clearLog()" class="btn-danger">🧹 Clear Log</button>
+    </div>
+    
+    <div class="test-section">
+      <h3>📊 Real-time Log</h3>
+      <div id="log">Waiting for tests to start...\n</div>
+    </div>
+  </div>
+
+  <script>
+    let auth, db;
+    let testResults = {
+      firebase: false,
+      auth: false,
+      database: false,
+      tasks: false
+    };
+    
+    function log(message, type = 'info') {
+      const logEl = document.getElementById('log');
+      const timestamp = new Date().toLocaleTimeString();
+      const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+      logEl.textContent += `[${timestamp}] ${icon} ${message}\n`;
+      logEl.scrollTop = logEl.scrollHeight;
+      console.log(`${icon} ${message}`);
+    }
+    
+    function clearLog() {
+      document.getElementById('log').textContent = 'Log cleared.\n';
+    }
+    
+    function updateStatus(elementId, message, type = 'success') {
+      const el = document.getElementById(elementId);
+      if (el) {
+        el.textContent = message;
+        el.className = `test-item ${type}`;
+      }
+    }
+    
+    // Test Firebase Initialization
+    function testFirebaseInit() {
+      log('🔥 Testing Firebase initialization...');
+      
+      try {
+        const firebaseConfig = {
+          apiKey: "AIzaSyBNT7CLJ6QCcsFD_lhcrru3UOEqLmiYc3E",
+          authDomain: "mreward-5e36d.firebaseapp.com",
+          projectId: "mreward-5e36d",
+          storageBucket: "mreward-5e36d.firebasestorage.app",
+          messagingSenderId: "207849836641",
+          appId: "1:207849836641:web:3229c8d3805338fdf49a20"
+        };
+        
+        if (typeof firebase === 'undefined') {
+          throw new Error('Firebase SDK not loaded');
+        }
+        
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+          log('Firebase initialized for first time');
+        } else {
+          log('Firebase already initialized');
+        }
+        
+        auth = firebase.auth();
+        db = firebase.firestore();
+        
+        updateStatus('firebase-status', '✅ Firebase initialized successfully', 'success');
+        log('Firebase initialization successful');
+        testResults.firebase = true;
+        
+        return true;
+        
+      } catch (error) {
+        updateStatus('firebase-status', '❌ Firebase initialization failed: ' + error.message, 'error');
+        log('Firebase initialization failed: ' + error.message, 'error');
+        testResults.firebase = false;
+        
+        return false;
+      }
+    }
+    
+    // Test Authentication
+    function testAuth() {
+      log('🔐 Testing authentication system...');
+      
+      if (!auth) {
+        log('Auth not initialized, running Firebase init first', 'warning');
+        if (!testFirebaseInit()) {
+          return false;
+        }
+      }
+      
+      try {
+        // Test auth state listener
+        auth.onAuthStateChanged((user) => {
+          if (user) {
+            updateStatus('auth-status', `✅ User authenticated: ${user.email}`, 'success');
+            log(`User authenticated: ${user.email}`);
+            testResults.auth = true;
+          } else {
+            updateStatus('auth-status', '🔓 No user signed in (normal for new setup)', 'info');
+            log('No user currently signed in');
+            testResults.auth = true; // Auth system working even if no user
+          }
+        });
+        
+        log('Authentication system test passed');
+        return true;
+        
+      } catch (error) {
+        updateStatus('auth-status', '❌ Authentication test failed: ' + error.message, 'error');
+        log('Authentication test failed: ' + error.message, 'error');
+        testResults.auth = false;
+        
+        return false;
+      }
+    }
+    
+    // Test Database Connection
+    function testDatabase() {
+      log('💾 Testing database connection...');
+      
+      if (!db) {
+        log('Database not initialized, running Firebase init first', 'warning');
+        if (!testFirebaseInit()) {
+          return false;
+        }
+      }
+      
+      return db.enableNetwork()
+        .then(() => {
+          log('Firestore network enabled successfully');
+          
+          // Test read access
+          return db.collection('tasks').limit(1).get();
+        })
+        .then((snapshot) => {
+          updateStatus('database-status', '✅ Database connection successful', 'success');
+          log(`Database read test successful. Found ${snapshot.size} tasks`);
+          testResults.database = true;
+          
+          return true;
+        })
+        .catch((error) => {
+          updateStatus('database-status', '❌ Database connection failed: ' + error.message, 'error');
+          log('Database connection failed: ' + error.message, 'error');
+          
+          if (error.code === 'permission-denied') {
+            log('💡 Tip: Check Firestore security rules in Firebase Console', 'warning');
+          }
+          
+          testResults.database = false;
+          return false;
+        });
+    }
+    
+    // Test Task Operations
+    function testTaskOps() {
+      log('📋 Testing task operations...');
+      
+      if (!db) {
+        log('Database not initialized', 'error');
+        return Promise.resolve(false);
+      }
+      
+      const testTask = {
+        title: 'Test Task - ' + Date.now(),
+        desc: 'Automated test task',
+        coins: 25,
+        type: 'simple',
+        active: true,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      
+      return db.collection('tasks').add(testTask)
+        .then((docRef) => {
+          log(`Task created successfully with ID: ${docRef.id}`);
+          
+          // Clean up - delete the test task
+          return docRef.delete();
+        })
+        .then(() => {
+          log('Test task cleaned up successfully');
+          testResults.tasks = true;
+          
+          return true;
+        })
+        .catch((error) => {
+          log('Task operations test failed: ' + error.message, 'error');
+          
+          if (error.code === 'permission-denied') {
+            log('💡 Permission denied - check Firestore security rules', 'warning');
+          }
+          
+          testResults.tasks = false;
+          return false;
+        });
+    }
+    
+    // Run All Tests
+    function runAllTests() {
+      log('🚀 Running comprehensive system tests...');
+      
+      testFirebaseInit();
+      
+      setTimeout(() => {
+        testAuth();
+      }, 500);
+      
+      setTimeout(() => {
+        testDatabase().then(() => {
+          setTimeout(() => {
+            testTaskOps().then(() => {
+              // Final report
+              setTimeout(() => {
+                log('');
+                log('📊 FINAL TEST RESULTS:');
+                log(`🔥 Firebase Init: ${testResults.firebase ? 'PASS' : 'FAIL'}`);
+                log(`🔐 Authentication: ${testResults.auth ? 'PASS' : 'FAIL'}`);
+                log(`💾 Database: ${testResults.database ? 'PASS' : 'FAIL'}`);
+                log(`📋 Task Operations: ${testResults.tasks ? 'PASS' : 'FAIL'}`);
+                
+                const passedTests = Object.values(testResults).filter(Boolean).length;
+                const totalTests = Object.keys(testResults).length;
+                
+                log(`');
+                log(`🎯 OVERALL SCORE: ${passedTests}/${totalTests} tests passed`);
+                
+                if (passedTests === totalTests) {
+                  log('🎉 ALL SYSTEMS OPERATIONAL! Your app is ready to use.', 'success');
+                } else if (passedTests > 0) {
+                  log('⚠️ Some systems working, check failed tests above', 'warning');
+                } else {
+                  log('❌ System needs attention - multiple failures detected', 'error');
+                }
+              }, 1000);
+            });
+          }, 1000);
+        });
+      }, 1000);
+    }
+    
+    // Auto-start basic tests
+    document.addEventListener('DOMContentLoaded', function() {
+      log('🚀 System debug tool loaded');
+      log('👋 Welcome to Mreward PRO Debug Console');
+      log('');
+      
+      // Auto-run basic tests after 2 seconds
+      setTimeout(() => {
+        log('▶️ Starting automatic tests...');
+        testFirebaseInit();
+        
+        setTimeout(() => {
+          testAuth();
+        }, 1000);
+        
+        setTimeout(() => {
+          testDatabase();
+        }, 2000);
+      }, 2000);
+    });
+    
+    // Handle errors globally
+    window.onerror = function(msg, url, lineNo, columnNo, error) {
+      log(`💥 JavaScript Error: ${msg} at line ${lineNo}`, 'error');
+      return false;
+    };
+    
+    window.addEventListener('unhandledrejection', function(event) {
+      log(`💥 Unhandled Promise Rejection: ${event.reason}`, 'error');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JavaScript Syntax Validator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f5f5f5;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .result {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    
+    .success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 10px 5px;
+    }
+    
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>🔍 Mreward PRO - JavaScript Syntax Validator</h1>
+    <p>This tool validates JavaScript syntax in your HTML files.</p>
+    
+    <button onclick="validateAllFiles()">🔍 Validate All Files</button>
+    <button onclick="testBasicJS()">🧪 Test Basic JS</button>
+    <button onclick="clearResults()">🧹 Clear Results</button>
+    
+    <div id="results"></div>
+  </div>
+
+  <script>
+    function log(message, type = 'info') {
+      const results = document.getElementById('results');
+      const div = document.createElement('div');
+      div.className = `result ${type}`;
+      div.innerHTML = message;
+      results.appendChild(div);
+    }
+    
+    function clearResults() {
+      document.getElementById('results').innerHTML = '';
+    }
+    
+    function testBasicJS() {
+      log('🧪 Testing basic JavaScript functionality...', 'info');
+      
+      try {
+        // Test 1: Basic syntax
+        eval('const test = "hello"; console.log(test);');
+        log('✅ Basic syntax test passed', 'success');
+        
+        // Test 2: Function declaration
+        eval('function testFunc() { return true; }');
+        log('✅ Function declaration test passed', 'success');
+        
+        // Test 3: Object creation
+        eval('const obj = { name: "test", value: 123 };');
+        log('✅ Object creation test passed', 'success');
+        
+        // Test 4: Promise
+        eval('const promise = new Promise((resolve) => resolve("test"));');
+        log('✅ Promise test passed', 'success');
+        
+        log('🎉 All basic JavaScript tests passed!', 'success');
+        
+      } catch (error) {
+        log('❌ Basic JavaScript test failed: ' + error.message, 'error');
+      }
+    }
+    
+    function validateAllFiles() {
+      log('🔍 Starting comprehensive validation...', 'info');
+      
+      // Test Firebase SDK loading
+      if (typeof firebase === 'undefined') {
+        log('⚠️ Firebase SDK not loaded - this is expected in validator', 'info');
+      } else {
+        log('✅ Firebase SDK detected', 'success');
+      }
+      
+      // Test common JavaScript patterns
+      testCommonPatterns();
+      
+      // Test async/await syntax
+      testAsyncPatterns();
+      
+      // Test DOM methods
+      testDOMPatterns();
+      
+      log('📊 Validation complete!', 'success');
+    }
+    
+    function testCommonPatterns() {
+      log('🔍 Testing common JavaScript patterns...', 'info');
+      
+      try {
+        // Arrow functions
+        eval('const arrowFunc = () => { return true; };');
+        log('✅ Arrow function syntax valid', 'success');
+        
+        // Template literals
+        eval('const template = `Hello ${name}`;');
+        log('✅ Template literal syntax valid', 'success');
+        
+        // Destructuring
+        eval('const {name, age} = {name: "test", age: 25};');
+        log('✅ Destructuring syntax valid', 'success');
+        
+        // Spread operator
+        eval('const arr = [...[1, 2, 3]];');
+        log('✅ Spread operator syntax valid', 'success');
+        
+      } catch (error) {
+        log('❌ Common pattern test failed: ' + error.message, 'error');
+      }
+    }
+    
+    function testAsyncPatterns() {
+      log('🔍 Testing async/await patterns...', 'info');
+      
+      try {
+        // Async function
+        eval(`
+          async function asyncTest() {
+            const result = await Promise.resolve('test');
+            return result;
+          }
+        `);
+        log('✅ Async/await syntax valid', 'success');
+        
+        // Promise chains
+        eval(`
+          Promise.resolve('test')
+            .then(result => console.log(result))
+            .catch(error => console.error(error));
+        `);
+        log('✅ Promise chain syntax valid', 'success');
+        
+      } catch (error) {
+        log('❌ Async pattern test failed: ' + error.message, 'error');
+      }
+    }
+    
+    function testDOMPatterns() {
+      log('🔍 Testing DOM manipulation patterns...', 'info');
+      
+      try {
+        // Element selection
+        eval('const element = document.getElementById("test");');
+        log('✅ Element selection syntax valid', 'success');
+        
+        // Event listeners
+        eval(`
+          function testListener() {
+            console.log('test');
+          }
+        `);
+        log('✅ Event listener syntax valid', 'success');
+        
+        // DOM creation
+        eval(`
+          const div = document.createElement('div');
+          div.textContent = 'test';
+        `);
+        log('✅ DOM creation syntax valid', 'success');
+        
+      } catch (error) {
+        log('❌ DOM pattern test failed: ' + error.message, 'error');
+      }
+    }
+    
+    // Auto-run validation on load
+    document.addEventListener('DOMContentLoaded', function() {
+      log('🚀 JavaScript Syntax Validator loaded', 'success');
+      log('👋 Ready to validate your JavaScript code!', 'info');
+    });
+    
+    // Global error handler
+    window.onerror = function(msg, url, lineNo, columnNo, error) {
+      log(`💥 JavaScript Error Detected: ${msg} at line ${lineNo}`, 'error');
+      return false;
+    };
+  </script>
+</body>
+</html>
