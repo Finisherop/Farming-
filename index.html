@@ -1008,7 +1008,105 @@
       document.getElementById(`${tabName}-content`).classList.remove('hidden');
     }
 
-    function generateReferralCode(length = 6) {
+    function updateUI(data, user) {
+      // Safely update UI elements
+      const coinBalance = document.getElementById('coin-balance');
+      const totalTasks = document.getElementById('total-tasks');
+      const totalEarned = document.getElementById('total-earned');
+      const profileCoins = document.getElementById('profile-coins');
+      const refCode = document.getElementById('ref-code');
+      const profileName = document.getElementById('profile-name');
+      const profileEmail = document.getElementById('profile-email');
+      const avatar = document.getElementById('avatar');
+      const dailyStatus = document.getElementById('daily-status');
+      
+      if (coinBalance) coinBalance.textContent = (data.coins || 0).toLocaleString();
+      if (totalTasks) totalTasks.textContent = data.totalTasks || 0;
+      if (totalEarned) totalEarned.textContent = (data.totalEarned || 0).toLocaleString();
+      if (profileCoins) profileCoins.textContent = (data.coins || 0).toLocaleString();
+      
+      // Handle referral code
+      if (refCode) {
+        if (data.referralCode) {
+          refCode.textContent = data.referralCode;
+        } else {
+          refCode.textContent = 'LOADING...';
+          // Generate and save new referral code
+          const newRefCode = generateReferralCode();
+          db.collection('users').doc(user.uid).update({ 
+            referralCode: newRefCode 
+          }).then(() => {
+            refCode.textContent = newRefCode;
+          }).catch(() => {
+            refCode.textContent = newRefCode; // Show anyway
+          });
+        }
+      }
+      
+      // Update profile info
+      if (profileName) profileName.textContent = user.email.split('@')[0];
+      if (profileEmail) profileEmail.textContent = user.email;
+      if (avatar) avatar.textContent = user.email[0].toUpperCase();
+      
+      // Update daily status
+      if (dailyStatus) {
+        const today = new Date().toISOString().slice(0, 10);
+        if (data.lastClaim === today) {
+          dailyStatus.textContent = '✅';
+          const claimBtn = document.getElementById('claim-daily');
+          if (claimBtn) {
+            claimBtn.disabled = true;
+            claimBtn.style.opacity = '0.6';
+            claimBtn.querySelector('#daily-text').textContent = '✅ Claimed Today';
+          }
+        } else {
+          dailyStatus.textContent = '🎁';
+        }
+      }
+    }
+
+    // Enhanced task claiming with better error handling
+    window.claimTask = async function(taskId, coins) {
+      const user = auth.currentUser;
+      if (!user) {
+        showToast('Please sign in first', 'error');
+        return;
+      }
+      
+      try {
+        const userRef = db.collection('users').doc(user.uid);
+        
+        // Use a more robust transaction
+        await db.runTransaction(async (transaction) => {
+          const userDoc = await transaction.get(userRef);
+          const userData = userDoc.data() || {
+            coins: 0,
+            totalTasks: 0,
+            totalEarned: 0
+          };
+          
+          // Calculate new values
+          const newCoins = (userData.coins || 0) + coins;
+          const newTotalTasks = (userData.totalTasks || 0) + 1;
+          const newTotalEarned = (userData.totalEarned || 0) + coins;
+          
+          // Update user document
+          transaction.set(userRef, {
+            coins: newCoins,
+            totalTasks: newTotalTasks,
+            totalEarned: newTotalEarned,
+            email: user.email,
+            lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+        });
+        
+        showEnhancedNotification(`🎉 Task completed! +${coins} coins`, 'success');
+        animateCoinBalance();
+      } catch (error) {
+        console.error('Task claim error:', error);
+        showEnhancedNotification('Error claiming task. Please try again.', 'error');
+      }
+    };
       const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
       let code = '';
       for (let i = 0; i < length; i++) {
@@ -1026,46 +1124,52 @@
         
         document.getElementById('user-info').textContent = `Hi, ${user.email.split('@')[0]}!`;
         
-        // Initialize user data
+        // Initialize user data with proper error handling
         const userRef = db.collection('users').doc(user.uid);
-        await userRef.set({
-          email: user.email,
-          coins: firebase.firestore.FieldValue.increment(0),
-          totalTasks: firebase.firestore.FieldValue.increment(0),
-          totalEarned: firebase.firestore.FieldValue.increment(0)
-        }, { merge: true });
+        
+        // Create user document if it doesn't exist
+        try {
+          await userRef.set({
+            email: user.email,
+            coins: 0,
+            totalTasks: 0,
+            totalEarned: 0,
+            referralCode: generateReferralCode(),
+            lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+        } catch (error) {
+          console.log('User document creation skipped:', error);
+        }
 
-        // Set up real-time listener
-        userRef.onSnapshot(doc => {
-          const data = doc.data() || {};
-          
-          // Update UI
-          document.getElementById('coin-balance').textContent = (data.coins || 0).toLocaleString();
-          document.getElementById('total-tasks').textContent = data.totalTasks || 0;
-          document.getElementById('total-earned').textContent = (data.totalEarned || 0).toLocaleString();
-          document.getElementById('profile-coins').textContent = (data.coins || 0).toLocaleString();
-          
-          // Set referral code
-          if (!data.referralCode) {
-            const refCode = generateReferralCode();
-            userRef.update({ referralCode: refCode });
-            document.getElementById('ref-code').textContent = refCode;
+        // Set up real-time listener with error handling
+        const unsubscribe = userRef.onSnapshot(doc => {
+          if (doc.exists) {
+            const data = doc.data();
+            
+            // Update UI safely
+            updateUI(data, user);
           } else {
-            document.getElementById('ref-code').textContent = data.referralCode;
+            // Document doesn't exist, create it
+            userRef.set({
+              email: user.email,
+              coins: 500, // Welcome bonus
+              totalTasks: 0,
+              totalEarned: 500,
+              referralCode: generateReferralCode(),
+              lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(console.error);
           }
-          
-          // Update profile
-          document.getElementById('profile-name').textContent = user.email.split('@')[0];
-          document.getElementById('profile-email').textContent = user.email;
-          document.getElementById('avatar').textContent = user.email[0].toUpperCase();
-          
-          // Update daily status
-          const today = new Date().toISOString().slice(0, 10);
-          if (data.lastClaim === today) {
-            document.getElementById('daily-status').textContent = '✅';
-          } else {
-            document.getElementById('daily-status').textContent = '🎁';
-          }
+        }, error => {
+          console.error('Firestore listener error:', error);
+          // Fallback to default values
+          updateUI({
+            coins: 0,
+            totalTasks: 0,
+            totalEarned: 0,
+            referralCode: generateReferralCode()
+          }, user);
         });
 
         loadTasks();
@@ -1176,12 +1280,17 @@
             throw new Error('Already claimed today! Come back tomorrow 🌅');
           }
           
-          const newCoins = (userData.coins || 0) + 50;
-          transaction.update(userRef, {
+          const currentCoins = userData.coins || 0;
+          const newCoins = currentCoins + 50;
+          
+          // Update user document with all necessary fields
+          transaction.set(userRef, {
             coins: newCoins,
             lastClaim: today,
-            totalEarned: firebase.firestore.FieldValue.increment(50)
-          });
+            totalEarned: (userData.totalEarned || 0) + 50,
+            email: user.email,
+            lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
         });
         
         // Success animations
@@ -1297,6 +1406,7 @@
         if (!destination) return;
         
         try {
+          // Create withdrawal request with enhanced data
           await db.collection('withdraw_requests').add({
             userId: user.uid,
             email: user.email,
@@ -1304,78 +1414,138 @@
             destination: destination,
             coins: coinsToWithdraw,
             status: 'pending',
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            userName: user.email.split('@')[0]
           });
           
-          await db.collection('users').doc(user.uid).update({
-            coins: currentCoins - coinsToWithdraw
+          // Deduct coins from user account
+          const userRef = db.collection('users').doc(user.uid);
+          await userRef.update({
+            coins: currentCoins - coinsToWithdraw,
+            lastWithdrawal: firebase.firestore.FieldValue.serverTimestamp()
           });
           
-          showToast(`Withdrawal request submitted! Processing ${coinsToWithdraw} coins via ${method}`);
+          showEnhancedNotification(`Withdrawal request submitted! Processing ${coinsToWithdraw} coins via ${method}`, 'success');
         } catch (error) {
-          showToast('Error processing withdrawal', 'error');
+          console.error('Withdrawal error:', error);
+          showEnhancedNotification('Error processing withdrawal request', 'error');
         }
       });
     });
 
-    // Load Tasks
+    // Enhanced Load Tasks with error handling
     async function loadTasks() {
+      const tasksList = document.getElementById('tasks-list');
+      
+      if (!tasksList) return;
+      
+      tasksList.innerHTML = '<div class="small">Loading tasks...</div>';
+      
       try {
-        const tasksSnapshot = await db.collection('tasks').orderBy('coins', 'desc').get();
-        const tasksList = document.getElementById('tasks-list');
+        // Create some default tasks if none exist
+        const tasksSnapshot = await db.collection('tasks').get();
         
         if (tasksSnapshot.empty) {
-          tasksList.innerHTML = '<div class="small">No tasks available at the moment.</div>';
-          return;
+          // Create default tasks
+          const defaultTasks = [
+            {
+              title: 'Watch YouTube Video',
+              desc: 'Watch a 2-minute video and earn coins',
+              coins: 25,
+              active: true,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            },
+            {
+              title: 'Complete Survey',
+              desc: 'Fill out a short 5-question survey',
+              coins: 50,
+              active: true,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            },
+            {
+              title: 'Share on Social Media',
+              desc: 'Share our app on your social media',
+              coins: 30,
+              active: true,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }
+          ];
+          
+          // Add default tasks (this might fail due to permissions, that's OK)
+          for (const task of defaultTasks) {
+            try {
+              await db.collection('tasks').add(task);
+            } catch (error) {
+              console.log('Could not create default task:', error);
+            }
+          }
         }
         
-        tasksList.innerHTML = '';
-        tasksSnapshot.forEach(doc => {
-          const data = doc.data();
-          const taskItem = document.createElement('div');
-          taskItem.className = 'list-item';
-          taskItem.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <div>
-                <strong>${data.title || 'Task'}</strong>
-                <div class="small">${data.desc || 'Complete this task'}</div>
+        // Listen for real-time updates
+        db.collection('tasks').where('active', '==', true).onSnapshot(
+          snapshot => {
+            tasksList.innerHTML = '';
+            
+            if (snapshot.empty) {
+              tasksList.innerHTML = `
+                <div class="card" style="text-align: center; padding: 40px;">
+                  <h3>🎯 No Tasks Available</h3>
+                  <p class="small">Tasks will appear here when added by admin.</p>
+                  <p class="small">Check back later or contact support.</p>
+                </div>
+              `;
+              return;
+            }
+            
+            snapshot.forEach(doc => {
+              const data = doc.data();
+              const taskItem = document.createElement('div');
+              taskItem.className = 'list-item';
+              taskItem.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div style="flex: 1;">
+                    <strong>${escapeHtml(data.title || 'Task')}</strong>
+                    <div class="small">${escapeHtml(data.desc || 'Complete this task to earn coins')}</div>
+                  </div>
+                  <div style="text-align: right; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="color: var(--success); font-weight: 700; font-size: 16px;">+${data.coins || 0} coins</div>
+                    <button class="btn" onclick="claimTask('${doc.id}', ${data.coins || 0})" 
+                            style="font-size: 12px; padding: 8px 16px;">
+                      🎯 Claim Reward
+                    </button>
+                  </div>
+                </div>
+              `;
+              tasksList.appendChild(taskItem);
+            });
+          },
+          error => {
+            console.error('Tasks listener error:', error);
+            tasksList.innerHTML = `
+              <div class="card" style="text-align: center; padding: 20px;">
+                <p class="small">Could not load tasks. Please refresh the page.</p>
+                <button class="btn" onclick="loadTasks()" style="margin-top: 12px;">🔄 Retry</button>
               </div>
-              <div style="text-align: right;">
-                <div style="color: var(--success); font-weight: 700;">+${data.coins || 0} coins</div>
-                <button class="btn" onclick="claimTask('${doc.id}', ${data.coins || 0})" style="margin-top: 4px; font-size: 12px;">Claim</button>
-              </div>
-            </div>
-          `;
-          tasksList.appendChild(taskItem);
-        });
+            `;
+          }
+        );
+        
       } catch (error) {
         console.error('Error loading tasks:', error);
+        tasksList.innerHTML = `
+          <div class="card" style="text-align: center; padding: 20px;">
+            <p class="small">Could not connect to database. Please check your connection.</p>
+            <button class="btn" onclick="loadTasks()" style="margin-top: 12px;">🔄 Retry</button>
+          </div>
+        `;
       }
     }
 
-    // Claim Task
-    window.claimTask = async function(taskId, coins) {
-      const user = auth.currentUser;
-      if (!user) return;
-      
-      try {
-        const userRef = db.collection('users').doc(user.uid);
-        await db.runTransaction(async (transaction) => {
-          const userDoc = await transaction.get(userRef);
-          const userData = userDoc.data() || {};
-          
-          transaction.update(userRef, {
-            coins: firebase.firestore.FieldValue.increment(coins),
-            totalTasks: firebase.firestore.FieldValue.increment(1),
-            totalEarned: firebase.firestore.FieldValue.increment(coins)
-          });
-        });
-        
-        showToast(`🎉 Task completed! +${coins} coins`);
-      } catch (error) {
-        showToast('Error claiming task', 'error');
-      }
-    };
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
 
     // Load Withdrawal History
     async function loadWithdrawHistory(uid) {
