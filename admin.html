@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mreward PRO - Admin Dashboard</title>
+  
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+    
+    .admin-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .admin-header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    
+    .admin-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #667eea;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    
+    .admin-subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 20px;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+    
+    .stat-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .stat-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 8px;
+    }
+    
+    .stat-label {
+      font-size: 14px;
+      color: #666;
+      font-weight: 600;
+    }
+    
+    .admin-section {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      padding: 24px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    .form-label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #333;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e1e8ed;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s ease;
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .btn {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, #51cf66, #40c057);
+    }
+    
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+    
+    .table th,
+    .table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #e1e8ed;
+    }
+    
+    .table th {
+      background: #f8fafc;
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .table tr:hover {
+      background: #f8fafc;
+    }
+    
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .status-pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+    
+    .status-approved {
+      background: #d4edda;
+      color: #155724;
+    }
+    
+    .status-rejected {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 16px 24px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 600;
+      z-index: 1000;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+    
+    .toast.success { background: #51cf66; }
+    .toast.error { background: #ff6b6b; }
+    .toast.info { background: #667eea; }
+    
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    .loading {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+    
+    @media (max-width: 768px) {
+      .admin-container {
+        padding: 10px;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      
+      .admin-section {
+        padding: 16px;
+      }
+      
+      .table {
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="admin-container">
+    <!-- Header -->
+    <div class="admin-header">
+      <h1 class="admin-title">🎯 Mreward PRO Admin Dashboard</h1>
+      <p class="admin-subtitle">Complete control over your rewards platform</p>
+      
+      <!-- Real-time Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="total-users">0</div>
+          <div class="stat-label">👥 Total Users</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="total-coins">0</div>
+          <div class="stat-label">💰 Total Coins</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="total-tasks">0</div>
+          <div class="stat-label">🎯 Active Tasks</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="pending-withdrawals">0</div>
+          <div class="stat-label">💸 Pending Withdrawals</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Task Management -->
+    <div class="admin-section">
+      <h2 class="section-title">🎯 Task Management</h2>
+      
+      <!-- Add New Task Form -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+        <div>
+          <h3 style="margin-bottom: 16px;">➕ Add New Task</h3>
+          <div class="form-group">
+            <label class="form-label">Task Title</label>
+            <input type="text" id="task-title" class="form-input" placeholder="e.g. Watch YouTube Video">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Task Description</label>
+            <input type="text" id="task-desc" class="form-input" placeholder="e.g. Watch a 2-minute video">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Reward (Coins)</label>
+            <input type="number" id="task-coins" class="form-input" placeholder="25" min="1" max="1000">
+          </div>
+          <button class="btn" onclick="addTask()">🎯 Add Task</button>
+        </div>
+        
+        <div>
+          <h3 style="margin-bottom: 16px;">⚡ Quick Actions</h3>
+          <button class="btn btn-success" onclick="loadStats()" style="margin: 8px; width: 200px;">🔄 Refresh Stats</button>
+          <button class="btn" onclick="exportUsers()" style="margin: 8px; width: 200px;">📊 Export Users</button>
+          <button class="btn btn-danger" onclick="clearOldTasks()" style="margin: 8px; width: 200px;">🧹 Clear Old Tasks</button>
+        </div>
+      </div>
+      
+      <!-- Active Tasks List -->
+      <h3>📋 Active Tasks</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Reward</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tasks-tbody">
+          <tr>
+            <td colspan="5" style="text-align: center;">Loading tasks...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- User Management -->
+    <div class="admin-section">
+      <h2 class="section-title">👥 User Management</h2>
+      
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Coins</th>
+            <th>Tasks Completed</th>
+            <th>Total Earned</th>
+            <th>Joined</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody">
+          <tr>
+            <td colspan="6" style="text-align: center;">Loading users...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Withdrawal Requests -->
+    <div class="admin-section">
+      <h2 class="section-title">💸 Withdrawal Requests</h2>
+      
+      <table class="table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Method</th>
+            <th>Amount</th>
+            <th>Destination</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="withdrawals-tbody">
+          <tr>
+            <td colspan="7" style="text-align: center;">Loading withdrawal requests...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- System Settings -->
+    <div class="admin-section">
+      <h2 class="section-title">⚙️ System Settings</h2>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div>
+          <h3 style="margin-bottom: 16px;">💰 Reward Settings</h3>
+          <div class="form-group">
+            <label class="form-label">Daily Reward Amount</label>
+            <input type="number" id="daily-reward" class="form-input" value="50" min="1" max="500">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Referral Bonus</label>
+            <input type="number" id="referral-bonus" class="form-input" value="100" min="1" max="1000">
+          </div>
+          <button class="btn" onclick="updateSettings()">💾 Save Settings</button>
+        </div>
+        
+        <div>
+          <h3 style="margin-bottom: 16px;">🔧 Platform Actions</h3>
+          <button class="btn" onclick="sendNotificationToAll()" style="margin: 8px; width: 100%;">📢 Send Global Notification</button>
+          <button class="btn btn-success" onclick="giveCoinsToAll()" style="margin: 8px; width: 100%;">🎁 Give Bonus to All Users</button>
+          <button class="btn btn-danger" onclick="resetDatabase()" style="margin: 8px; width: 100%;">⚠️ Reset Database</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyBNT7CLJ6QCcsFD_lhcrru3UOEqLmiYc3E",
+      authDomain: "mreward-5e36d.firebaseapp.com",
+      projectId: "mreward-5e36d",
+      storageBucket: "mreward-5e36d.firebasestorage.app",
+      messagingSenderId: "207849836641",
+      appId: "1:207849836641:web:3229c8d3805338fdf49a20"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Utility Functions
+    function showToast(message, type = 'success', duration = 3000) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast ${type}`;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, duration);
+    }
+
+    function formatDate(timestamp) {
+      if (!timestamp) return 'N/A';
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    }
+
+    // Load Statistics
+    async function loadStats() {
+      try {
+        showToast('Refreshing statistics...', 'info');
+
+        // Get users count and total coins
+        const usersSnapshot = await db.collection('users').get();
+        let totalUsers = 0;
+        let totalCoins = 0;
+
+        usersSnapshot.forEach(doc => {
+          const userData = doc.data();
+          totalUsers++;
+          totalCoins += userData.coins || 0;
+        });
+
+        // Get active tasks count
+        const tasksSnapshot = await db.collection('tasks').where('active', '==', true).get();
+        const totalTasks = tasksSnapshot.size;
+
+        // Get pending withdrawals
+        const withdrawalsSnapshot = await db.collection('withdraw_requests').where('status', '==', 'pending').get();
+        const pendingWithdrawals = withdrawalsSnapshot.size;
+
+        // Update UI
+        document.getElementById('total-users').textContent = totalUsers;
+        document.getElementById('total-coins').textContent = totalCoins.toLocaleString();
+        document.getElementById('total-tasks').textContent = totalTasks;
+        document.getElementById('pending-withdrawals').textContent = pendingWithdrawals;
+
+        showToast('Statistics updated successfully!', 'success');
+      } catch (error) {
+        console.error('Error loading stats:', error);
+        showToast('Error loading statistics', 'error');
+      }
+    }
+
+    // Add New Task
+    async function addTask() {
+      const title = document.getElementById('task-title').value.trim();
+      const desc = document.getElementById('task-desc').value.trim();
+      const coins = parseInt(document.getElementById('task-coins').value);
+
+      if (!title || !desc || !coins || coins < 1) {
+        showToast('Please fill all fields with valid data', 'error');
+        return;
+      }
+
+      try {
+        showToast('Adding new task...', 'info');
+
+        await db.collection('tasks').add({
+          title: title,
+          desc: desc,
+          coins: coins,
+          active: true,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Clear form
+        document.getElementById('task-title').value = '';
+        document.getElementById('task-desc').value = '';
+        document.getElementById('task-coins').value = '';
+
+        showToast('Task added successfully!', 'success');
+        loadTasks();
+        loadStats();
+      } catch (error) {
+        console.error('Error adding task:', error);
+        showToast('Error adding task. Check console for details.', 'error');
+      }
+    }
+
+    // Load Tasks
+    function loadTasks() {
+      const tbody = document.getElementById('tasks-tbody');
+      
+      db.collection('tasks').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+        tbody.innerHTML = '';
+
+        if (snapshot.empty) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No tasks found</td></tr>';
+          return;
+        }
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const row = document.createElement('tr');
+          
+          row.innerHTML = `
+            <td><strong>${data.title || 'N/A'}</strong></td>
+            <td>${data.desc || 'N/A'}</td>
+            <td><span style="color: #51cf66; font-weight: 600;">${data.coins || 0} coins</span></td>
+            <td>${formatDate(data.createdAt)}</td>
+            <td>
+              <button class="btn btn-danger" onclick="deleteTask('${doc.id}')" style="padding: 6px 12px; font-size: 12px;">
+                🗑️ Delete
+              </button>
+            </td>
+          `;
+          
+          tbody.appendChild(row);
+        });
+      });
+    }
+
+    // Delete Task
+    async function deleteTask(taskId) {
+      if (!confirm('Are you sure you want to delete this task?')) return;
+
+      try {
+        await db.collection('tasks').doc(taskId).delete();
+        showToast('Task deleted successfully!', 'success');
+        loadStats();
+      } catch (error) {
+        console.error('Error deleting task:', error);
+        showToast('Error deleting task', 'error');
+      }
+    }
+
+    // Load Users
+    function loadUsers() {
+      const tbody = document.getElementById('users-tbody');
+      
+      db.collection('users').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+        tbody.innerHTML = '';
+
+        if (snapshot.empty) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No users found</td></tr>';
+          return;
+        }
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const row = document.createElement('tr');
+          
+          row.innerHTML = `
+            <td>${data.email || 'N/A'}</td>
+            <td><span style="color: #667eea; font-weight: 600;">${(data.coins || 0).toLocaleString()}</span></td>
+            <td>${data.totalTasks || 0}</td>
+            <td><span style="color: #51cf66; font-weight: 600;">${(data.totalEarned || 0).toLocaleString()}</span></td>
+            <td>${formatDate(data.createdAt)}</td>
+            <td>
+              <button class="btn" onclick="giveCoinsToUser('${doc.id}', 100)" style="padding: 6px 12px; font-size: 12px;">
+                💰 +100
+              </button>
+            </td>
+          `;
+          
+          tbody.appendChild(row);
+        });
+      });
+    }
+
+    // Give Coins to User
+    async function giveCoinsToUser(userId, amount) {
+      try {
+        const userRef = db.collection('users').doc(userId);
+        await userRef.update({
+          coins: firebase.firestore.FieldValue.increment(amount),
+          totalEarned: firebase.firestore.FieldValue.increment(amount)
+        });
+        
+        showToast(`${amount} coins added to user!`, 'success');
+        loadStats();
+      } catch (error) {
+        console.error('Error giving coins:', error);
+        showToast('Error adding coins to user', 'error');
+      }
+    }
+
+    // Load Withdrawal Requests
+    function loadWithdrawals() {
+      const tbody = document.getElementById('withdrawals-tbody');
+      
+      db.collection('withdraw_requests').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+        tbody.innerHTML = '';
+
+        if (snapshot.empty) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No withdrawal requests</td></tr>';
+          return;
+        }
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const row = document.createElement('tr');
+          
+          const statusClass = data.status === 'approved' ? 'status-approved' : 
+                             data.status === 'rejected' ? 'status-rejected' : 'status-pending';
+          
+          row.innerHTML = `
+            <td>${data.email || 'N/A'}</td>
+            <td><strong>${data.method || 'N/A'}</strong></td>
+            <td><span style="color: #667eea; font-weight: 600;">${(data.coins || 0).toLocaleString()} coins</span></td>
+            <td>${data.destination || 'N/A'}</td>
+            <td><span class="status-badge ${statusClass}">${data.status || 'pending'}</span></td>
+            <td>${formatDate(data.createdAt)}</td>
+            <td>
+              ${data.status === 'pending' ? `
+                <button class="btn btn-success" onclick="approveWithdrawal('${doc.id}')" style="padding: 4px 8px; font-size: 11px; margin-right: 4px;">
+                  ✅ Approve
+                </button>
+                <button class="btn btn-danger" onclick="rejectWithdrawal('${doc.id}')" style="padding: 4px 8px; font-size: 11px;">
+                  ❌ Reject
+                </button>
+              ` : 'N/A'}
+            </td>
+          `;
+          
+          tbody.appendChild(row);
+        });
+      });
+    }
+
+    // Approve Withdrawal
+    async function approveWithdrawal(requestId) {
+      try {
+        await db.collection('withdraw_requests').doc(requestId).update({
+          status: 'approved',
+          approvedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        showToast('Withdrawal request approved!', 'success');
+        loadStats();
+      } catch (error) {
+        console.error('Error approving withdrawal:', error);
+        showToast('Error approving withdrawal', 'error');
+      }
+    }
+
+    // Reject Withdrawal
+    async function rejectWithdrawal(requestId) {
+      const reason = prompt('Enter rejection reason (optional):');
+      
+      try {
+        const updateData = {
+          status: 'rejected',
+          rejectedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        if (reason) {
+          updateData.rejectionReason = reason;
+        }
+        
+        await db.collection('withdraw_requests').doc(requestId).update(updateData);
+        
+        showToast('Withdrawal request rejected!', 'success');
+        loadStats();
+      } catch (error) {
+        console.error('Error rejecting withdrawal:', error);
+        showToast('Error rejecting withdrawal', 'error');
+      }
+    }
+
+    // Give Bonus to All Users
+    async function giveCoinsToAll() {
+      const amount = prompt('Enter amount of coins to give to ALL users:');
+      if (!amount || isNaN(amount) || parseInt(amount) < 1) return;
+      
+      const coinsAmount = parseInt(amount);
+      
+      if (!confirm(`Are you sure you want to give ${coinsAmount} coins to ALL users?`)) return;
+      
+      try {
+        showToast('Processing bonus for all users...', 'info');
+        
+        const usersSnapshot = await db.collection('users').get();
+        const batch = db.batch();
+        
+        usersSnapshot.forEach(doc => {
+          const userRef = db.collection('users').doc(doc.id);
+          batch.update(userRef, {
+            coins: firebase.firestore.FieldValue.increment(coinsAmount),
+            totalEarned: firebase.firestore.FieldValue.increment(coinsAmount)
+          });
+        });
+        
+        await batch.commit();
+        
+        showToast(`${coinsAmount} coins added to all ${usersSnapshot.size} users!`, 'success');
+        loadStats();
+      } catch (error) {
+        console.error('Error giving coins to all:', error);
+        showToast('Error processing bulk bonus', 'error');
+      }
+    }
+
+    // Export Users Data
+    function exportUsers() {
+      db.collection('users').get().then(snapshot => {
+        let csvContent = "Email,Coins,Total Tasks,Total Earned,Referral Code,Joined\n";
+        
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          csvContent += `"${data.email || ''}","${data.coins || 0}","${data.totalTasks || 0}","${data.totalEarned || 0}","${data.referralCode || ''}","${formatDate(data.createdAt)}"\n`;
+        });
+        
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'mreward_users_' + new Date().toISOString().slice(0, 10) + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        
+        showToast('Users data exported successfully!', 'success');
+      }).catch(error => {
+        console.error('Error exporting users:', error);
+        showToast('Error exporting users data', 'error');
+      });
+    }
+
+    // Clear Old Tasks
+    async function clearOldTasks() {
+      if (!confirm('Are you sure you want to delete all tasks older than 30 days?')) return;
+      
+      try {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        const oldTasksSnapshot = await db.collection('tasks')
+          .where('createdAt', '<', thirtyDaysAgo)
+          .get();
+        
+        if (oldTasksSnapshot.empty) {
+          showToast('No old tasks to delete', 'info');
+          return;
+        }
+        
+        const batch = db.batch();
+        oldTasksSnapshot.forEach(doc => {
+          batch.delete(doc.ref);
+        });
+        
+        await batch.commit();
+        showToast(`${oldTasksSnapshot.size} old tasks deleted!`, 'success');
+        loadStats();
+      } catch (error) {
+        console.error('Error clearing old tasks:', error);
+        showToast('Error clearing old tasks', 'error');
+      }
+    }
+
+    // Initialize Dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+      showToast('Admin Dashboard Loaded Successfully!', 'success');
+      
+      // Load all data
+      loadStats();
+      loadTasks();
+      loadUsers();
+      loadWithdrawals();
+      
+      // Auto-refresh stats every 30 seconds
+      setInterval(loadStats, 30000);
+    });
+
+    // Update Settings
+    function updateSettings() {
+      showToast('Settings updated! (Feature coming soon)', 'info');
+    }
+
+    // Send Global Notification
+    function sendNotificationToAll() {
+      const message = prompt('Enter notification message for all users:');
+      if (message) {
+        showToast('Global notification sent! (Feature coming soon)', 'info');
+      }
+    }
+
+    // Reset Database (Dangerous)
+    function resetDatabase() {
+      const confirmation = prompt('Type "RESET" to confirm database reset (THIS WILL DELETE ALL DATA):');
+      if (confirmation === 'RESET') {
+        showToast('Database reset confirmed! (Feature disabled for safety)', 'error');
+      }
+    }
+  </script>
+</body>
+</html>
