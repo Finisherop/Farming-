@@ -286,16 +286,35 @@
         <div>
           <h3 style="margin-bottom: 16px;">➕ Add New Task</h3>
           <div class="form-group">
+            <label class="form-label">Task Type</label>
+            <select id="task-type" class="form-input" onchange="handleTaskTypeChange()">
+              <option value="simple">Simple Task (No Link)</option>
+              <option value="external">External Link Task</option>
+              <option value="youtube">YouTube Video Task</option>
+              <option value="survey">Survey Task</option>
+              <option value="social">Social Media Task</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label class="form-label">Task Title</label>
             <input type="text" id="task-title" class="form-input" placeholder="e.g. Watch YouTube Video">
           </div>
           <div class="form-group">
             <label class="form-label">Task Description</label>
-            <input type="text" id="task-desc" class="form-input" placeholder="e.g. Watch a 2-minute video">
+            <input type="text" id="task-desc" class="form-input" placeholder="e.g. Watch a 2-minute video and subscribe">
+          </div>
+          <div class="form-group" id="task-link-group" style="display: none;">
+            <label class="form-label">Task Link/URL</label>
+            <input type="url" id="task-link" class="form-input" placeholder="https://youtube.com/watch?v=...">
+            <small style="color: #666; font-size: 12px;">Users will be redirected to this link to complete the task</small>
           </div>
           <div class="form-group">
             <label class="form-label">Reward (Coins)</label>
             <input type="number" id="task-coins" class="form-input" placeholder="25" min="1" max="1000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Task Instructions</label>
+            <textarea id="task-instructions" class="form-input" rows="3" placeholder="Step by step instructions for users..."></textarea>
           </div>
           <button class="btn" onclick="addTask()">🎯 Add Task</button>
         </div>
@@ -313,9 +332,12 @@
       <table class="table">
         <thead>
           <tr>
+            <th>Type</th>
             <th>Title</th>
             <th>Description</th>
+            <th>Link</th>
             <th>Reward</th>
+            <th>Completed</th>
             <th>Created</th>
             <th>Actions</th>
           </tr>
@@ -370,6 +392,33 @@
         <tbody id="withdrawals-tbody">
           <tr>
             <td colspan="7" style="text-align: center;">Loading withdrawal requests...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Task Activities Monitor -->
+    <div class="admin-section">
+      <h2 class="section-title">📊 Task Activities Monitor</h2>
+      
+      <div style="margin-bottom: 20px;">
+        <button class="btn" onclick="loadTaskActivities()" style="margin-right: 10px;">🔄 Refresh Activities</button>
+        <button class="btn" onclick="exportActivities()" style="margin-right: 10px;">📄 Export Activities</button>
+      </div>
+      
+      <table class="table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Task ID</th>
+            <th>Action</th>
+            <th>Coins Earned</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody id="activities-tbody">
+          <tr>
+            <td colspan="5" style="text-align: center;">Loading activities...</td>
           </tr>
         </tbody>
       </table>
@@ -435,7 +484,46 @@
       return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
     }
 
-    // Load Statistics
+    // Handle Task Type Changes
+    function handleTaskTypeChange() {
+      const taskType = document.getElementById('task-type').value;
+      const linkGroup = document.getElementById('task-link-group');
+      const titleInput = document.getElementById('task-title');
+      const descInput = document.getElementById('task-desc');
+      
+      if (taskType === 'simple') {
+        linkGroup.style.display = 'none';
+        titleInput.placeholder = 'e.g. Complete Daily Check-in';
+        descInput.placeholder = 'e.g. Simply claim your daily reward';
+      } else {
+        linkGroup.style.display = 'block';
+        
+        switch(taskType) {
+          case 'youtube':
+            titleInput.placeholder = 'e.g. Watch YouTube Video - Tech Review';
+            descInput.placeholder = 'e.g. Watch full video and subscribe to channel';
+            document.getElementById('task-link').placeholder = 'https://youtube.com/watch?v=...';
+            break;
+          case 'survey':
+            titleInput.placeholder = 'e.g. Complete Product Survey';
+            descInput.placeholder = 'e.g. Answer 10 questions about your preferences';
+            document.getElementById('task-link').placeholder = 'https://forms.google.com/...';
+            break;
+          case 'social':
+            titleInput.placeholder = 'e.g. Follow Instagram Page';
+            descInput.placeholder = 'e.g. Follow our official Instagram account';
+            document.getElementById('task-link').placeholder = 'https://instagram.com/...';
+            break;
+          default:
+            titleInput.placeholder = 'e.g. Visit Website';
+            descInput.placeholder = 'e.g. Visit partner website and explore';
+            document.getElementById('task-link').placeholder = 'https://example.com';
+        }
+      }
+    }
+
+    // Load Statistics with enhanced error handling
+    async function loadStats() {
     async function loadStats() {
       try {
         showToast('Refreshing statistics...', 'info');
@@ -472,43 +560,68 @@
       }
     }
 
-    // Add New Task
+    // Add New Task with enhanced features
     async function addTask() {
+      const taskType = document.getElementById('task-type').value;
       const title = document.getElementById('task-title').value.trim();
       const desc = document.getElementById('task-desc').value.trim();
+      const link = document.getElementById('task-link').value.trim();
       const coins = parseInt(document.getElementById('task-coins').value);
+      const instructions = document.getElementById('task-instructions').value.trim();
 
+      // Validation
       if (!title || !desc || !coins || coins < 1) {
-        showToast('Please fill all fields with valid data', 'error');
+        showToast('Please fill all required fields with valid data', 'error');
+        return;
+      }
+
+      if (taskType !== 'simple' && !link) {
+        showToast('Please provide a valid task link/URL', 'error');
         return;
       }
 
       try {
         showToast('Adding new task...', 'info');
 
-        await db.collection('tasks').add({
+        const taskData = {
           title: title,
           desc: desc,
           coins: coins,
+          type: taskType,
           active: true,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+          instructions: instructions || 'Complete this task to earn coins',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          createdBy: 'admin',
+          completedCount: 0
+        };
+
+        // Add link if not simple task
+        if (taskType !== 'simple') {
+          taskData.link = link;
+        }
+
+        // Add task to database
+        await db.collection('tasks').add(taskData);
 
         // Clear form
+        document.getElementById('task-type').value = 'simple';
         document.getElementById('task-title').value = '';
         document.getElementById('task-desc').value = '';
+        document.getElementById('task-link').value = '';
         document.getElementById('task-coins').value = '';
+        document.getElementById('task-instructions').value = '';
+        document.getElementById('task-link-group').style.display = 'none';
 
-        showToast('Task added successfully!', 'success');
+        showToast(`✅ ${taskType.toUpperCase()} task added successfully!`, 'success');
         loadTasks();
         loadStats();
       } catch (error) {
         console.error('Error adding task:', error);
-        showToast('Error adding task. Check console for details.', 'error');
+        showToast('❌ Error adding task. Check console for details.', 'error');
       }
     }
 
-    // Load Tasks
+    // Load Tasks with enhanced display
     function loadTasks() {
       const tbody = document.getElementById('tasks-tbody');
       
@@ -516,7 +629,7 @@
         tbody.innerHTML = '';
 
         if (snapshot.empty) {
-          tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No tasks found</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No tasks found. Add your first task above!</td></tr>';
           return;
         }
 
@@ -524,10 +637,27 @@
           const data = doc.data();
           const row = document.createElement('tr');
           
+          // Task type badge
+          const typeBadge = {
+            'simple': '🎯 Simple',
+            'external': '🔗 External',
+            'youtube': '📺 YouTube', 
+            'survey': '📋 Survey',
+            'social': '📱 Social'
+          };
+          
+          // Link display
+          const linkDisplay = data.link ? 
+            `<a href="${data.link}" target="_blank" style="color: #667eea; text-decoration: none;">🔗 Open Link</a>` : 
+            'No Link';
+          
           row.innerHTML = `
+            <td><span style="background: #e3f2fd; color: #1976d2; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">${typeBadge[data.type] || '🎯 Task'}</span></td>
             <td><strong>${data.title || 'N/A'}</strong></td>
-            <td>${data.desc || 'N/A'}</td>
+            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${data.desc || 'N/A'}</td>
+            <td>${linkDisplay}</td>
             <td><span style="color: #51cf66; font-weight: 600;">${data.coins || 0} coins</span></td>
+            <td><span style="color: #667eea; font-weight: 600;">${data.completedCount || 0} users</span></td>
             <td>${formatDate(data.createdAt)}</td>
             <td>
               <button class="btn btn-danger" onclick="deleteTask('${doc.id}')" style="padding: 6px 12px; font-size: 12px;">
@@ -538,6 +668,9 @@
           
           tbody.appendChild(row);
         });
+      }, error => {
+        console.error('Error loading tasks:', error);
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: red;">Error loading tasks. Please refresh.</td></tr>';
       });
     }
 
@@ -780,18 +913,88 @@
       }
     }
 
-    // Initialize Dashboard
+    // Load Task Activities
+    function loadTaskActivities() {
+      const tbody = document.getElementById('activities-tbody');
+      
+      db.collection('task_activities')
+        .orderBy('timestamp', 'desc')
+        .limit(50)
+        .onSnapshot(snapshot => {
+        tbody.innerHTML = '';
+
+        if (snapshot.empty) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No task activities found</td></tr>';
+          return;
+        }
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const row = document.createElement('tr');
+          
+          const actionBadge = data.action === 'completed' ? 
+            '<span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 12px; font-size: 12px;">✅ Completed</span>' :
+            '<span style="background: #e3f2fd; color: #1976d2; padding: 4px 8px; border-radius: 12px; font-size: 12px;">👀 Opened</span>';
+          
+          row.innerHTML = `
+            <td>${data.userEmail || 'Unknown'}</td>
+            <td><code style="font-size: 11px;">${doc.data().taskId?.substring(0, 8) || 'N/A'}...</code></td>
+            <td>${actionBadge}</td>
+            <td>${data.coinsEarned ? `<span style="color: #51cf66; font-weight: 600;">+${data.coinsEarned} coins</span>` : 'N/A'}</td>
+            <td>${formatDate(data.timestamp)}</td>
+          `;
+          
+          tbody.appendChild(row);
+        });
+      }, error => {
+        console.error('Error loading task activities:', error);
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Error loading activities</td></tr>';
+      });
+    }
+
+    // Export Activities
+    function exportActivities() {
+      db.collection('task_activities').orderBy('timestamp', 'desc').get().then(snapshot => {
+        let csvContent = "User Email,Task ID,Action,Coins Earned,Timestamp\n";
+        
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          csvContent += `"${data.userEmail || ''}","${data.taskId || ''}","${data.action || ''}","${data.coinsEarned || ''}","${formatDate(data.timestamp)}"\n`;
+        });
+        
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'mreward_task_activities_' + new Date().toISOString().slice(0, 10) + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        
+        showToast('Task activities exported successfully!', 'success');
+      }).catch(error => {
+        console.error('Error exporting activities:', error);
+        showToast('Error exporting activities data', 'error');
+      });
+    }
+
+    // Initialize Dashboard with all components
     document.addEventListener('DOMContentLoaded', function() {
-      showToast('Admin Dashboard Loaded Successfully!', 'success');
+      showToast('🚀 Admin Dashboard Loaded Successfully!', 'success');
       
       // Load all data
       loadStats();
       loadTasks();
       loadUsers();
       loadWithdrawals();
+      loadTaskActivities();
       
       // Auto-refresh stats every 30 seconds
       setInterval(loadStats, 30000);
+      
+      // Auto-refresh activities every 60 seconds
+      setInterval(loadTaskActivities, 60000);
     });
 
     // Update Settings
