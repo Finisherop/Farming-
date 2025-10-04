@@ -6,46 +6,79 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Mreward PRO — Fixed Offerwall & Dynamic Tasks</title><!-- Firebase compat --><script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script><style>
 :root{
-  --bg:#f7fbff; --card:#fff; --muted:#63707a; --accent:#2F80ED; --radius:14px;
+  --bg:#f7fbff; 
+  --card:#fff; 
+  --muted:#63707a; 
+  --accent:#2F80ED; 
+  --success:#27AE60;
+  --warning:#F39C12;
+  --error:#E74C3C;
+  --radius:14px;
+  --shadow:0 8px 24px rgba(32,45,60,0.08);
+  --shadow-light:0 2px 8px rgba(32,45,60,0.04);
 }
 *{box-sizing:border-box;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial;}
 body{background:var(--bg);margin:0;min-height:100vh;display:flex;justify-content:center;padding:18px;padding-bottom:110px}
 #app{width:100%;max-width:520px}
 .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .brand{display:flex;gap:12px;align-items:center}
-.logo{width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,#56CCF2,#2F80ED);display:grid;place-items:center;color:#fff;font-weight:800}
-.h1{margin:0;font-size:18px}
+.logo{width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,#56CCF2,#2F80ED);display:grid;place-items:center;color:#fff;font-weight:800;box-shadow:var(--shadow-light)}
+.h1{margin:0;font-size:18px;font-weight:700}
 .subtitle{color:var(--muted);font-size:13px}
-.card{background:var(--card);border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:0 8px 24px rgba(32,45,60,0.06)}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);border:1px solid rgba(0,0,0,0.02)}
 .small{font-size:13px;color:var(--muted)}
 .form-row{display:flex;flex-direction:column;gap:8px;margin-top:8px}
-.input{padding:10px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);font-size:14px}
-.btn{padding:10px 14px;border-radius:10px;border:none;background:var(--accent);color:white;cursor:pointer}
+.input{padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);font-size:14px;transition:border-color 0.2s ease}
+.input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,128,237,0.1)}
+.btn{padding:12px 16px;border-radius:10px;border:none;background:var(--accent);color:white;cursor:pointer;font-weight:600;transition:all 0.2s ease;font-size:14px}
+.btn:hover{background:#2463D4;transform:translateY(-1px);box-shadow:var(--shadow-light)}
+.btn:active{transform:translateY(0)}
 .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(47,128,237,0.12)}
-.list{max-height:260px;overflow:auto;padding-right:6px}
-.list-item{padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.04);margin-bottom:8px}
-.ref-code{padding:10px;border-radius:10px;background:linear-gradient(180deg,#f0f7ff,#ffffff);border:1px solid rgba(47,128,237,0.06);font-weight:700;letter-spacing:2px}
+.btn.ghost:hover{background:rgba(47,128,237,0.08)}
+.btn.success{background:var(--success)}
+.btn.success:hover{background:#229954}
+.btn.warning{background:var(--warning)}
+.btn.warning:hover{background:#E67E22}
+.list{max-height:300px;overflow:auto;padding-right:6px}
+.list-item{padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.04);margin-bottom:8px;transition:all 0.2s ease;background:#fff}
+.list-item:hover{border-color:rgba(47,128,237,0.1);box-shadow:var(--shadow-light)}
+.ref-code{padding:12px 16px;border-radius:10px;background:linear-gradient(135deg,#f0f7ff,#ffffff);border:1px solid rgba(47,128,237,0.08);font-weight:700;letter-spacing:2px;text-align:center;font-size:16px}
 .profile-row{display:flex;gap:12px;align-items:center}
-.avatar{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#ffd166,#f77f00);display:grid;place-items:center;color:#fff;font-weight:700}
-.ad-box{display:flex;justify-content:center;padding:6px}
+.avatar{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#ffd166,#f77f00);display:grid;place-items:center;color:#fff;font-weight:700;font-size:18px}
+.ad-box{display:flex;justify-content:center;padding:8px}
 
 /* Modal for offerwall */
-.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:1000}
-.modal{width:92%;max-width:760px;background:var(--card);border-radius:12px;padding:8px;box-shadow:0 20px 50px rgba(0,0,0,0.3);height:80vh;display:flex;flex-direction:column}
-.modal .modal-header{display:flex;justify-content:space-between;align-items:center;padding:8px}
-.modal .modal-body{flex:1;overflow:hidden;border-radius:8px}
-.modal iframe{width:100%;height:100%;border:0}
-.modal .close-btn{background:#eee;border-radius:8px;padding:6px 10px;border:none;cursor:pointer}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px)}
+.modal{width:94%;max-width:800px;background:var(--card);border-radius:16px;padding:12px;box-shadow:0 25px 60px rgba(0,0,0,0.4);height:85vh;display:flex;flex-direction:column;animation:modalSlideIn 0.3s ease}
+.modal .modal-header{display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid rgba(0,0,0,0.04)}
+.modal .modal-body{flex:1;overflow:hidden;border-radius:12px;margin-top:8px}
+.modal iframe{width:100%;height:100%;border:0;border-radius:12px}
+.modal .close-btn{background:#f5f5f5;border-radius:8px;padding:8px 12px;border:none;cursor:pointer;font-weight:600;transition:all 0.2s ease}
+.modal .close-btn:hover{background:#e0e0e0;transform:translateY(-1px)}
+
+@keyframes modalSlideIn{
+  from{opacity:0;transform:translateY(20px) scale(0.95)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
 
 /* small toast */
-#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;background:#111;color:#fff;padding:8px 14px;border-radius:8px;display:none;z-index:1100}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:80px;background:#111;color:#fff;padding:12px 20px;border-radius:25px;display:none;z-index:1100;font-weight:600;box-shadow:var(--shadow);animation:toastSlide 0.3s ease}
+
+@keyframes toastSlide{
+  from{opacity:0;transform:translateX(-50%) translateY(20px)}
+  to{opacity:1;transform:translateX(-50%) translateY(0)}
+}
 
 /* Bottom nav */
-.bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:12px;width:100%;max-width:520px;display:flex;gap:8px;padding:8px;background:transparent;z-index:1200}
-.bottom-nav .tab{flex:1;padding:10px;border-radius:12px;background:var(--card);text-align:center;border:1px solid rgba(0,0,0,0.04);cursor:pointer}
-.bottom-nav .tab.active{background:rgba(47,128,237,0.08);border-color:rgba(47,128,237,0.12);color:var(--accent);font-weight:600}
+.bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:12px;width:calc(100% - 24px);max-width:520px;display:flex;gap:6px;padding:8px;background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);border-radius:20px;z-index:1200;box-shadow:var(--shadow)}
+.bottom-nav .tab{flex:1;padding:12px 8px;border-radius:16px;text-align:center;cursor:pointer;transition:all 0.3s ease;font-weight:600;font-size:13px;color:var(--muted)}
+.bottom-nav .tab:hover{background:rgba(47,128,237,0.05);color:var(--accent)}
+.bottom-nav .tab.active{background:var(--accent);color:#fff;box-shadow:var(--shadow-light);transform:translateY(-2px)}
 
-@media(max-width:420px){:root{--radius:12px}}
+@media(max-width:420px){
+  :root{--radius:12px}
+  .bottom-nav .tab{padding:10px 6px;font-size:12px}
+}
 </style><!-- User ad scripts (kept, but they will only show where inserted below) --><script type="text/javascript">
 	atOptions = {
 		'key' : 'dcd1fe8af5a9b6b3ea85f25d84751980',
@@ -263,8 +296,14 @@ const openInNew = document.getElementById('open-in-new');
 const toast = document.getElementById('toast');
 
 /* ===== small helpers ===== */
-function showToast(msg, ms=2500){ toast.textContent = msg; toast.style.display='block'; setTimeout(()=>toast.style.display='none', ms); }
-function showAuth(show){ authPanel.style.display = show ? 'block' : 'none'; }
+function showToast(msg, ms=2500){ 
+  toast.textContent = msg; 
+  toast.style.display='block'; 
+  setTimeout(() => toast.style.display='none', ms); 
+}
+function showAuth(show){ 
+  authPanel.style.display = show ? 'block' : 'none'; 
+}
 const def_placeholder = "// placeholder";
 
 function escapeHtml(s){
@@ -274,34 +313,57 @@ function escapeHtml(s){
 }
 
 /* ===== Tab switching (robust) ===== */
-tabs.forEach(t=>{
-  t.addEventListener('click', ()=>{
-    tabs.forEach(x=>x.classList.remove('active'));
+tabs.forEach(t => {
+  t.addEventListener('click', () => {
+    // Remove active class from all tabs
+    tabs.forEach(x => x.classList.remove('active'));
     t.classList.add('active');
+    
     const tab = t.dataset.tab;
-    Object.values(panels).forEach(p=>p.style.display='none');
-    if(panels[tab]) panels[tab].style.display = 'block';
-    // ensure auth-panel visibility when needed
-    if(tab === 'profile' && !auth.currentUser) showAuth(true);
+    console.log('Switching to tab:', tab);
+    
+    // Hide all panels first
+    Object.values(panels).forEach(p => {
+      if (p) p.style.display = 'none';
+    });
+    
+    // Show selected panel
+    if (panels[tab]) {
+      panels[tab].style.display = 'block';
+      console.log('Showing panel:', tab);
+    } else {
+      console.error('Panel not found for tab:', tab);
+    }
+    
+    // Ensure auth-panel visibility when needed
+    if (tab === 'profile' && !auth.currentUser) {
+      showAuth(true);
+    } else if (auth.currentUser) {
+      showAuth(false);
+    }
   });
 });
 
 /* ===== Auth (email/password) ===== */
-auth.onAuthStateChanged(async user=>{
-  if(user){
+auth.onAuthStateChanged(async user => {
+  if (user) {
     showAuth(false);
-    userArea.innerHTML = '<div class="small">Hi, '+(user.email||'User')+'</div>';
+    userArea.innerHTML = '<div class="small">Hi, ' + (user.email || 'User') + '</div>';
     const userRef = db.collection('users').doc(user.uid);
-    await userRef.set({ email:user.email, displayName:user.displayName||null }, { merge:true });
+    await userRef.set({ 
+      email: user.email, 
+      displayName: user.displayName || null 
+    }, { merge: true });
+    
     // realtime user doc listener
-    userRef.onSnapshot(doc=>{
+    userRef.onSnapshot(doc => {
       const data = doc.data() || {};
       const coins = data.coins || 0;
       coinBalanceEl.textContent = coins;
       profileCoinsEl.textContent = coins;
       refCodeEl.textContent = data.referral_code || generateAndSaveReferral(user.uid);
       avatarEl.textContent = (data.displayName && data.displayName[0].toUpperCase()) || (user.email && user.email[0].toUpperCase()) || 'U';
-      profileNameEl.textContent = data.displayName || (user.email||'User').split('@')[0];
+      profileNameEl.textContent = data.displayName || (user.email || 'User').split('@')[0];
       profileEmailEl.textContent = user.email;
     });
     loadWithdrawHistory(user.uid);
@@ -318,175 +380,316 @@ auth.onAuthStateChanged(async user=>{
   }
 });
 
-signupBtn.addEventListener('click', async ()=>{
+signupBtn.addEventListener('click', async () => {
   const email = emailInput.value.trim();
   const pass = passInput.value;
   authMsg.textContent = '';
-  if(!email || pass.length < 6){ authMsg.textContent = 'Enter valid email & password (min 6 chars)'; return; }
-  try{
+  
+  if (!email || pass.length < 6) { 
+    authMsg.textContent = 'Enter valid email & password (min 6 chars)'; 
+    return; 
+  }
+  
+  try {
     const cred = await auth.createUserWithEmailAndPassword(email, pass);
     const u = cred.user;
-    await db.collection('users').doc(u.uid).set({ email:u.email, coins:0, referral_code: generateReferralCode(6) }, { merge:true });
+    await db.collection('users').doc(u.uid).set({ 
+      email: u.email, 
+      coins: 0, 
+      referral_code: generateReferralCode(6) 
+    }, { merge: true });
     authMsg.textContent = 'Account created — signed in';
-  }catch(e){ authMsg.textContent = e.message; }
+  } catch (e) { 
+    authMsg.textContent = e.message; 
+  }
 });
 
-signinBtn.addEventListener('click', async ()=>{
+signinBtn.addEventListener('click', async () => {
   const email = emailInput.value.trim();
   const pass = passInput.value;
   authMsg.textContent = '';
-  if(!email || pass.length < 6){ authMsg.textContent = 'Enter valid email & password (min 6 chars)'; return; }
-  try{
+  
+  if (!email || pass.length < 6) { 
+    authMsg.textContent = 'Enter valid email & password (min 6 chars)'; 
+    return; 
+  }
+  
+  try {
     await auth.signInWithEmailAndPassword(email, pass);
     authMsg.textContent = 'Signed in';
-  }catch(e){ authMsg.textContent = e.message; }
+  } catch (e) { 
+    authMsg.textContent = e.message; 
+  }
 });
 
-document.getElementById('logout').addEventListener('click', ()=>auth.signOut());
+document.getElementById('logout').addEventListener('click', () => auth.signOut());
 
 /* ===== Referral helpers ===== */
-function generateReferralCode(length=6){
+function generateReferralCode(length = 6) {
   const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-  let code='';
-  for(let i=0;i<length;i++) code += chars.charAt(Math.floor(Math.random()*chars.length));
+  let code = '';
+  for (let i = 0; i < length; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
   return code;
 }
-async function generateAndSaveReferral(uid){
+
+async function generateAndSaveReferral(uid) {
   const userRef = db.collection('users').doc(uid);
   const doc = await userRef.get();
   const data = doc.data() || {};
-  if(data.referral_code) return data.referral_code;
+  if (data.referral_code) return data.referral_code;
+  
   const newCode = generateReferralCode(6);
-  await userRef.set({ referral_code: newCode }, { merge:true });
+  await userRef.set({ referral_code: newCode }, { merge: true });
   return newCode;
 }
 
 /* ===== Load settings (cpagrip url) ===== */
 let cpagripUrl = ''; // lazy-read from Firestore so admin can change
-async function loadSettings(){
-  try{
+async function loadSettings() {
+  try {
     const sdoc = await db.collection('app_settings').doc('settings').get();
     const data = sdoc.exists ? sdoc.data() : null;
-    if(data && data.cpagrip_url) cpagripUrl = data.cpagrip_url;
-  }catch(e){ console.warn('settings load error', e); }
+    if (data && data.cpagrip_url) {
+      cpagripUrl = data.cpagrip_url;
+    }
+  } catch (e) { 
+    console.warn('settings load error', e); 
+  }
 }
 loadSettings();
 
-function isCpagripUrl(url){
-  try{
-    if(!url) return false;
-    const u = new URL(url.indexOf('http')===0 ? url : ('https://'+url));
+function isCpagripUrl(url) {
+  try {
+    if (!url) return false;
+    const u = new URL(url.indexOf('http') === 0 ? url : ('https://' + url));
     return u.hostname.includes('cpagrip') || url.includes('cpagrip');
-  }catch(e){ return url && url.includes('cpagrip'); }
+  } catch (e) { 
+    return url && url.includes('cpagrip'); 
+  }
 }
 
-/* ===== Offerwall modal — lazy load only when user clicks ===== */
-function openOfferUrl(url){
-  if(!url) { showToast('No offer URL configured'); return; }
-  // Normalize
-  if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
-  if(isCpagripUrl(url)){
-    // For CPAGrip we open in new tab (no overlay) as requested
-    window.open(url, '_blank');
+/* ===== Offerwall modal — only open when user specifically clicks on survey/offer tasks ===== */
+function openOfferUrl(url, isSurveyTask = false) {
+  if (!url) { 
+    showToast('No offer URL configured'); 
+    return; 
+  }
+  
+  // Normalize URL
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  
+  // For CPAGrip URLs, only show overlay if it's NOT a survey task
+  // Survey tasks should open CPAGrip in new tab without overlay as requested
+  if (isCpagripUrl(url)) {
+    if (isSurveyTask) {
+      // Open CPAGrip in new tab for survey tasks (no overlay)
+      window.open(url, '_blank');
+      showToast('Survey opened in new tab');
+    } else {
+      // For regular offerwall, still open in new tab
+      window.open(url, '_blank');
+      showToast('Offerwall opened in new tab');
+    }
   } else {
+    // For non-CPAGrip URLs, use modal overlay
     offerIframe.src = url;
     modalBackdrop.style.display = 'flex';
   }
 }
 
-openOfferwallBtn.addEventListener('click', ()=>{
+openOfferwallBtn.addEventListener('click', () => {
   const url = cpagripUrl || '';
-  if(!url){ showToast('Offerwall not configured by admin'); return; }
-  openOfferUrl(url);
+  if (!url) { 
+    showToast('Offerwall not configured by admin'); 
+    return; 
+  }
+  openOfferUrl(url, false); // Regular offerwall, not survey task
 });
 
-closeModal.addEventListener('click', ()=>{
+closeModal.addEventListener('click', () => {
   offerIframe.src = ''; // stops running offer content
   modalBackdrop.style.display = 'none';
 });
-openInNew.addEventListener('click', ()=>{
+
+openInNew.addEventListener('click', () => {
   const url = offerIframe.src || (cpagripUrl || '');
-  if(url) window.open(url, '_blank');
+  if (url) window.open(url, '_blank');
+});
+
+// Add referral sharing functionality
+document.getElementById('copy-ref').addEventListener('click', async () => {
+  const refCode = refCodeEl.textContent;
+  const referralLink = window.location.origin + window.location.pathname + '?ref=' + refCode;
+  
+  try {
+    await navigator.clipboard.writeText(referralLink);
+    showToast('Referral link copied!');
+  } catch (err) {
+    // Fallback for older browsers
+    const textArea = document.createElement('textarea');
+    textArea.value = referralLink;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    showToast('Referral link copied!');
+  }
+});
+
+document.getElementById('share-wa').addEventListener('click', () => {
+  const refCode = refCodeEl.textContent;
+  const referralLink = window.location.origin + window.location.pathname + '?ref=' + refCode;
+  const message = `🎉 Join Mreward PRO and earn coins! Use my referral code: ${refCode} or click: ${referralLink}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+});
+
+document.getElementById('share-tg').addEventListener('click', () => {
+  const refCode = refCodeEl.textContent;
+  const referralLink = window.location.origin + window.location.pathname + '?ref=' + refCode;
+  const message = `🎉 Join Mreward PRO and earn coins! Use my referral code: ${refCode} or click: ${referralLink}`;
+  window.open(`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(message)}`, '_blank');
+});
+
+document.getElementById('share-link').addEventListener('click', () => {
+  const refCode = refCodeEl.textContent;
+  const referralLink = window.location.origin + window.location.pathname + '?ref=' + refCode;
+  
+  if (navigator.share) {
+    navigator.share({
+      title: 'Join Mreward PRO',
+      text: `🎉 Join Mreward PRO and earn coins! Use my referral code: ${refCode}`,
+      url: referralLink
+    });
+  } else {
+    // Fallback - copy to clipboard
+    navigator.clipboard.writeText(referralLink).then(() => {
+      showToast('Referral link copied!');
+    });
+  }
 });
 
 /* ===== Daily reward (transactional) ===== */
-document.getElementById('claim-daily').addEventListener('click', async ()=>{
+document.getElementById('claim-daily').addEventListener('click', async () => {
   const user = auth.currentUser;
-  if(!user){ dailyMsgEl.textContent = 'Please sign in'; return; }
+  if (!user) { 
+    dailyMsgEl.textContent = 'Please sign in'; 
+    return; 
+  }
+  
   const userRef = db.collection('users').doc(user.uid);
-  const today = (new Date()).toISOString().slice(0,10);
-  try{
-    await db.runTransaction(async tx=>{
+  const today = (new Date()).toISOString().slice(0, 10);
+  
+  try {
+    await db.runTransaction(async tx => {
       const snap = await tx.get(userRef);
       const data = snap.data() || {};
-      if(data.lastClaim === today) throw new Error('Already claimed today');
-      const newCoins = (data.coins||0) + 50;
+      if (data.lastClaim === today) {
+        throw new Error('Already claimed today');
+      }
+      const newCoins = (data.coins || 0) + 50;
       tx.update(userRef, { coins: newCoins, lastClaim: today });
     });
     dailyMsgEl.textContent = 'Claimed +50 coins!';
     showToast('+50 coins added');
-  }catch(e){
+  } catch (e) {
     dailyMsgEl.textContent = (e && e.message) || 'Error';
   }
 });
 /* ===== Withdraw flow & history ===== */
-document.querySelectorAll('.withdraw-btn').forEach(btn=>btn.addEventListener('click', async ()=>{
+document.querySelectorAll('.withdraw-btn').forEach(btn => btn.addEventListener('click', async () => {
   const method = btn.dataset.method;
-  const min = parseInt(btn.dataset.min,10);
+  const min = parseInt(btn.dataset.min, 10);
   const user = auth.currentUser;
-  if(!user){ alert('Please sign in'); return; }
+  
+  if (!user) { 
+    alert('Please sign in'); 
+    return; 
+  }
+  
   const userRef = db.collection('users').doc(user.uid);
   const doc = await userRef.get();
   const coins = (doc.data() && doc.data().coins) || 0;
-  if(coins < min){ alert('Insufficient coins'); return; }
-  const amount = prompt('Enter amount to withdraw in coins (min '+min+')');
-  if(!amount) return;
-  const coinsReq = parseInt(amount,10);
-  if(isNaN(coinsReq) || coinsReq < min || coinsReq > coins){ alert('Invalid amount'); return; }
-  const dest = prompt('Enter '+method+' details (UPI id / Paytm number / Bank details)');
-  if(!dest) return;
-  // create withdraw request
-  await db.collection('withdraw_requests').add({
-    userId: user.uid,
-    email: user.email,
-    method, dest, coins: coinsReq,
-    status: 'pending',
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  });
-  // deduct coins locally (or you may prefer admin to deduct on approve)
-  await userRef.update({ coins: coins - coinsReq });
-  showToast('Withdrawal requested');
+  
+  if (coins < min) { 
+    alert(`Insufficient coins. You need at least ${min} coins for ${method} withdrawal.`); 
+    return; 
+  }
+  
+  const amount = prompt(`Enter amount to withdraw in coins (min ${min}):`);
+  if (!amount) return;
+  
+  const coinsReq = parseInt(amount, 10);
+  if (isNaN(coinsReq) || coinsReq < min || coinsReq > coins) { 
+    alert('Invalid amount'); 
+    return; 
+  }
+  
+  const dest = prompt(`Enter ${method} details (UPI id / Paytm number / Bank details):`);
+  if (!dest) return;
+  
+  try {
+    // Create withdraw request
+    await db.collection('withdraw_requests').add({
+      userId: user.uid,
+      email: user.email,
+      method, 
+      dest, 
+      coins: coinsReq,
+      status: 'pending',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    // Deduct coins locally (or you may prefer admin to deduct on approve)
+    await userRef.update({ coins: coins - coinsReq });
+    showToast('Withdrawal requested successfully');
+  } catch (error) {
+    console.error('Withdrawal error:', error);
+    showToast('Error processing withdrawal');
+  }
 }));
 
-async function loadWithdrawHistory(uid){
+async function loadWithdrawHistory(uid) {
   withdrawHistoryEl.innerHTML = '<div class="small">Loading...</div>';
-  const q = db.collection('withdraw_requests').where('userId','==',uid).orderBy('createdAt','desc');
-  q.onSnapshot(snap=>{
-    if(snap.empty){ withdrawHistoryEl.innerHTML = '<div class="small">No requests yet.</div>'; profileWithdrawCount.textContent = '0'; return; }
+  const q = db.collection('withdraw_requests').where('userId', '==', uid).orderBy('createdAt', 'desc');
+  
+  q.onSnapshot(snap => {
+    if (snap.empty) { 
+      withdrawHistoryEl.innerHTML = '<div class="small">No requests yet.</div>'; 
+      profileWithdrawCount.textContent = '0'; 
+      return; 
+    }
+    
     withdrawHistoryEl.innerHTML = '';
     let cnt = 0;
-    snap.forEach(doc=>{
+    snap.forEach(doc => {
       cnt++;
       const data = doc.data();
       const d = new Date((data.createdAt && data.createdAt.toDate && data.createdAt.toDate()) || Date.now());
-      const el = document.createElement('div'); el.className = 'list-item';
-      el.innerHTML = '<div><strong>' + (data.method || '') + ' — ' + (data.coins||0) + ' coins</strong></div><div class="small">'+ d.toLocaleString() + ' • ' + (data.status||'pending') + '</div>';
+      const el = document.createElement('div'); 
+      el.className = 'list-item';
+      el.innerHTML = `<div><strong>${data.method || ''} — ${data.coins || 0} coins</strong></div><div class="small">${d.toLocaleString()} • ${data.status || 'pending'}</div>`;
       withdrawHistoryEl.appendChild(el);
     });
-    profileWithdrawCount.textContent = ''+cnt;
+    profileWithdrawCount.textContent = '' + cnt;
   });
 }
 
 /* ===== Recent activity ===== */
-function loadRecentActivity(uid){
-  const q = db.collection('user_activity').where('userId','==',uid).orderBy('createdAt','desc').limit(20);
-  q.onSnapshot(snap=>{
+function loadRecentActivity(uid) {
+  const q = db.collection('user_activity').where('userId', '==', uid).orderBy('createdAt', 'desc').limit(20);
+  q.onSnapshot(snap => {
     recentActivityEl.innerHTML = '';
-    if(snap.empty){ recentActivityEl.innerHTML = '<div class="small">No activity yet.</div>'; return; }
-    snap.forEach(doc=>{
+    if (snap.empty) { 
+      recentActivityEl.innerHTML = '<div class="small">No activity yet.</div>'; 
+      return; 
+    }
+    snap.forEach(doc => {
       const d = doc.data();
-      const el = document.createElement('div'); el.className='list-item';
-      el.innerHTML = '<div><strong>' + (d.title||'') + '</strong></div><div class="small">'+ (d.notes||'') + '</div>';
+      const el = document.createElement('div'); 
+      el.className = 'list-item';
+      el.innerHTML = `<div><strong>${d.title || ''}</strong></div><div class="small">${d.notes || ''}</div>`;
       recentActivityEl.appendChild(el);
     });
   });
@@ -498,94 +701,161 @@ function loadRecentActivity(uid){
    - desc (string)
    - coins (number)
    - offer_url (optional string) -> if present, will open modal to that URL (or new tab for cpagrip)
+   - task_type (optional string) -> 'survey' for survey tasks, 'offer' for regular offers
 */
-function renderTasks(docs){
+function renderTasks(docs) {
   const tasksList = document.getElementById('tasks-list');
   tasksList.innerHTML = '';
-  if(!docs || docs.length===0){ tasksList.innerHTML = '<div class="small">No tasks yet.</div>'; return; }
-  docs.forEach(doc=>{
+  if (!docs || docs.length === 0) { 
+    tasksList.innerHTML = '<div class="small">No tasks yet.</div>'; 
+    return; 
+  }
+  
+  docs.forEach(doc => {
     const data = doc.data();
-    const el = document.createElement('div'); el.className = 'list-item';
-    const offerBtn = data.offer_url ? `<button class="btn open-offer" data-url="${escapeHtml(data.offer_url)}">Open Offer</button>` : '';
+    const el = document.createElement('div'); 
+    el.className = 'list-item';
+    
+    // Check if this is a survey task
+    const isSurveyTask = data.task_type === 'survey' || (data.title && data.title.toLowerCase().includes('survey'));
+    
+    const offerBtn = data.offer_url ? 
+      `<button class="btn open-offer" data-url="${escapeHtml(data.offer_url)}" data-is-survey="${isSurveyTask}">
+        ${isSurveyTask ? 'Start Survey' : 'Open Offer'}
+      </button>` : '';
+    
     el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center">
-      <div><strong>${escapeHtml(data.title||'Untitled')}</strong><div class="small">${escapeHtml(data.desc||'')}</div></div>
+      <div>
+        <strong>${escapeHtml(data.title || 'Untitled')}</strong>
+        <div class="small">${escapeHtml(data.desc || '')}</div>
+        ${isSurveyTask ? '<div class="small" style="color: #2F80ED;font-weight:600;">📋 Survey Task</div>' : ''}
+      </div>
       <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
-        <div class="small">+${(data.coins||0)} coins</div>
+        <div class="small">+${(data.coins || 0)} coins</div>
         <div>
           ${offerBtn}
-          <button class="btn claim-task" data-id="${doc.id}" data-coins="${(data.coins||0)}">Claim +${(data.coins||0)}</button>
+          <button class="btn claim-task" data-id="${doc.id}" data-coins="${(data.coins || 0)}">Claim +${(data.coins || 0)}</button>
         </div>
       </div>
     </div>`;
     tasksList.appendChild(el);
   });
 
-  // Attach handlers
-  document.querySelectorAll('.open-offer').forEach(b=>{
-    b.addEventListener('click', (ev)=>{
+  // Attach handlers for offer buttons
+  document.querySelectorAll('.open-offer').forEach(b => {
+    b.addEventListener('click', (ev) => {
       const url = ev.target.dataset.url;
-      if(!url) return;
-      openOfferUrl(url);
+      const isSurvey = ev.target.dataset.isSurvey === 'true';
+      if (!url) return;
+      
+      console.log('Opening offer:', url, 'Is Survey:', isSurvey);
+      openOfferUrl(url, isSurvey); // Pass survey flag to openOfferUrl
     });
   });
 
-  document.querySelectorAll('.claim-task').forEach(b=>{
-    b.addEventListener('click', async (ev)=>{
-      const user = auth.currentUser; if(!user){ alert('Sign in first'); return; }
-      const coins = parseInt(ev.target.dataset.coins,10) || 0;
+  // Attach handlers for claim buttons  
+  document.querySelectorAll('.claim-task').forEach(b => {
+    b.addEventListener('click', async (ev) => {
+      const user = auth.currentUser; 
+      if (!user) { 
+        alert('Sign in first'); 
+        return; 
+      }
+      
+      const coins = parseInt(ev.target.dataset.coins, 10) || 0;
       const userRef = db.collection('users').doc(user.uid);
-      // Simple client-side claim (for demo). For production, prefer server-side verification or admin approval.
-      await db.runTransaction(async tx=>{
-        const snap = await tx.get(userRef);
-        const data = snap.data() || {};
-        const newCoins = (data.coins||0) + coins;
-        tx.update(userRef, { coins: newCoins });
-      });
-      // log activity
-      await db.collection('user_activity').add({ userId:user.uid, title:'Task Claimed', notes:'+'+coins+' coins', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-      showToast('Task claimed +'+coins+' coins');
+      
+      try {
+        // Simple client-side claim (for demo). For production, prefer server-side verification or admin approval.
+        await db.runTransaction(async tx => {
+          const snap = await tx.get(userRef);
+          const data = snap.data() || {};
+          const newCoins = (data.coins || 0) + coins;
+          tx.update(userRef, { coins: newCoins });
+        });
+        
+        // log activity
+        await db.collection('user_activity').add({ 
+          userId: user.uid, 
+          title: 'Task Claimed', 
+          notes: '+' + coins + ' coins', 
+          createdAt: firebase.firestore.FieldValue.serverTimestamp() 
+        });
+        
+        showToast('Task claimed +' + coins + ' coins');
+      } catch (error) {
+        console.error('Task claim error:', error);
+        showToast('Error claiming task');
+      }
     });
   });
 }
 
 /* Realtime listener for tasks (dynamic) */
-db.collection('tasks').orderBy('coins','desc').onSnapshot(snapshot=>{
+db.collection('tasks').orderBy('coins', 'desc').onSnapshot(snapshot => {
   renderTasks(snapshot.docs);
-}, err=>{ console.warn('tasks listener err', err); renderTasks([]); });
+}, err => { 
+  console.warn('tasks listener err', err); 
+  renderTasks([]); 
+});
 
 /* ===== Referral on signup from URL param (simple) ===== */
-function handleReferralOnSignup(){
+function handleReferralOnSignup() {
   const params = new URLSearchParams(location.search);
   const ref = params.get('ref');
-  if(!ref) return;
+  if (!ref) return;
   localStorage.setItem('pending_referral', ref);
 }
 handleReferralOnSignup();
 
-auth.onAuthStateChanged(async user=>{
-  if(!user) return;
+auth.onAuthStateChanged(async user => {
+  if (!user) return;
+  
   const pending = localStorage.getItem('pending_referral');
-  if(pending){
-    const q = await db.collection('users').where('referral_code','==',pending).limit(1).get();
-    if(!q.empty){
-      const refDoc = q.docs[0];
-      const refUid = refDoc.id;
-      const batch = db.batch();
-      batch.update(db.collection('users').doc(refUid), { coins: firebase.firestore.FieldValue.increment(100) });
-      batch.update(db.collection('users').doc(user.uid), { coins: firebase.firestore.FieldValue.increment(50), referred_by: pending });
-      await batch.commit();
-      await db.collection('user_activity').add({ userId:refUid, title:'Referral Bonus', notes:'+100 coins for referring '+user.email, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-      localStorage.removeItem('pending_referral');
-      showToast('Referral bonus applied');
+  if (pending) {
+    try {
+      const q = await db.collection('users').where('referral_code', '==', pending).limit(1).get();
+      if (!q.empty) {
+        const refDoc = q.docs[0];
+        const refUid = refDoc.id;
+        const batch = db.batch();
+        batch.update(db.collection('users').doc(refUid), { 
+          coins: firebase.firestore.FieldValue.increment(100) 
+        });
+        batch.update(db.collection('users').doc(user.uid), { 
+          coins: firebase.firestore.FieldValue.increment(50), 
+          referred_by: pending 
+        });
+        await batch.commit();
+        await db.collection('user_activity').add({ 
+          userId: refUid, 
+          title: 'Referral Bonus', 
+          notes: '+100 coins for referring ' + user.email, 
+          createdAt: firebase.firestore.FieldValue.serverTimestamp() 
+        });
+        localStorage.removeItem('pending_referral');
+        showToast('Referral bonus applied! You got 50 coins, referrer got 100!');
+      }
+    } catch (error) {
+      console.error('Referral error:', error);
     }
   }
 });
 
 /* ===== Utility: load initial settings and UI wiring ===== */
-document.addEventListener('DOMContentLoaded', ()=>{
-  // make sure initial tab visible
-  Object.values(panels).forEach(p=>p.style.display='none');
-  panels['tasks'].style.display='block';
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('App loaded');
+  
+  // Make sure initial tab visible
+  Object.values(panels).forEach(p => {
+    if (p) p.style.display = 'none';
+  });
+  if (panels['tasks']) {
+    panels['tasks'].style.display = 'block';
+  }
+  
+  // Initialize UI state
+  showAuth(false); // Will be updated by auth state change
 });
 </script>
 </body>
