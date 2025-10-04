@@ -899,9 +899,16 @@
       appId: "1:207849836641:web:3229c8d3805338fdf49a20"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    // Initialize Firebase with error handling
+    try {
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+      const db = firebase.firestore();
+      console.log('✅ Firebase initialized successfully');
+    } catch (error) {
+      console.error('❌ Firebase initialization error:', error);
+      alert('Firebase connection failed: ' + error.message);
+    }
 
     // UI Elements
     const authContainer = document.getElementById('auth-container');
@@ -1219,10 +1226,12 @@
       }
     });
 
-    // Sign In
+    // Sign In with enhanced debugging
     signinBtn.addEventListener('click', async () => {
       const email = emailInput.value.trim();
       const password = passwordInput.value;
+      
+      console.log('🔐 Attempting sign in with:', email);
       
       if (!email || password.length < 6) {
         authMessage.textContent = 'Please enter valid email and password (min 6 chars)';
@@ -1230,16 +1239,46 @@
         return;
       }
       
+      if (!email.includes('@')) {
+        authMessage.textContent = 'Please enter a valid email address';
+        authMessage.className = 'form-message error';
+        return;
+      }
+      
       try {
         signinBtn.textContent = 'Signing in...';
-        await auth.signInWithEmailAndPassword(email, password);
-        authMessage.textContent = 'Signed in successfully!';
+        signinBtn.disabled = true;
+        authMessage.textContent = 'Connecting to server...';
+        authMessage.className = 'form-message info';
+        
+        console.log('📡 Calling Firebase signInWithEmailAndPassword...');
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        console.log('✅ Sign in successful:', userCredential.user.uid);
+        
+        authMessage.textContent = 'Signed in successfully! Loading app...';
         authMessage.className = 'form-message success';
         showToast('Welcome back! 👋');
+        
       } catch (error) {
-        authMessage.textContent = error.message;
+        console.error('❌ Sign in error:', error);
+        
+        let errorMsg = 'Sign in failed. ';
+        if (error.code === 'auth/user-not-found') {
+          errorMsg = 'No account found with this email. Please sign up first.';
+        } else if (error.code === 'auth/wrong-password') {
+          errorMsg = 'Incorrect password. Please try again.';
+        } else if (error.code === 'auth/invalid-email') {
+          errorMsg = 'Invalid email address format.';
+        } else if (error.code === 'auth/network-request-failed') {
+          errorMsg = 'Network error. Please check your internet connection.';
+        } else {
+          errorMsg += error.message;
+        }
+        
+        authMessage.textContent = errorMsg;
         authMessage.className = 'form-message error';
         signinBtn.textContent = 'Sign In';
+        signinBtn.disabled = false;
       }
     });
 
