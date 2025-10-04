@@ -398,6 +398,100 @@ body {
     width: 100%;
     margin: 0 16px;
   }
+}
+
+/* ===== GAMIFICATION STYLES ===== */
+
+/* Tier System */
+.tier-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tier-bronze { background: linear-gradient(135deg, #cd7f32, #a0522d); color: white; }
+.tier-silver { background: linear-gradient(135deg, #c0c0c0, #999999); color: white; }
+.tier-gold { background: linear-gradient(135deg, #ffd700, #ffb347); color: #8b4513; }
+.tier-platinum { background: linear-gradient(135deg, #e5e4e2, #b8b8b8); color: #2c3e50; }
+
+/* Progress Bar */
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(0,0,0,0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--success));
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+/* Streak Indicator */
+.streak-indicator {
+  text-align: center;
+}
+
+.streak-flame {
+  font-size: 24px;
+  margin-bottom: 4px;
+  animation: flicker 2s infinite alternate;
+}
+
+@keyframes flicker {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.1); }
+}
+
+/* Level Card */
+.level-card {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: 2px solid rgba(255,255,255,0.2);
+}
+
+.level-card .small {
+  color: rgba(255,255,255,0.9);
+}
+
+/* Multiplier Badge */
+.multiplier-badge {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Enhanced Stat Cards */
+.leaderboard-card, .achievements-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.leaderboard-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 25px rgba(255,193,7,0.3);
+  background: linear-gradient(135deg, #ffc107, #ff8f00);
+  color: white;
+}
+
+.achievements-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 25px rgba(156,39,176,0.3);
+  background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+  color: white;
+}
   </style>
   
   <!-- User ad scripts -->
@@ -442,36 +536,64 @@ body {
         </div>
       </div>
 
-      <!-- Tasks Tab Panel -->
+      <!-- Tasks Tab Panel - Enhanced with Gamification -->
       <div id="tasks" class="tab-panel">
+        <!-- User Level & Progress Card -->
+        <div class="card level-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px">
+            <div>
+              <div class="tier-badge" id="user-tier">🥉 BRONZE</div>
+              <div class="small">Level <span id="user-level">1</span> • <span id="tier-progress">0</span>/<span id="tier-target">1000</span> XP</div>
+            </div>
+            <div class="streak-indicator">
+              <div class="streak-flame">🔥</div>
+              <div class="small"><span id="daily-streak">0</span> Day Streak</div>
+            </div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="tier-progress-bar" style="width: 0%"></div>
+          </div>
+        </div>
+
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-value"><span id="coin-balance">0</span></div>
             <div class="stat-label">💰 Total Coins</div>
           </div>
-          <div class="stat-card">
+          <div class="stat-card" id="daily-reward-card">
             <div class="stat-value" id="daily-status">🎁</div>
             <div class="stat-label">Daily Reward</div>
           </div>
-        </div>
-
-        <div class="card">
-          <h3 style="margin:0 0 12px 0">🎁 Daily Reward</h3>
-          <p class="small">Claim your daily bonus coins once every 24 hours.</p>
-          <div style="margin-top:12px">
-            <button id="claim-daily" class="btn success">🎁 Claim Daily Reward</button>
-            <div id="daily-msg" class="small" style="margin-top:12px"></div>
+          <div class="stat-card leaderboard-card" onclick="openLeaderboard()">
+            <div class="stat-value">#<span id="user-rank">--</span></div>
+            <div class="stat-label">🏆 Your Rank</div>
+          </div>
+          <div class="stat-card achievements-card" onclick="openAchievements()">
+            <div class="stat-value"><span id="badge-count">0</span></div>
+            <div class="stat-label">🏅 Badges</div>
           </div>
         </div>
 
         <div class="card">
-          <h3 style="margin:0 0 12px 0">🎯 Available Tasks</h3>
-          <p class="small">Complete tasks and surveys to earn coins instantly.</p>
-          <div id="tasks-list" class="list" style="margin-top:12px">
-            <div class="small">Loading available tasks...</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px">
+            <h3 style="margin: 0">🎁 Daily Rewards</h3>
+            <div class="multiplier-badge" id="coin-multiplier">1x</div>
           </div>
-          <div class="ad-box">
-            <div id="top-ad"></div>
+          <p class="small">Claim daily rewards to maintain your streak and earn bonus XP!</p>
+          <div style="margin-top: 12px">
+            <button id="claim-daily" class="btn success">🎁 Claim Daily Reward (<span id="daily-reward-amount">50</span> coins)</button>
+            <div id="daily-msg" class="small" style="margin-top: 12px"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px">
+            <h3 style="margin: 0">🎯 Personalized Tasks</h3>
+            <button class="btn ghost" onclick="refreshTasks()" style="font-size: 12px">🔄 Refresh</button>
+          </div>
+          <p class="small">AI-curated tasks based on your preferences and success rate.</p>
+          <div id="tasks-list" class="list" style="margin-top: 12px">
+            <div class="small">Loading personalized tasks...</div>
           </div>
         </div>
       </div>
@@ -620,6 +742,42 @@ body {
     </div>
   </nav>
 
+  <!-- Leaderboard Modal -->
+  <div id="leaderboard-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header-new">
+        <h3>🏆 Leaderboards</h3>
+        <button class="close-btn-modal" onclick="closeLeaderboard()">×</button>
+      </div>
+      
+      <!-- Leaderboard Tabs -->
+      <div style="display: flex; gap: 8px; margin-bottom: 16px">
+        <button class="btn ghost leaderboard-tab active" data-type="daily">📅 Daily</button>
+        <button class="btn ghost leaderboard-tab" data-type="weekly">📊 Weekly</button>
+        <button class="btn ghost leaderboard-tab" data-type="alltime">👑 All-Time</button>
+        <button class="btn ghost leaderboard-tab" data-type="referral">🤝 Referrals</button>
+      </div>
+      
+      <div id="leaderboard-content">
+        <div class="small">Loading leaderboard...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Achievements Modal -->
+  <div id="achievements-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header-new">
+        <h3>🏅 Achievements</h3>
+        <button class="close-btn-modal" onclick="closeAchievements()">×</button>
+      </div>
+      
+      <div id="achievements-content">
+        <!-- Achievement badges will be populated here -->
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification -->
   <div id="toast"></div>
 
@@ -673,7 +831,407 @@ body {
     const openInNew = document.getElementById('open-in-new');
     const toast = document.getElementById('toast');
 
-    /* ===== UTILITY FUNCTIONS ===== */
+    /* ===== GAMIFICATION SYSTEM ===== */
+    
+    // Tier Configuration
+    const TIERS = {
+      BRONZE: { name: 'BRONZE', emoji: '🥉', min: 0, max: 999, multiplier: 1.0, class: 'tier-bronze' },
+      SILVER: { name: 'SILVER', emoji: '🥈', min: 1000, max: 4999, multiplier: 1.2, class: 'tier-silver' },
+      GOLD: { name: 'GOLD', emoji: '🥇', min: 5000, max: 14999, multiplier: 1.5, class: 'tier-gold' },
+      PLATINUM: { name: 'PLATINUM', emoji: '💎', min: 15000, max: 999999, multiplier: 2.0, class: 'tier-platinum' }
+    };
+
+    // Achievement Configuration
+    const ACHIEVEMENTS = {
+      'first_task': { icon: '🎯', title: 'First Task', desc: 'Complete your first task', xp: 50, unlocked: false },
+      'streak_7': { icon: '🔥', title: 'Week Warrior', desc: 'Maintain 7-day streak', xp: 100, unlocked: false },
+      'streak_30': { icon: '🚀', title: 'Monthly Master', desc: 'Maintain 30-day streak', xp: 300, unlocked: false },
+      'coins_1000': { icon: '💰', title: 'Coin Collector', desc: 'Earn 1,000 coins', xp: 100, unlocked: false },
+      'coins_10000': { icon: '💎', title: 'Coin Magnate', desc: 'Earn 10,000 coins', xp: 500, unlocked: false },
+      'referral_5': { icon: '🤝', title: 'Friend Bringer', desc: 'Refer 5 friends', xp: 200, unlocked: false },
+      'referral_25': { icon: '👑', title: 'Referral King', desc: 'Refer 25 friends', xp: 1000, unlocked: false },
+      'task_100': { icon: '⭐', title: 'Task Master', desc: 'Complete 100 tasks', xp: 300, unlocked: false },
+      'withdrawal_first': { icon: '🏦', title: 'First Cashout', desc: 'Make your first withdrawal', xp: 150, unlocked: false }
+    };
+
+    // Global gamification variables
+    let userGamificationData = {
+      xp: 0,
+      level: 1,
+      tier: 'BRONZE',
+      dailyStreak: 0,
+      totalTasks: 0,
+      totalReferrals: 0,
+      achievements: [],
+      lastStreakDate: null
+    };
+
+    /* ===== TIER SYSTEM FUNCTIONS ===== */
+    function calculateTierFromXP(xp) {
+      for (const [key, tier] of Object.entries(TIERS)) {
+        if (xp >= tier.min && xp <= tier.max) {
+          return key;
+        }
+      }
+      return 'BRONZE';
+    }
+
+    function updateTierDisplay(userData) {
+      const tier = TIERS[userData.tier || 'BRONZE'];
+      const tierEl = document.getElementById('user-tier');
+      const levelEl = document.getElementById('user-level');
+      const progressEl = document.getElementById('tier-progress');
+      const targetEl = document.getElementById('tier-target');
+      const progressBarEl = document.getElementById('tier-progress-bar');
+      const multiplierEl = document.getElementById('coin-multiplier');
+
+      if (tierEl) {
+        tierEl.textContent = `${tier.emoji} ${tier.name}`;
+        tierEl.className = `tier-badge ${tier.class}`;
+      }
+
+      if (levelEl) levelEl.textContent = userData.level || 1;
+      if (progressEl) progressEl.textContent = userData.xp || 0;
+      if (targetEl) targetEl.textContent = tier.max + 1;
+      if (multiplierEl) multiplierEl.textContent = `${tier.multiplier}x`;
+
+      // Update progress bar
+      if (progressBarEl) {
+        const progress = ((userData.xp || 0) - tier.min) / (tier.max - tier.min + 1) * 100;
+        progressBarEl.style.width = `${Math.min(progress, 100)}%`;
+      }
+    }
+
+    /* ===== STREAK SYSTEM ===== */
+    function updateStreakDisplay(streakDays) {
+      const streakEl = document.getElementById('daily-streak');
+      const streakFlame = document.querySelector('.streak-flame');
+      
+      if (streakEl) streakEl.textContent = streakDays;
+      
+      // Animate flame based on streak
+      if (streakFlame) {
+        if (streakDays >= 7) {
+          streakFlame.style.filter = 'hue-rotate(120deg)'; // Green flame for week+
+        } else if (streakDays >= 3) {
+          streakFlame.style.filter = 'hue-rotate(60deg)'; // Yellow flame for 3+ days
+        } else {
+          streakFlame.style.filter = 'none'; // Normal orange flame
+        }
+      }
+    }
+
+    function calculateStreak(lastStreakDate) {
+      if (!lastStreakDate) return 0;
+      
+      const today = new Date().toISOString().slice(0, 10);
+      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+      
+      if (lastStreakDate === today || lastStreakDate === yesterday) {
+        // Continue existing streak logic from user data
+        return userGamificationData.dailyStreak;
+      } else {
+        // Streak broken
+        return 0;
+      }
+    }
+
+    /* ===== XP & ACHIEVEMENT SYSTEM ===== */
+    async function awardXP(userId, amount, reason) {
+      try {
+        const userRef = db.collection('users').doc(userId);
+        
+        await db.runTransaction(async (transaction) => {
+          const userDoc = await transaction.get(userRef);
+          const userData = userDoc.data() || {};
+          const currentXP = userData.xp || 0;
+          const newXP = currentXP + amount;
+          const newLevel = Math.floor(newXP / 100) + 1; // Every 100 XP = 1 level
+          const newTier = calculateTierFromXP(newXP);
+          
+          transaction.update(userRef, {
+            xp: newXP,
+            level: newLevel,
+            tier: newTier
+          });
+          
+          // Log XP gain activity
+          const activityRef = db.collection('user_activity').doc();
+          transaction.set(activityRef, {
+            userId: userId,
+            title: 'XP Gained',
+            notes: `+${amount} XP - ${reason}`,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        });
+        
+        showNotification(`+${amount} XP earned! 🌟`, 'success');
+        
+        // Check for new achievements
+        await checkAchievements(userId);
+        
+      } catch (error) {
+        console.error('Error awarding XP:', error);
+      }
+    }
+
+    async function checkAchievements(userId) {
+      try {
+        const userDoc = await db.collection('users').doc(userId).get();
+        const userData = userDoc.data() || {};
+        const currentAchievements = userData.achievements || [];
+        
+        const newAchievements = [];
+        
+        // Check each achievement condition
+        for (const [key, achievement] of Object.entries(ACHIEVEMENTS)) {
+          if (currentAchievements.includes(key)) continue; // Already unlocked
+          
+          let unlocked = false;
+          
+          switch (key) {
+            case 'first_task':
+              unlocked = (userData.totalTasks || 0) >= 1;
+              break;
+            case 'streak_7':
+              unlocked = (userData.dailyStreak || 0) >= 7;
+              break;
+            case 'streak_30':
+              unlocked = (userData.dailyStreak || 0) >= 30;
+              break;
+            case 'coins_1000':
+              unlocked = (userData.totalEarned || 0) >= 1000;
+              break;
+            case 'coins_10000':
+              unlocked = (userData.totalEarned || 0) >= 10000;
+              break;
+            case 'referral_5':
+              unlocked = (userData.totalReferrals || 0) >= 5;
+              break;
+            case 'referral_25':
+              unlocked = (userData.totalReferrals || 0) >= 25;
+              break;
+            case 'task_100':
+              unlocked = (userData.totalTasks || 0) >= 100;
+              break;
+            case 'withdrawal_first':
+              unlocked = (userData.totalWithdrawals || 0) >= 1;
+              break;
+          }
+          
+          if (unlocked) {
+            newAchievements.push(key);
+          }
+        }
+        
+        // Award new achievements
+        if (newAchievements.length > 0) {
+          await db.collection('users').doc(userId).update({
+            achievements: firebase.firestore.FieldValue.arrayUnion(...newAchievements)
+          });
+          
+          // Award XP for achievements
+          let totalAchievementXP = 0;
+          newAchievements.forEach(key => {
+            totalAchievementXP += ACHIEVEMENTS[key].xp;
+            showAchievementUnlocked(ACHIEVEMENTS[key]);
+          });
+          
+          if (totalAchievementXP > 0) {
+            await awardXP(userId, totalAchievementXP, 'Achievement unlocked');
+          }
+        }
+        
+      } catch (error) {
+        console.error('Error checking achievements:', error);
+      }
+    }
+
+    function showAchievementUnlocked(achievement) {
+      showNotification(`🏅 Achievement Unlocked: ${achievement.title}!`, 'success');
+      
+      // Update badge count
+      const badgeCountEl = document.getElementById('badge-count');
+      if (badgeCountEl) {
+        const current = parseInt(badgeCountEl.textContent) || 0;
+        badgeCountEl.textContent = current + 1;
+        badgeCountEl.parentElement.classList.add('coin-animation');
+        setTimeout(() => {
+          badgeCountEl.parentElement.classList.remove('coin-animation');
+        }, 600);
+      }
+    }
+
+    /* ===== LEADERBOARD SYSTEM ===== */
+    function openLeaderboard() {
+      const modal = document.getElementById('leaderboard-modal');
+      if (modal) {
+        modal.style.display = 'flex';
+        loadLeaderboard('daily'); // Load default daily leaderboard
+      }
+    }
+
+    function closeLeaderboard() {
+      const modal = document.getElementById('leaderboard-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    async function loadLeaderboard(type) {
+      try {
+        const contentEl = document.getElementById('leaderboard-content');
+        if (!contentEl) return;
+        
+        contentEl.innerHTML = '<div class="small">Loading leaderboard...</div>';
+        
+        // Update active tab
+        document.querySelectorAll('.leaderboard-tab').forEach(tab => {
+          tab.classList.remove('active');
+          if (tab.dataset.type === type) {
+            tab.classList.add('active');
+          }
+        });
+        
+        let query;
+        const now = new Date();
+        
+        switch (type) {
+          case 'daily':
+            const today = now.toISOString().slice(0, 10);
+            query = db.collection('leaderboard_daily').where('date', '==', today).orderBy('coins', 'desc').limit(10);
+            break;
+          case 'weekly':
+            const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
+            query = db.collection('leaderboard_weekly').where('weekStart', '==', weekStart.toISOString().slice(0, 10)).orderBy('coins', 'desc').limit(10);
+            break;
+          case 'alltime':
+            query = db.collection('users').orderBy('totalEarned', 'desc').limit(10);
+            break;
+          case 'referral':
+            query = db.collection('users').orderBy('totalReferrals', 'desc').limit(10);
+            break;
+        }
+        
+        const snapshot = await query.get();
+        
+        if (snapshot.empty) {
+          contentEl.innerHTML = '<div class="small">No data available yet. Be the first!</div>';
+          return;
+        }
+        
+        let html = '';
+        let rank = 1;
+        
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const rankClass = rank <= 3 ? `rank-${rank}` : 'rank-other';
+          const displayValue = type === 'referral' ? (data.totalReferrals || 0) : (data.coins || data.totalEarned || 0);
+          const metric = type === 'referral' ? 'referrals' : 'coins';
+          
+          html += `
+            <div class="leaderboard-item">
+              <div class="leaderboard-rank ${rankClass}">${rank}</div>
+              <div style="flex: 1">
+                <div style="font-weight: 600">${escapeHtml(data.displayName || data.email?.split('@')[0] || 'Anonymous')}</div>
+                <div class="small">${displayValue.toLocaleString()} ${metric}</div>
+              </div>
+              ${data.tier ? `<div class="tier-badge ${TIERS[data.tier]?.class || 'tier-bronze'}">${TIERS[data.tier]?.emoji || '🥉'}</div>` : ''}
+            </div>
+          `;
+          rank++;
+        });
+        
+        contentEl.innerHTML = html;
+        
+      } catch (error) {
+        console.error('Error loading leaderboard:', error);
+        const contentEl = document.getElementById('leaderboard-content');
+        if (contentEl) contentEl.innerHTML = '<div class="small">Error loading leaderboard</div>';
+      }
+    }
+
+    // Attach leaderboard tab listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.leaderboard-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          loadLeaderboard(tab.dataset.type);
+        });
+      });
+    });
+
+    /* ===== ACHIEVEMENTS MODAL ===== */
+    function openAchievements() {
+      const modal = document.getElementById('achievements-modal');
+      if (modal) {
+        modal.style.display = 'flex';
+        loadAchievements();
+      }
+    }
+
+    function closeAchievements() {
+      const modal = document.getElementById('achievements-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    async function loadAchievements() {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+        
+        const userDoc = await db.collection('users').doc(user.uid).get();
+        const userData = userDoc.data() || {};
+        const unlockedAchievements = userData.achievements || [];
+        
+        const contentEl = document.getElementById('achievements-content');
+        if (!contentEl) return;
+        
+        let html = '';
+        
+        for (const [key, achievement] of Object.entries(ACHIEVEMENTS)) {
+          const isUnlocked = unlockedAchievements.includes(key);
+          const badgeClass = isUnlocked ? 'achievement-unlocked' : '';
+          const opacity = isUnlocked ? '1' : '0.5';
+          
+          html += `
+            <div class="achievement-badge ${badgeClass}" style="opacity: ${opacity}">
+              <div class="achievement-icon">${achievement.icon}</div>
+              <div style="flex: 1">
+                <div style="font-weight: 600">${achievement.title}</div>
+                <div class="small">${achievement.desc}</div>
+              </div>
+              <div class="xp-badge">+${achievement.xp} XP</div>
+            </div>
+          `;
+        }
+        
+        contentEl.innerHTML = html;
+        
+      } catch (error) {
+        console.error('Error loading achievements:', error);
+      }
+    }
+
+    /* ===== ENHANCED NOTIFICATION SYSTEM ===== */
+    function showNotification(message, type = 'info', duration = 3000) {
+      // Remove existing notifications
+      document.querySelectorAll('.notification').forEach(n => n.remove());
+      
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+      
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.remove();
+      }, duration);
+    }
+
+    /* ===== TASK REFRESH FUNCTION ===== */
+    function refreshTasks() {
+      showNotification('Refreshing personalized tasks...', 'info');
+      // This will trigger the existing task listener to reload
+      // In future, we can add AI-based filtering here
+    }
     function showToast(msg, ms = 3000) {
       toast.textContent = msg;
       toast.style.display = 'block';
@@ -749,9 +1307,47 @@ body {
             const data = doc.data() || {};
             const coins = data.coins || 0;
             
-            // Update coin displays
+            // Update coin displays with animation
+            const currentCoins = parseInt(coinBalanceEl.textContent.replace(/,/g, '')) || 0;
+            if (coins > currentCoins) {
+              coinBalanceEl.parentElement.classList.add('coin-animation');
+              setTimeout(() => {
+                coinBalanceEl.parentElement.classList.remove('coin-animation');
+              }, 600);
+            }
+            
             coinBalanceEl.textContent = coins.toLocaleString();
             profileCoinsEl.textContent = coins.toLocaleString();
+            
+            // Update gamification data
+            userGamificationData = {
+              xp: data.xp || 0,
+              level: data.level || 1,
+              tier: data.tier || 'BRONZE',
+              dailyStreak: data.dailyStreak || 0,
+              totalTasks: data.totalTasks || 0,
+              totalReferrals: data.totalReferrals || 0,
+              achievements: data.achievements || [],
+              lastStreakDate: data.lastStreakDate
+            };
+            
+            // Update displays
+            updateTierDisplay(data);
+            updateStreakDisplay(data.dailyStreak || 0);
+            
+            // Update badge count
+            const badgeCountEl = document.getElementById('badge-count');
+            if (badgeCountEl) {
+              badgeCountEl.textContent = (data.achievements || []).length;
+            }
+            
+            // Update user rank (simplified - in production, use proper ranking)
+            const userRankEl = document.getElementById('user-rank');
+            if (userRankEl) {
+              // This is a simplified ranking - in production, calculate from leaderboard
+              const rank = Math.max(1, Math.floor((data.totalEarned || 0) / 1000) + 1);
+              userRankEl.textContent = rank > 999 ? '999+' : rank;
+            }
             
             // Update referral code
             const refCode = data.referral_code || generateAndSaveReferral(user.uid);
@@ -763,13 +1359,24 @@ body {
             profileNameEl.textContent = displayName;
             profileEmailEl.textContent = user.email;
             
-            // Update daily status
+            // Update daily status and reward amount
             const today = new Date().toISOString().slice(0, 10);
             const lastClaim = data.lastClaim;
+            const tier = TIERS[data.tier || 'BRONZE'];
+            const baseReward = 50;
+            const multipliedReward = Math.floor(baseReward * tier.multiplier);
+            
+            const dailyRewardAmountEl = document.getElementById('daily-reward-amount');
+            if (dailyRewardAmountEl) {
+              dailyRewardAmountEl.textContent = multipliedReward;
+            }
+            
             if (lastClaim === today) {
               dailyStatusEl.textContent = '✅';
+              document.getElementById('daily-reward-card').style.opacity = '0.7';
             } else {
               dailyStatusEl.textContent = '🎁';
+              document.getElementById('daily-reward-card').style.opacity = '1';
             }
           });
 
@@ -1034,7 +1641,7 @@ body {
       }
     });
 
-    /* ===== DAILY REWARD - ENHANCED ===== */
+    /* ===== ENHANCED DAILY REWARD SYSTEM ===== */
     document.getElementById('claim-daily').addEventListener('click', async () => {
       const user = auth.currentUser;
       if (!user) {
@@ -1058,12 +1665,39 @@ body {
           }
           
           const currentCoins = userData.coins || 0;
-          const bonusCoins = 50;
-          const newCoins = currentCoins + bonusCoins;
+          const currentStreak = userData.dailyStreak || 0;
+          const lastStreakDate = userData.lastStreakDate;
+          
+          // Calculate streak
+          const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+          let newStreak = 1;
+          
+          if (lastStreakDate === yesterday) {
+            newStreak = currentStreak + 1;
+          } else if (lastStreakDate === today) {
+            newStreak = currentStreak; // Already claimed today
+          }
+          
+          // Calculate reward with tier multiplier
+          const tier = TIERS[userData.tier || 'BRONZE'];
+          const baseReward = 50;
+          const streakBonus = Math.min(newStreak * 5, 100); // Max 100 bonus coins
+          const totalReward = Math.floor((baseReward + streakBonus) * tier.multiplier);
+          
+          const newCoins = currentCoins + totalReward;
+          
+          // XP rewards
+          const baseXP = 10;
+          const streakXPBonus = newStreak >= 7 ? 20 : 0;
+          const totalXP = baseXP + streakXPBonus;
           
           transaction.update(userRef, {
             coins: newCoins,
-            lastClaim: today
+            lastClaim: today,
+            dailyStreak: newStreak,
+            lastStreakDate: today,
+            xp: firebase.firestore.FieldValue.increment(totalXP),
+            totalEarned: firebase.firestore.FieldValue.increment(totalReward)
           });
           
           // Log activity
@@ -1071,13 +1705,24 @@ body {
           transaction.set(activityRef, {
             userId: user.uid,
             title: 'Daily Reward Claimed',
-            notes: `+${bonusCoins} coins`,
+            notes: `+${totalReward} coins, +${totalXP} XP (Day ${newStreak})`,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
         });
         
-        dailyMsgEl.textContent = 'Daily reward claimed! +50 coins 🎉';
-        showToast('🎁 Daily reward claimed! +50 coins');
+        const tier = TIERS[userGamificationData.tier || 'BRONZE'];
+        const baseReward = 50;
+        const streakBonus = Math.min(userGamificationData.dailyStreak * 5, 100);
+        const totalReward = Math.floor((baseReward + streakBonus) * tier.multiplier);
+        
+        dailyMsgEl.textContent = `Daily reward claimed! +${totalReward} coins 🎉`;
+        showNotification(`🎁 Daily reward claimed! +${totalReward} coins`, 'success');
+        
+        // Award XP
+        await awardXP(user.uid, 10, 'Daily login');
+        
+        // Check achievements
+        await checkAchievements(user.uid);
         
       } catch (error) {
         console.error('Daily claim error:', error);
@@ -1241,7 +1886,7 @@ body {
       }
     }
 
-    /* ===== DYNAMIC TASKS SYSTEM ===== */
+    /* ===== ENHANCED DYNAMIC TASKS SYSTEM ===== */
     function renderTasks(taskDocs) {
       const tasksList = document.getElementById('tasks-list');
       tasksList.innerHTML = '';
@@ -1256,23 +1901,49 @@ body {
         const element = document.createElement('div');
         element.className = 'list-item';
         
+        // Calculate difficulty based on coin reward
+        let difficulty = 'easy';
+        let difficultyClass = 'difficulty-easy';
+        if (data.coins >= 100) {
+          difficulty = 'hard';
+          difficultyClass = 'difficulty-hard';
+        } else if (data.coins >= 50) {
+          difficulty = 'medium';
+          difficultyClass = 'difficulty-medium';
+        }
+        
+        // Simulate success rate (in production, calculate from user completion data)
+        const successRate = Math.max(60, Math.min(95, 90 - Math.floor(data.coins / 20)));
+        
+        // Calculate coin reward with user's tier multiplier
+        const tier = TIERS[userGamificationData.tier || 'BRONZE'];
+        const multipliedCoins = Math.floor((data.coins || 0) * tier.multiplier);
+        const xpReward = Math.floor((data.coins || 0) / 10) + 5;
+        
         const offerButton = data.offer_url ? 
-          `<button class="btn ghost open-offer" data-url="${escapeHtml(data.offer_url)}" style="margin-right: 8px">
-             📋 Start Task
+          `<button class="btn ghost open-offer" data-url="${escapeHtml(data.offer_url)}" style="margin-right: 8px; font-size: 12px">
+             📋 Start Survey
            </button>` : '';
         
         element.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px">
             <div style="flex: 1">
-              <strong>${escapeHtml(data.title || 'Untitled Task')}</strong>
-              <div class="small">${escapeHtml(data.desc || 'No description available')}</div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px">
+                <strong>${escapeHtml(data.title || 'Untitled Task')}</strong>
+                <div class="task-difficulty ${difficultyClass}">${difficulty}</div>
+              </div>
+              <div class="small" style="margin-bottom: 6px">${escapeHtml(data.desc || 'Complete this task to earn coins')}</div>
+              <div style="display: flex; gap: 12px; align-items: center">
+                <div class="success-rate">📊 ${successRate}% success</div>
+                <div class="xp-badge">+${xpReward} XP</div>
+              </div>
             </div>
             <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end">
-              <div style="color: var(--success); font-weight: 700">+${(data.coins || 0)} coins</div>
-              <div style="display: flex; gap: 8px">
+              <div style="color: var(--success); font-weight: 700; font-size: 16px">+${multipliedCoins} coins</div>
+              <div style="display: flex; gap: 8px; align-items: center">
                 ${offerButton}
-                <button class="btn success claim-task" data-id="${doc.id}" data-coins="${(data.coins || 0)}">
-                  🎁 Claim +${(data.coins || 0)}
+                <button class="btn success claim-task" data-id="${doc.id}" data-coins="${(data.coins || 0)}" style="font-size: 12px">
+                  🎁 Claim
                 </button>
               </div>
             </div>
@@ -1327,21 +1998,40 @@ body {
               const userDoc = await transaction.get(userRef);
               const userData = userDoc.data() || {};
               const currentCoins = userData.coins || 0;
-              const newCoins = currentCoins + coins;
+              const tier = TIERS[userData.tier || 'BRONZE'];
               
-              transaction.update(userRef, { coins: newCoins });
+              // Apply tier multiplier to task rewards
+              const multipliedCoins = Math.floor(coins * tier.multiplier);
+              const newCoins = currentCoins + multipliedCoins;
+              
+              // XP calculation
+              const taskXP = Math.floor(coins / 10) + 5; // Base 5 XP + bonus based on coin reward
+              
+              transaction.update(userRef, { 
+                coins: newCoins,
+                totalTasks: firebase.firestore.FieldValue.increment(1),
+                totalEarned: firebase.firestore.FieldValue.increment(multipliedCoins),
+                xp: firebase.firestore.FieldValue.increment(taskXP)
+              });
               
               // Log the task completion activity
               const activityRef = db.collection('user_activity').doc();
               transaction.set(activityRef, {
                 userId: user.uid,
                 title: 'Task Completed',
-                notes: `+${coins} coins earned`,
+                notes: `+${multipliedCoins} coins, +${taskXP} XP`,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
               });
             });
             
-            showToast(`🎉 Task completed! +${coins} coins earned`);
+            const tier = TIERS[userGamificationData.tier || 'BRONZE'];
+            const multipliedCoins = Math.floor(coins * tier.multiplier);
+            const taskXP = Math.floor(coins / 10) + 5;
+            
+            showNotification(`🎉 Task completed! +${multipliedCoins} coins, +${taskXP} XP`, 'success');
+            
+            // Check achievements
+            await checkAchievements(user.uid);
             
           } catch (error) {
             console.error('Task claim error:', error);
