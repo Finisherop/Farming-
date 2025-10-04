@@ -3,13 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Mreward PRO</title>
+  <title>Mreward PRO - Premium Rewards Platform</title>
   
   <!-- PWA Meta Tags for Native App Feel -->
   <meta name="theme-color" content="#667eea">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="mobile-web-app-capable" content="yes">
+  <meta name="description" content="Earn real money by completing tasks, referring friends, and claiming daily rewards. Native Android app experience on web.">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23667eea'/><text x='50' y='65' font-size='40' font-weight='bold' text-anchor='middle' fill='white'>MR</text></svg>">
   
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -439,6 +443,218 @@
       display: none;
     }
 
+    /* Enhanced Features */
+    .pulse {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .bounce {
+      animation: bounce 1s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 20%, 53%, 80%, 100% { transform: translate3d(0,0,0); }
+      40%, 43% { transform: translate3d(0,-30px,0); }
+      70% { transform: translate3d(0,-15px,0); }
+      90% { transform: translate3d(0,-4px,0); }
+    }
+
+    .shake {
+      animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+    }
+
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-1px, 0, 0); }
+      20%, 80% { transform: translate3d(2px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+      40%, 60% { transform: translate3d(4px, 0, 0); }
+    }
+
+    /* Loading Animation */
+    .loading-dots::after {
+      content: '';
+      animation: loading-dots 1.4s infinite;
+    }
+
+    @keyframes loading-dots {
+      0%, 80%, 100% { content: ''; }
+      40% { content: '.'; }
+      60% { content: '..'; }
+      80% { content: '...'; }
+    }
+
+    /* Success Checkmark Animation */
+    .checkmark {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      transform: rotate(45deg);
+    }
+
+    .checkmark::before {
+      content: '';
+      position: absolute;
+      width: 3px;
+      height: 9px;
+      background-color: var(--success);
+      left: 11px;
+      top: 6px;
+    }
+
+    .checkmark::after {
+      content: '';
+      position: absolute;
+      width: 6px;
+      height: 3px;
+      background-color: var(--success);
+      left: 8px;
+      top: 12px;
+    }
+
+    /* Enhanced Notifications */
+    .notification-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10001;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .notification {
+      min-width: 300px;
+      padding: 16px;
+      border-radius: var(--radius);
+      color: white;
+      font-weight: 500;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: slideInRight 0.3s ease-out;
+    }
+
+    .notification.success { background: var(--success); }
+    .notification.error { background: var(--error); }
+    .notification.info { background: var(--primary); }
+
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Enhanced Stats Cards */
+    .stat-card-enhanced {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 24px;
+      border-radius: var(--radius);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .stat-card-enhanced:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    }
+
+    .stat-card-enhanced::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.6s ease;
+    }
+
+    .stat-card-enhanced:hover::before {
+      transform: translateX(100%);
+    }
+
+    /* Enhanced Buttons */
+    .btn-enhanced {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: var(--radius);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-enhanced::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .btn-enhanced:hover::before {
+      left: 100%;
+    }
+
+    .btn-enhanced:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    /* Coin Animation */
+    .coin-flip {
+      animation: coinFlip 0.6s ease-in-out;
+    }
+
+    @keyframes coinFlip {
+      0% { transform: rotateY(0deg); }
+      50% { transform: rotateY(180deg) scale(1.1); }
+      100% { transform: rotateY(360deg); }
+    }
+
+    /* Responsive Enhancements */
+    @media (max-width: 480px) {
+      .notification-container {
+        left: 10px;
+        right: 10px;
+        top: 10px;
+      }
+      
+      .notification {
+        min-width: auto;
+      }
+    }
+
+    /* Dark Mode Support */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background: #1a202c;
+        --surface: #2d3748;
+        --text-primary: #f7fafc;
+        --text-secondary: #a0aec0;
+        --border: #4a5568;
+      }
+    }
+
     .toast.success { background: var(--success); }
     .toast.error { background: var(--error); }
   </style>
@@ -490,33 +706,68 @@
       <!-- Home Tab -->
       <div id="home-content" class="tab-content">
         <div class="stats-grid">
-          <div class="stat-card">
+          <div class="stat-card-enhanced" onclick="animateCoinBalance()">
             <div class="stat-value"><span id="coin-balance">0</span></div>
             <div class="stat-label">💰 Total Coins</div>
           </div>
-          <div class="stat-card">
+          <div class="stat-card-enhanced">
             <div class="stat-value" id="daily-status">🎁</div>
             <div class="stat-label">Daily Reward</div>
           </div>
         </div>
 
         <div class="card">
-          <h3 style="margin: 0 0 16px 0">🎁 Daily Reward</h3>
+          <h3 style="margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+            <span class="pulse">🎁</span> Daily Reward
+          </h3>
           <p class="small">Claim your daily bonus coins once every 24 hours.</p>
-          <button id="claim-daily" class="btn success" style="margin-top: 12px;">🎁 Claim Daily Reward</button>
-          <div id="daily-msg" class="small" style="margin-top: 12px;"></div>
+          <button id="claim-daily" class="btn-enhanced" style="margin-top: 16px; width: 100%;">
+            <span class="loading-dots" id="daily-loading" style="display: none;">Claiming</span>
+            <span id="daily-text">🎁 Claim Daily Reward</span>
+          </button>
+          <div id="daily-msg" class="small" style="margin-top: 12px; text-align: center;"></div>
         </div>
 
         <div class="card">
-          <h3 style="margin: 0 0 16px 0">📊 Quick Stats</h3>
+          <h3 style="margin: 0 0 16px 0;">📊 Quick Stats</h3>
           <div class="stats-grid">
-            <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: var(--radius);">
-              <div style="font-size: 20px; font-weight: 700; color: var(--primary);" id="total-tasks">0</div>
-              <div class="small">Tasks Completed</div>
+            <div class="stat-card-enhanced" style="background: linear-gradient(135deg, #10b981, #059669);">
+              <div class="stat-value" id="total-tasks">0</div>
+              <div class="stat-label">Tasks Completed</div>
             </div>
-            <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: var(--radius);">
-              <div style="font-size: 20px; font-weight: 700; color: var(--success);" id="total-earned">0</div>
-              <div class="small">Total Earned</div>
+            <div class="stat-card-enhanced" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+              <div class="stat-value" id="total-earned">0</div>
+              <div class="stat-label">Total Earned</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature Highlights -->
+        <div class="card" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+          <h3 style="margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+            ✨ Premium Features
+          </h3>
+          <div style="display: grid; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 24px;">🎯</span>
+              <div>
+                <strong>Smart Tasks</strong>
+                <div style="font-size: 13px; opacity: 0.9;">AI-curated tasks for maximum earnings</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 24px;">🤝</span>
+              <div>
+                <strong>Referral Bonuses</strong>
+                <div style="font-size: 13px; opacity: 0.9;">Earn 100 coins per successful referral</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 24px;">💸</span>
+              <div>
+                <strong>Instant Withdrawals</strong>
+                <div style="font-size: 13px; opacity: 0.9;">UPI, Paytm, Bank - Multiple options</div>
+              </div>
             </div>
           </div>
         </div>
@@ -663,13 +914,88 @@
     const navItems = document.querySelectorAll('.nav-item');
     const tabContents = document.querySelectorAll('.tab-content');
     
-    // Utility Functions
+    // Enhanced Utility Functions
     function showToast(message, type = 'success', duration = 3000) {
+      // Remove existing toast if any
+      const existingToast = document.getElementById('toast');
+      if (existingToast.style.display === 'block') {
+        existingToast.style.display = 'none';
+      }
+      
       const toast = document.getElementById('toast');
       toast.textContent = message;
       toast.className = `toast ${type}`;
       toast.style.display = 'block';
-      setTimeout(() => { toast.style.display = 'none'; }, duration);
+      
+      // Add entrance animation
+      toast.style.transform = 'translateX(-50%) translateY(-20px)';
+      toast.style.opacity = '0';
+      
+      setTimeout(() => {
+        toast.style.transform = 'translateX(-50%) translateY(0)';
+        toast.style.opacity = '1';
+      }, 10);
+      
+      setTimeout(() => { 
+        toast.style.opacity = '0';
+        setTimeout(() => toast.style.display = 'none', 300);
+      }, duration);
+    }
+
+    function showEnhancedNotification(message, type = 'success', duration = 4000) {
+      const container = document.getElementById('notification-container') || createNotificationContainer();
+      
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      
+      const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+      notification.innerHTML = `
+        <span style="font-size: 18px;">${icon}</span>
+        <span>${message}</span>
+      `;
+      
+      container.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.animation = 'slideInRight 0.3s ease-out reverse';
+        setTimeout(() => notification.remove(), 300);
+      }, duration);
+    }
+
+    function createNotificationContainer() {
+      const container = document.createElement('div');
+      container.id = 'notification-container';
+      container.className = 'notification-container';
+      document.body.appendChild(container);
+      return container;
+    }
+
+    function animateCoinBalance() {
+      const coinElement = document.getElementById('coin-balance');
+      coinElement.classList.add('coin-flip');
+      setTimeout(() => {
+        coinElement.classList.remove('coin-flip');
+      }, 600);
+    }
+
+    function addBounceEffect(elementId) {
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.classList.add('bounce');
+        setTimeout(() => {
+          element.classList.remove('bounce');
+        }, 1000);
+      }
+    }
+
+    function addShakeEffect(elementId) {
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.classList.add('shake');
+        setTimeout(() => {
+          element.classList.remove('shake');
+        }, 500);
+      }
     }
 
     function switchTab(tabName) {
@@ -819,15 +1145,29 @@
       });
     });
 
-    // Daily Reward
+    // Enhanced Daily Reward with Animations
     document.getElementById('claim-daily').addEventListener('click', async () => {
       const user = auth.currentUser;
-      if (!user) return;
+      if (!user) {
+        addShakeEffect('claim-daily');
+        showToast('Please sign in first', 'error');
+        return;
+      }
       
       const userRef = db.collection('users').doc(user.uid);
       const today = new Date().toISOString().slice(0, 10);
       
+      const claimBtn = document.getElementById('claim-daily');
+      const loadingSpan = document.getElementById('daily-loading');
+      const textSpan = document.getElementById('daily-text');
+      const msgDiv = document.getElementById('daily-msg');
+      
       try {
+        // Show loading state
+        claimBtn.disabled = true;
+        loadingSpan.style.display = 'inline';
+        textSpan.style.display = 'none';
+        
         await db.runTransaction(async (transaction) => {
           const userDoc = await transaction.get(userRef);
           const userData = userDoc.data() || {};
@@ -844,10 +1184,44 @@
           });
         });
         
-        document.getElementById('daily-msg').textContent = 'Daily reward claimed! +50 coins 🎉';
-        showToast('🎁 Daily reward claimed! +50 coins');
+        // Success animations
+        loadingSpan.style.display = 'none';
+        textSpan.textContent = '✅ Claimed Successfully!';
+        textSpan.style.display = 'inline';
+        
+        msgDiv.textContent = 'Daily reward claimed! +50 coins 🎉';
+        msgDiv.style.color = 'var(--success)';
+        msgDiv.style.fontWeight = '600';
+        
+        // Animate coin balance
+        animateCoinBalance();
+        addBounceEffect('daily-status');
+        
+        // Show enhanced notification
+        showEnhancedNotification('🎁 Daily reward claimed! +50 coins', 'success');
+        
+        // Update daily status
+        document.getElementById('daily-status').textContent = '✅';
+        
+        setTimeout(() => {
+          textSpan.textContent = '🎁 Claimed for Today';
+          claimBtn.disabled = true;
+          claimBtn.style.opacity = '0.6';
+        }, 2000);
+        
       } catch (error) {
-        document.getElementById('daily-msg').textContent = error.message;
+        // Error handling with animations
+        loadingSpan.style.display = 'none';
+        textSpan.style.display = 'inline';
+        textSpan.textContent = '🎁 Claim Daily Reward';
+        
+        msgDiv.textContent = error.message;
+        msgDiv.style.color = 'var(--error)';
+        
+        addShakeEffect('claim-daily');
+        showEnhancedNotification(error.message, 'error');
+        
+        claimBtn.disabled = false;
       }
     });
 
