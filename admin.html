@@ -456,7 +456,7 @@
   <div id="toast" class="toast"></div>
 
   <script>
-    // Firebase Configuration
+    // Firebase Configuration with enhanced error handling
     const firebaseConfig = {
       apiKey: "AIzaSyBNT7CLJ6QCcsFD_lhcrru3UOEqLmiYc3E",
       authDomain: "mreward-5e36d.firebaseapp.com",
@@ -466,8 +466,23 @@
       appId: "1:207849836641:web:3229c8d3805338fdf49a20"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    // Initialize Firebase with error handling
+    try {
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+      console.log('✅ Firebase initialized successfully for admin panel');
+      
+      // Test database connection
+      db.enableNetwork().then(() => {
+        console.log('✅ Firestore network enabled');
+      }).catch(error => {
+        console.error('⚠️ Firestore network error:', error);
+      });
+      
+    } catch (error) {
+      console.error('❌ Firebase initialization error:', error);
+      alert('Firebase connection failed: ' + error.message);
+    }
 
     // Utility Functions
     function showToast(message, type = 'success', duration = 3000) {
@@ -560,8 +575,10 @@
       }
     }
 
-    // Add New Task with enhanced features
+    // Add New Task with enhanced features and debugging
     async function addTask() {
+      console.log('📋 Starting addTask function...');
+      
       const taskType = document.getElementById('task-type').value;
       const title = document.getElementById('task-title').value.trim();
       const desc = document.getElementById('task-desc').value.trim();
@@ -569,18 +586,23 @@
       const coins = parseInt(document.getElementById('task-coins').value);
       const instructions = document.getElementById('task-instructions').value.trim();
 
+      console.log('📝 Form data:', { taskType, title, desc, link, coins, instructions });
+
       // Validation
       if (!title || !desc || !coins || coins < 1) {
+        console.error('❌ Validation failed: Missing required fields');
         showToast('Please fill all required fields with valid data', 'error');
         return;
       }
 
       if (taskType !== 'simple' && !link) {
+        console.error('❌ Validation failed: Missing link for external task');
         showToast('Please provide a valid task link/URL', 'error');
         return;
       }
 
       try {
+        console.log('📡 Attempting to add task to database...');
         showToast('Adding new task...', 'info');
 
         const taskData = {
@@ -598,10 +620,14 @@
         // Add link if not simple task
         if (taskType !== 'simple') {
           taskData.link = link;
+          console.log('🔗 Added link to task data:', link);
         }
 
+        console.log('💾 Final task data:', taskData);
+
         // Add task to database
-        await db.collection('tasks').add(taskData);
+        const docRef = await db.collection('tasks').add(taskData);
+        console.log('✅ Task added successfully with ID:', docRef.id);
 
         // Clear form
         document.getElementById('task-type').value = 'simple';
@@ -611,13 +637,34 @@
         document.getElementById('task-coins').value = '';
         document.getElementById('task-instructions').value = '';
         document.getElementById('task-link-group').style.display = 'none';
+        
+        console.log('🧹 Form cleared successfully');
 
-        showToast(`✅ ${taskType.toUpperCase()} task added successfully!`, 'success');
-        loadTasks();
-        loadStats();
+        showToast(`✅ ${taskType.toUpperCase()} task "${title}" added successfully!`, 'success');
+        
+        // Force refresh data
+        setTimeout(() => {
+          console.log('🔄 Refreshing data...');
+          loadTasks();
+          loadStats();
+        }, 1000);
+        
       } catch (error) {
-        console.error('Error adding task:', error);
-        showToast('❌ Error adding task. Check console for details.', 'error');
+        console.error('❌ Error adding task:', error);
+        
+        let errorMessage = 'Error adding task: ';
+        if (error.code === 'permission-denied') {
+          errorMessage = '❌ Permission denied. Please check Firestore security rules.';
+        } else if (error.code === 'unavailable') {
+          errorMessage = '❌ Database unavailable. Please check your connection.';
+        } else {
+          errorMessage += error.message;
+        }
+        
+        showToast(errorMessage, 'error');
+        
+        // Alert for debugging
+        alert('Debug Info:\nError Code: ' + (error.code || 'unknown') + '\nError Message: ' + error.message);
       }
     }
 
