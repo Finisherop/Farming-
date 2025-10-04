@@ -1065,7 +1065,7 @@
       }
     }
 
-    // Enhanced task claiming with better error handling
+    // Enhanced task claiming with better error handling and tracking
     window.claimTask = async function(taskId, coins) {
       const user = auth.currentUser;
       if (!user) {
@@ -1074,16 +1074,23 @@
       }
       
       try {
+        showEnhancedNotification('Processing task claim...', 'info');
+        
         const userRef = db.collection('users').doc(user.uid);
+        const taskRef = db.collection('tasks').doc(taskId);
         
         // Use a more robust transaction
         await db.runTransaction(async (transaction) => {
           const userDoc = await transaction.get(userRef);
+          const taskDoc = await transaction.get(taskRef);
+          
           const userData = userDoc.data() || {
             coins: 0,
             totalTasks: 0,
             totalEarned: 0
           };
+          
+          const taskData = taskDoc.data() || {};
           
           // Calculate new values
           const newCoins = (userData.coins || 0) + coins;
@@ -1096,17 +1103,46 @@
             totalTasks: newTotalTasks,
             totalEarned: newTotalEarned,
             email: user.email,
-            lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+            lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+            lastTaskCompleted: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+          
+          // Update task completion count
+          transaction.set(taskRef, {
+            completedCount: (taskData.completedCount || 0) + 1,
+            lastCompleted: firebase.firestore.FieldValue.serverTimestamp()
           }, { merge: true });
         });
         
-        showEnhancedNotification(`🎉 Task completed! +${coins} coins`, 'success');
+        // Track task completion
+        await db.collection('task_activities').add({
+          userId: user.uid,
+          userEmail: user.email,
+          taskId: taskId,
+          action: 'completed',
+          coinsEarned: coins,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        showEnhancedNotification(`🎉 Task completed successfully! +${coins} coins earned`, 'success');
         animateCoinBalance();
+        addBounceEffect(document.getElementById('coin-balance'));
+        
       } catch (error) {
         console.error('Task claim error:', error);
-        showEnhancedNotification('Error claiming task. Please try again.', 'error');
+        
+        // More specific error messages
+        if (error.message.includes('permission')) {
+          showEnhancedNotification('Permission denied. Please contact support.', 'error');
+        } else if (error.message.includes('network')) {
+          showEnhancedNotification('Network error. Please check your connection.', 'error');
+        } else {
+          showEnhancedNotification('Error claiming task. Please try again.', 'error');
+        }
       }
-    };
+    }
+    
+    function generateReferralCode(length = 6) {
       const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
       let code = '';
       for (let i = 0; i < length; i++) {
@@ -1501,18 +1537,56 @@
               const data = doc.data();
               const taskItem = document.createElement('div');
               taskItem.className = 'list-item';
-              taskItem.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <div style="flex: 1;">
-                    <strong>${escapeHtml(data.title || 'Task')}</strong>
-                    <div class="small">${escapeHtml(data.desc || 'Complete this task to earn coins')}</div>
-                  </div>
-                  <div style="text-align: right; display: flex; flex-direction: column; gap: 8px;">
-                    <div style="color: var(--success); font-weight: 700; font-size: 16px;">+${data.coins || 0} coins</div>
-                    <button class="btn" onclick="claimTask('${doc.id}', ${data.coins || 0})" 
-                            style="font-size: 12px; padding: 8px 16px;">
-                      🎯 Claim Reward
+              
+              // Task type icons and styles
+              const taskIcons = {
+                'simple': '🎯',
+                'external': '🔗',
+                'youtube': '📺',
+                'survey': '📋',
+                'social': '📱'
+              };
+              
+              const taskIcon = taskIcons[data.type] || '🎯';
+              
+              // Create task buttons based on type
+              let taskButtons = '';
+              if (data.link && data.type !== 'simple') {
+                taskButtons = `
+                  <div style="display: flex; gap: 8px; flex-direction: column;">
+                    <button class="btn" onclick="openTaskLink('${data.link}', '${doc.id}', '${data.type}')" 
+                            style="font-size: 12px; padding: 8px 16px; background: linear-gradient(135deg, #667eea, #764ba2);">
+                      ${taskIcon} Open ${data.type === 'youtube' ? 'Video' : data.type === 'survey' ? 'Survey' : 'Link'}
                     </button>
+                    <button class="btn" onclick="claimTask('${doc.id}', ${data.coins || 0})" 
+                            style="font-size: 12px; padding: 8px 16px; background: linear-gradient(135deg, #51cf66, #40c057);">
+                      🎁 Claim ${data.coins || 0} Coins
+                    </button>
+                  </div>
+                `;
+              } else {
+                taskButtons = `
+                  <button class="btn" onclick="claimTask('${doc.id}', ${data.coins || 0})" 
+                          style="font-size: 12px; padding: 8px 16px;">
+                    ${taskIcon} Claim ${data.coins || 0} Coins
+                  </button>
+                `;
+              }
+              
+              taskItem.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+                  <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                      <span style="font-size: 18px;">${taskIcon}</span>
+                      <strong>${escapeHtml(data.title || 'Task')}</strong>
+                      ${data.type !== 'simple' ? '<span style="background: #e3f2fd; color: #1976d2; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 600; margin-left: 8px;">' + (data.type || 'external').toUpperCase() + '</span>' : ''}
+                    </div>
+                    <div class="small" style="margin-bottom: 4px;">${escapeHtml(data.desc || 'Complete this task to earn coins')}</div>
+                    ${data.instructions ? `<div class="small" style="color: #666; font-style: italic;">💡 ${escapeHtml(data.instructions)}</div>` : ''}
+                  </div>
+                  <div style="text-align: right; display: flex; flex-direction: column; gap: 8px; min-width: 140px;">
+                    <div style="color: var(--success); font-weight: 700; font-size: 16px;">+${data.coins || 0} coins</div>
+                    ${taskButtons}
                   </div>
                 </div>
               `;
@@ -1540,6 +1614,56 @@
         `;
       }
     }
+
+    }
+
+    // Open Task Link Function
+    window.openTaskLink = function(link, taskId, taskType) {
+      if (!link) {
+        showEnhancedNotification('No link available for this task', 'error');
+        return;
+      }
+      
+      // Track task opening
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          db.collection('task_activities').add({
+            userId: user.uid,
+            taskId: taskId,
+            action: 'opened',
+            taskType: taskType,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+          }).catch(console.error);
+        }
+      } catch (error) {
+        console.error('Error tracking task activity:', error);
+      }
+      
+      // Show instruction based on task type
+      let instruction = '';
+      switch(taskType) {
+        case 'youtube':
+          instruction = '📺 Watch the full video, like and subscribe. Then come back to claim your reward!';
+          break;
+        case 'survey':
+          instruction = '📋 Complete all survey questions honestly. Return here after submission!';
+          break;
+        case 'social':
+          instruction = '📱 Follow/Like the social media page. Come back to claim coins!';
+          break;
+        default:
+          instruction = '🔗 Complete the task on the website, then return to claim your reward!';
+      }
+      
+      showEnhancedNotification(instruction, 'info', 5000);
+      
+      // Open link in new tab
+      const newWindow = window.open(link, '_blank');
+      if (!newWindow) {
+        showEnhancedNotification('Please allow popups to open task links', 'error');
+      }
+    };
 
     function escapeHtml(text) {
       const div = document.createElement('div');
