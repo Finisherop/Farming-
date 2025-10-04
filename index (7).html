@@ -1,0 +1,592 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Mreward PRO — Fixed Offerwall & Dynamic Tasks</title><!-- Firebase compat --><script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script><style>
+:root{
+  --bg:#f7fbff; --card:#fff; --muted:#63707a; --accent:#2F80ED; --radius:14px;
+}
+*{box-sizing:border-box;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial;}
+body{background:var(--bg);margin:0;min-height:100vh;display:flex;justify-content:center;padding:18px;padding-bottom:110px}
+#app{width:100%;max-width:520px}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,#56CCF2,#2F80ED);display:grid;place-items:center;color:#fff;font-weight:800}
+.h1{margin:0;font-size:18px}
+.subtitle{color:var(--muted);font-size:13px}
+.card{background:var(--card);border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:0 8px 24px rgba(32,45,60,0.06)}
+.small{font-size:13px;color:var(--muted)}
+.form-row{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.input{padding:10px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);font-size:14px}
+.btn{padding:10px 14px;border-radius:10px;border:none;background:var(--accent);color:white;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(47,128,237,0.12)}
+.list{max-height:260px;overflow:auto;padding-right:6px}
+.list-item{padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.04);margin-bottom:8px}
+.ref-code{padding:10px;border-radius:10px;background:linear-gradient(180deg,#f0f7ff,#ffffff);border:1px solid rgba(47,128,237,0.06);font-weight:700;letter-spacing:2px}
+.profile-row{display:flex;gap:12px;align-items:center}
+.avatar{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#ffd166,#f77f00);display:grid;place-items:center;color:#fff;font-weight:700}
+.ad-box{display:flex;justify-content:center;padding:6px}
+
+/* Modal for offerwall */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:1000}
+.modal{width:92%;max-width:760px;background:var(--card);border-radius:12px;padding:8px;box-shadow:0 20px 50px rgba(0,0,0,0.3);height:80vh;display:flex;flex-direction:column}
+.modal .modal-header{display:flex;justify-content:space-between;align-items:center;padding:8px}
+.modal .modal-body{flex:1;overflow:hidden;border-radius:8px}
+.modal iframe{width:100%;height:100%;border:0}
+.modal .close-btn{background:#eee;border-radius:8px;padding:6px 10px;border:none;cursor:pointer}
+
+/* small toast */
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;background:#111;color:#fff;padding:8px 14px;border-radius:8px;display:none;z-index:1100}
+
+/* Bottom nav */
+.bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:12px;width:100%;max-width:520px;display:flex;gap:8px;padding:8px;background:transparent;z-index:1200}
+.bottom-nav .tab{flex:1;padding:10px;border-radius:12px;background:var(--card);text-align:center;border:1px solid rgba(0,0,0,0.04);cursor:pointer}
+.bottom-nav .tab.active{background:rgba(47,128,237,0.08);border-color:rgba(47,128,237,0.12);color:var(--accent);font-weight:600}
+
+@media(max-width:420px){:root{--radius:12px}}
+</style><!-- User ad scripts (kept, but they will only show where inserted below) --><script type="text/javascript">
+	atOptions = {
+		'key' : 'dcd1fe8af5a9b6b3ea85f25d84751980',
+		'format' : 'iframe',
+		'height' : 50,
+		'width' : 320,
+		'params' : {}
+	};
+</script><script type="text/javascript" src="//www.highperformanceformat.com/dcd1fe8af5a9b6b3ea85f25d84751980/invoke.js"></script><script type="text/javascript" src="https://singingfiles.com/script_include.php?id=1847459"></script></head>
+<body>
+<div id="app">
+  <header class="header">
+    <div class="brand">
+      <div class="logo">MR</div>
+      <div>
+        <h1 class="h1">Mreward PRO</h1>
+        <div class="subtitle">Friendly rewards — light theme ✨</div>
+      </div>
+    </div>
+    <div id="user-area"></div>
+  </header>  <div class="card">
+    <!-- Tabs moved to bottom navigation (footer) --><div id="content-area">
+  <div id="auth-panel" class="card" style="display:none">
+    <h3 style="margin:0 0 8px 0">Sign in / Sign up</h3>
+    <div class="form-row">
+      <input id="email" class="input" placeholder="Email" type="email" />
+      <input id="password" class="input" placeholder="Password (min 6 chars)" type="password" />
+      <div style="display:flex;gap:8px">
+        <button id="signin-btn" class="btn">Sign In</button>
+        <button id="signup-btn" class="btn ghost">Sign Up</button>
+      </div>
+      <div id="auth-msg" class="small" style="min-height:18px"></div>
+    </div>
+  </div>
+
+  <div id="tasks" class="tab-panel">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="small">Total Coins</div>
+        <div style="font-weight:700;font-size:20px"><span id="coin-balance">0</span> 💰</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 8px 0">Daily Reward</h3>
+      <p class="small">Claim once per day.</p>
+      <div style="margin-top:8px">
+        <button id="claim-daily" class="btn">Claim Daily</button>
+        <div id="daily-msg" class="small" style="margin-top:8px"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 8px 0">Tasks & Offerwall</h3>
+      <p class="small">Complete offers to earn coins. (Admin adds tasks in Firestore)</p>
+      <div id="tasks-list" class="list" style="margin-top:8px">
+        <div class="small">Loading tasks…</div>
+      </div>
+      <div class="ad-box"><div id="top-ad"></div></div>
+    </div>
+  </div>
+
+  <div id="referral" class="tab-panel" style="display:none">
+    <div class="card">
+      <h3 style="margin:0 0 8px 0">Your Referral</h3>
+      <p class="small">Share link or code and earn bonuses.</p>
+
+      <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+        <div class="ref-code" id="ref-code">LOADING</div>
+        <button id="copy-ref" class="btn ghost">Copy</button>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <div class="btn ghost" id="share-wa">📱 WhatsApp</div>
+        <div class="btn ghost" id="share-tg">✈️ Telegram</div>
+        <div class="btn ghost" id="share-link">🔗 Link</div>
+        <div class="btn" id="open-offerwall">Open Offerwall</div>
+      </div>
+
+      <div style="margin-top:12px" class="ad-box">
+        <div style="width:100%;height:60px;border-radius:10px;overflow:hidden;background:#f3f7ff;display:grid;place-items:center">
+          <div class="small">Offerwall will open on click (no auto-open)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="withdraw" class="tab-panel" style="display:none">
+    <div class="card">
+      <h3 style="margin:0 0 8px 0">Request Withdrawal</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div style="flex:1;min-width:140px">
+          <div class="card" style="padding:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><strong>UPI</strong><div class="small">Min: 2000 coins (≈₹200)</div></div>
+              <div><button class="btn withdraw-btn" data-method="UPI" data-min="2000">Withdraw</button></div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:140px">
+          <div class="card" style="padding:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><strong>Paytm</strong><div class="small">Min: 5000 coins (≈₹500)</div></div>
+              <div><button class="btn withdraw-btn" data-method="Paytm" data-min="5000">Withdraw</button></div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:140px">
+          <div class="card" style="padding:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><strong>Bank</strong><div class="small">Min: 10000 coins (≈₹1000)</div></div>
+              <div><button class="btn withdraw-btn" data-method="Bank" data-min="10000">Withdraw</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <h4 style="margin:0 0 8px 0">Your Withdrawal History</h4>
+        <div id="withdraw-history" class="list"><div class="small">No requests yet.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="profile" class="tab-panel" style="display:none">
+    <div class="card profile-row">
+      <div class="avatar" id="avatar">U</div>
+      <div>
+        <h3 id="profile-name" style="margin:0">User</h3>
+        <div id="profile-email" class="small">email@example.com</div>
+        <div style="margin-top:8px"><button id="logout" class="btn ghost">Logout</button></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h4 style="margin:0 0 8px 0">Account Summary</h4>
+      <p class="small">Total Coins: <strong id="profile-coins">0</strong></p>
+      <p class="small">Total Withdraw Requests: <strong id="profile-withdraw-count">0</strong></p>
+    </div>
+
+    <div class="card">
+      <h4 style="margin:0 0 8px 0">Recent Activity</h4>
+      <div id="recent-activity" class="list"><div class="small">No activity yet.</div></div>
+    </div>
+  </div>
+</div>
+
+  </div>  <div class="small" style="text-align:center;margin-top:6px">Made with ❤️ — edit firebase config placeholder to connect</div>
+</div><!-- Offerwall modal --><div id="modal-backdrop" class="modal-backdrop">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <strong>Offerwall</strong>
+      <div>
+        <button id="open-in-new" class="close-btn">Open in new tab</button>
+        <button id="close-modal" class="close-btn">Close</button>
+      </div>
+    </div>
+    <div class="modal-body" id="modal-body">
+      <iframe id="offer-iframe" src="" frameborder="0" title="Offerwall"></iframe>
+    </div>
+  </div>
+</div><!-- Bottom navigation (tabs moved to footer) --><nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+  <div class="tab active" data-tab="tasks">🎯 Tasks</div>
+  <div class="tab" data-tab="referral">🤝 Referral</div>
+  <div class="tab" data-tab="withdraw">💸 Withdraw</div>
+  <div class="tab" data-tab="profile">👤 Profile</div>
+</nav><div id="toast"></div><script>
+/* ===== FIREBASE CONFIG - PLACEHOLDER =====
+   Replace values with your Firebase project's config */
+const firebaseConfig = {
+  apiKey: "AIzaSyBNT7CLJ6QCcsFD_lhcrru3UOEqLmiYc3E",
+  authDomain: "mreward-5e36d.firebaseapp.com",
+  projectId: "mreward-5e36d",
+  storageBucket: "mreward-5e36d.firebasestorage.app",
+  messagingSenderId: "207849836641",
+  appId: "1:207849836641:web:3229c8d3805338fdf49a20"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+/* ===== UI refs ===== */
+const tabs = document.querySelectorAll('.tab');
+const panels = {
+  tasks: document.getElementById('tasks'),
+  referral: document.getElementById('referral'),
+  withdraw: document.getElementById('withdraw'),
+  profile: document.getElementById('profile')
+};
+const authPanel = document.getElementById('auth-panel');
+const userArea = document.getElementById('user-area');
+const emailInput = document.getElementById('email');
+const passInput = document.getElementById('password');
+const signinBtn = document.getElementById('signin-btn');
+const signupBtn = document.getElementById('signup-btn');
+const authMsg = document.getElementById('auth-msg');
+
+const coinBalanceEl = document.getElementById('coin-balance');
+const refCodeEl = document.getElementById('ref-code');
+const avatarEl = document.getElementById('avatar');
+const profileNameEl = document.getElementById('profile-name');
+const profileEmailEl = document.getElementById('profile-email');
+const profileCoinsEl = document.getElementById('profile-coins');
+const withdrawHistoryEl = document.getElementById('withdraw-history');
+const profileWithdrawCount = document.getElementById('profile-withdraw-count');
+const recentActivityEl = document.getElementById('recent-activity');
+const dailyMsgEl = document.getElementById('daily-msg');
+
+const openOfferwallBtn = document.getElementById('open-offerwall');
+const modalBackdrop = document.getElementById('modal-backdrop');
+const offerIframe = document.getElementById('offer-iframe');
+const closeModal = document.getElementById('close-modal');
+const openInNew = document.getElementById('open-in-new');
+const toast = document.getElementById('toast');
+
+/* ===== small helpers ===== */
+function showToast(msg, ms=2500){ toast.textContent = msg; toast.style.display='block'; setTimeout(()=>toast.style.display='none', ms); }
+function showAuth(show){ authPanel.style.display = show ? 'block' : 'none'; }
+const def_placeholder = "// placeholder";
+
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g, function(m){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+  });
+}
+
+/* ===== Tab switching (robust) ===== */
+tabs.forEach(t=>{
+  t.addEventListener('click', ()=>{
+    tabs.forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    const tab = t.dataset.tab;
+    Object.values(panels).forEach(p=>p.style.display='none');
+    if(panels[tab]) panels[tab].style.display = 'block';
+    // ensure auth-panel visibility when needed
+    if(tab === 'profile' && !auth.currentUser) showAuth(true);
+  });
+});
+
+/* ===== Auth (email/password) ===== */
+auth.onAuthStateChanged(async user=>{
+  if(user){
+    showAuth(false);
+    userArea.innerHTML = '<div class="small">Hi, '+(user.email||'User')+'</div>';
+    const userRef = db.collection('users').doc(user.uid);
+    await userRef.set({ email:user.email, displayName:user.displayName||null }, { merge:true });
+    // realtime user doc listener
+    userRef.onSnapshot(doc=>{
+      const data = doc.data() || {};
+      const coins = data.coins || 0;
+      coinBalanceEl.textContent = coins;
+      profileCoinsEl.textContent = coins;
+      refCodeEl.textContent = data.referral_code || generateAndSaveReferral(user.uid);
+      avatarEl.textContent = (data.displayName && data.displayName[0].toUpperCase()) || (user.email && user.email[0].toUpperCase()) || 'U';
+      profileNameEl.textContent = data.displayName || (user.email||'User').split('@')[0];
+      profileEmailEl.textContent = user.email;
+    });
+    loadWithdrawHistory(user.uid);
+    loadRecentActivity(user.uid);
+  } else {
+    // show auth
+    showAuth(true);
+    userArea.innerHTML = '';
+    coinBalanceEl.textContent = '0';
+    refCodeEl.textContent = 'LOADING';
+    avatarEl.textContent = 'U';
+    profileNameEl.textContent = 'User';
+    profileEmailEl.textContent = 'email@example.com';
+  }
+});
+
+signupBtn.addEventListener('click', async ()=>{
+  const email = emailInput.value.trim();
+  const pass = passInput.value;
+  authMsg.textContent = '';
+  if(!email || pass.length < 6){ authMsg.textContent = 'Enter valid email & password (min 6 chars)'; return; }
+  try{
+    const cred = await auth.createUserWithEmailAndPassword(email, pass);
+    const u = cred.user;
+    await db.collection('users').doc(u.uid).set({ email:u.email, coins:0, referral_code: generateReferralCode(6) }, { merge:true });
+    authMsg.textContent = 'Account created — signed in';
+  }catch(e){ authMsg.textContent = e.message; }
+});
+
+signinBtn.addEventListener('click', async ()=>{
+  const email = emailInput.value.trim();
+  const pass = passInput.value;
+  authMsg.textContent = '';
+  if(!email || pass.length < 6){ authMsg.textContent = 'Enter valid email & password (min 6 chars)'; return; }
+  try{
+    await auth.signInWithEmailAndPassword(email, pass);
+    authMsg.textContent = 'Signed in';
+  }catch(e){ authMsg.textContent = e.message; }
+});
+
+document.getElementById('logout').addEventListener('click', ()=>auth.signOut());
+
+/* ===== Referral helpers ===== */
+function generateReferralCode(length=6){
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  let code='';
+  for(let i=0;i<length;i++) code += chars.charAt(Math.floor(Math.random()*chars.length));
+  return code;
+}
+async function generateAndSaveReferral(uid){
+  const userRef = db.collection('users').doc(uid);
+  const doc = await userRef.get();
+  const data = doc.data() || {};
+  if(data.referral_code) return data.referral_code;
+  const newCode = generateReferralCode(6);
+  await userRef.set({ referral_code: newCode }, { merge:true });
+  return newCode;
+}
+
+/* ===== Load settings (cpagrip url) ===== */
+let cpagripUrl = ''; // lazy-read from Firestore so admin can change
+async function loadSettings(){
+  try{
+    const sdoc = await db.collection('app_settings').doc('settings').get();
+    const data = sdoc.exists ? sdoc.data() : null;
+    if(data && data.cpagrip_url) cpagripUrl = data.cpagrip_url;
+  }catch(e){ console.warn('settings load error', e); }
+}
+loadSettings();
+
+function isCpagripUrl(url){
+  try{
+    if(!url) return false;
+    const u = new URL(url.indexOf('http')===0 ? url : ('https://'+url));
+    return u.hostname.includes('cpagrip') || url.includes('cpagrip');
+  }catch(e){ return url && url.includes('cpagrip'); }
+}
+
+/* ===== Offerwall modal — lazy load only when user clicks ===== */
+function openOfferUrl(url){
+  if(!url) { showToast('No offer URL configured'); return; }
+  // Normalize
+  if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  if(isCpagripUrl(url)){
+    // For CPAGrip we open in new tab (no overlay) as requested
+    window.open(url, '_blank');
+  } else {
+    offerIframe.src = url;
+    modalBackdrop.style.display = 'flex';
+  }
+}
+
+openOfferwallBtn.addEventListener('click', ()=>{
+  const url = cpagripUrl || '';
+  if(!url){ showToast('Offerwall not configured by admin'); return; }
+  openOfferUrl(url);
+});
+
+closeModal.addEventListener('click', ()=>{
+  offerIframe.src = ''; // stops running offer content
+  modalBackdrop.style.display = 'none';
+});
+openInNew.addEventListener('click', ()=>{
+  const url = offerIframe.src || (cpagripUrl || '');
+  if(url) window.open(url, '_blank');
+});
+
+/* ===== Daily reward (transactional) ===== */
+document.getElementById('claim-daily').addEventListener('click', async ()=>{
+  const user = auth.currentUser;
+  if(!user){ dailyMsgEl.textContent = 'Please sign in'; return; }
+  const userRef = db.collection('users').doc(user.uid);
+  const today = (new Date()).toISOString().slice(0,10);
+  try{
+    await db.runTransaction(async tx=>{
+      const snap = await tx.get(userRef);
+      const data = snap.data() || {};
+      if(data.lastClaim === today) throw new Error('Already claimed today');
+      const newCoins = (data.coins||0) + 50;
+      tx.update(userRef, { coins: newCoins, lastClaim: today });
+    });
+    dailyMsgEl.textContent = 'Claimed +50 coins!';
+    showToast('+50 coins added');
+  }catch(e){
+    dailyMsgEl.textContent = (e && e.message) || 'Error';
+  }
+});
+/* ===== Withdraw flow & history ===== */
+document.querySelectorAll('.withdraw-btn').forEach(btn=>btn.addEventListener('click', async ()=>{
+  const method = btn.dataset.method;
+  const min = parseInt(btn.dataset.min,10);
+  const user = auth.currentUser;
+  if(!user){ alert('Please sign in'); return; }
+  const userRef = db.collection('users').doc(user.uid);
+  const doc = await userRef.get();
+  const coins = (doc.data() && doc.data().coins) || 0;
+  if(coins < min){ alert('Insufficient coins'); return; }
+  const amount = prompt('Enter amount to withdraw in coins (min '+min+')');
+  if(!amount) return;
+  const coinsReq = parseInt(amount,10);
+  if(isNaN(coinsReq) || coinsReq < min || coinsReq > coins){ alert('Invalid amount'); return; }
+  const dest = prompt('Enter '+method+' details (UPI id / Paytm number / Bank details)');
+  if(!dest) return;
+  // create withdraw request
+  await db.collection('withdraw_requests').add({
+    userId: user.uid,
+    email: user.email,
+    method, dest, coins: coinsReq,
+    status: 'pending',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  // deduct coins locally (or you may prefer admin to deduct on approve)
+  await userRef.update({ coins: coins - coinsReq });
+  showToast('Withdrawal requested');
+}));
+
+async function loadWithdrawHistory(uid){
+  withdrawHistoryEl.innerHTML = '<div class="small">Loading...</div>';
+  const q = db.collection('withdraw_requests').where('userId','==',uid).orderBy('createdAt','desc');
+  q.onSnapshot(snap=>{
+    if(snap.empty){ withdrawHistoryEl.innerHTML = '<div class="small">No requests yet.</div>'; profileWithdrawCount.textContent = '0'; return; }
+    withdrawHistoryEl.innerHTML = '';
+    let cnt = 0;
+    snap.forEach(doc=>{
+      cnt++;
+      const data = doc.data();
+      const d = new Date((data.createdAt && data.createdAt.toDate && data.createdAt.toDate()) || Date.now());
+      const el = document.createElement('div'); el.className = 'list-item';
+      el.innerHTML = '<div><strong>' + (data.method || '') + ' — ' + (data.coins||0) + ' coins</strong></div><div class="small">'+ d.toLocaleString() + ' • ' + (data.status||'pending') + '</div>';
+      withdrawHistoryEl.appendChild(el);
+    });
+    profileWithdrawCount.textContent = ''+cnt;
+  });
+}
+
+/* ===== Recent activity ===== */
+function loadRecentActivity(uid){
+  const q = db.collection('user_activity').where('userId','==',uid).orderBy('createdAt','desc').limit(20);
+  q.onSnapshot(snap=>{
+    recentActivityEl.innerHTML = '';
+    if(snap.empty){ recentActivityEl.innerHTML = '<div class="small">No activity yet.</div>'; return; }
+    snap.forEach(doc=>{
+      const d = doc.data();
+      const el = document.createElement('div'); el.className='list-item';
+      el.innerHTML = '<div><strong>' + (d.title||'') + '</strong></div><div class="small">'+ (d.notes||'') + '</div>';
+      recentActivityEl.appendChild(el);
+    });
+  });
+}
+
+/* ===== Tasks dynamic (admin-managed) =====
+   Admin should add documents in 'tasks' collection with fields:
+   - title (string)
+   - desc (string)
+   - coins (number)
+   - offer_url (optional string) -> if present, will open modal to that URL (or new tab for cpagrip)
+*/
+function renderTasks(docs){
+  const tasksList = document.getElementById('tasks-list');
+  tasksList.innerHTML = '';
+  if(!docs || docs.length===0){ tasksList.innerHTML = '<div class="small">No tasks yet.</div>'; return; }
+  docs.forEach(doc=>{
+    const data = doc.data();
+    const el = document.createElement('div'); el.className = 'list-item';
+    const offerBtn = data.offer_url ? `<button class="btn open-offer" data-url="${escapeHtml(data.offer_url)}">Open Offer</button>` : '';
+    el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center">
+      <div><strong>${escapeHtml(data.title||'Untitled')}</strong><div class="small">${escapeHtml(data.desc||'')}</div></div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+        <div class="small">+${(data.coins||0)} coins</div>
+        <div>
+          ${offerBtn}
+          <button class="btn claim-task" data-id="${doc.id}" data-coins="${(data.coins||0)}">Claim +${(data.coins||0)}</button>
+        </div>
+      </div>
+    </div>`;
+    tasksList.appendChild(el);
+  });
+
+  // Attach handlers
+  document.querySelectorAll('.open-offer').forEach(b=>{
+    b.addEventListener('click', (ev)=>{
+      const url = ev.target.dataset.url;
+      if(!url) return;
+      openOfferUrl(url);
+    });
+  });
+
+  document.querySelectorAll('.claim-task').forEach(b=>{
+    b.addEventListener('click', async (ev)=>{
+      const user = auth.currentUser; if(!user){ alert('Sign in first'); return; }
+      const coins = parseInt(ev.target.dataset.coins,10) || 0;
+      const userRef = db.collection('users').doc(user.uid);
+      // Simple client-side claim (for demo). For production, prefer server-side verification or admin approval.
+      await db.runTransaction(async tx=>{
+        const snap = await tx.get(userRef);
+        const data = snap.data() || {};
+        const newCoins = (data.coins||0) + coins;
+        tx.update(userRef, { coins: newCoins });
+      });
+      // log activity
+      await db.collection('user_activity').add({ userId:user.uid, title:'Task Claimed', notes:'+'+coins+' coins', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+      showToast('Task claimed +'+coins+' coins');
+    });
+  });
+}
+
+/* Realtime listener for tasks (dynamic) */
+db.collection('tasks').orderBy('coins','desc').onSnapshot(snapshot=>{
+  renderTasks(snapshot.docs);
+}, err=>{ console.warn('tasks listener err', err); renderTasks([]); });
+
+/* ===== Referral on signup from URL param (simple) ===== */
+function handleReferralOnSignup(){
+  const params = new URLSearchParams(location.search);
+  const ref = params.get('ref');
+  if(!ref) return;
+  localStorage.setItem('pending_referral', ref);
+}
+handleReferralOnSignup();
+
+auth.onAuthStateChanged(async user=>{
+  if(!user) return;
+  const pending = localStorage.getItem('pending_referral');
+  if(pending){
+    const q = await db.collection('users').where('referral_code','==',pending).limit(1).get();
+    if(!q.empty){
+      const refDoc = q.docs[0];
+      const refUid = refDoc.id;
+      const batch = db.batch();
+      batch.update(db.collection('users').doc(refUid), { coins: firebase.firestore.FieldValue.increment(100) });
+      batch.update(db.collection('users').doc(user.uid), { coins: firebase.firestore.FieldValue.increment(50), referred_by: pending });
+      await batch.commit();
+      await db.collection('user_activity').add({ userId:refUid, title:'Referral Bonus', notes:'+100 coins for referring '+user.email, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+      localStorage.removeItem('pending_referral');
+      showToast('Referral bonus applied');
+    }
+  }
+});
+
+/* ===== Utility: load initial settings and UI wiring ===== */
+document.addEventListener('DOMContentLoaded', ()=>{
+  // make sure initial tab visible
+  Object.values(panels).forEach(p=>p.style.display='none');
+  panels['tasks'].style.display='block';
+});
+</script>
+</body>
+</html>
