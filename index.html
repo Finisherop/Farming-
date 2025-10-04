@@ -1,788 +1,644 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Mreward PRO — Premium Rewards App</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Mreward PRO</title>
   
-  <!-- Firebase compat -->
+  <!-- PWA Meta Tags for Native App Feel -->
+  <meta name="theme-color" content="#667eea">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   
   <style>
-:root {
-  --bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --card: #ffffff;
-  --muted: #6b7280;
-  --accent: #3b82f6;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --radius: 16px;
-  --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
+    :root {
+      --primary: #667eea;
+      --primary-dark: #5a67d8;
+      --secondary: #764ba2;
+      --background: #f8fafc;
+      --surface: #ffffff;
+      --text-primary: #2d3748;
+      --text-secondary: #718096;
+      --success: #38a169;
+      --error: #e53e3e;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
 
-* {
-  box-sizing: border-box;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-body {
-  background: var(--bg);
-  margin: 0;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  padding: 20px;
-  padding-bottom: 120px;
-}
+    html, body {
+      height: 100%;
+      overflow-x: hidden;
+      background: var(--background);
+      color: var(--text-primary);
+    }
 
-#app {
-  width: 100%;
-  max-width: 420px;
-}
+    /* ===== FULL SCREEN LOGIN ===== */
+    .auth-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 32px;
+      z-index: 9999;
+    }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
-  padding: 16px;
-  border-radius: var(--radius);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
+    .auth-container.hidden {
+      display: none;
+    }
 
-.brand {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
+    .app-logo {
+      text-align: center;
+      margin-bottom: 48px;
+      animation: logoFadeIn 1s ease-out;
+    }
 
-.logo {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-  display: grid;
-  place-items: center;
-  color: #fff;
-  font-weight: 800;
-  font-size: 18px;
-  box-shadow: 0 8px 16px rgba(255, 107, 107, 0.3);
-}
+    .logo-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 32px;
+      font-weight: 800;
+      color: white;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
 
-.h1 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  color: white;
-}
+    .app-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 8px;
+    }
 
-.subtitle {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 12px;
-  font-weight: 500;
-}
+    .app-subtitle {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.8);
+    }
 
-.card {
-  background: var(--card);
-  border-radius: var(--radius);
-  padding: 20px;
-  margin-bottom: 16px;
-  box-shadow: var(--shadow);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
+    .login-card {
+      width: 100%;
+      max-width: 360px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      animation: cardSlideUp 0.8s ease-out 0.3s both;
+    }
 
-.small {
-  font-size: 13px;
-  color: var(--muted);
-}
+    .form-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
 
-.form-row {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 16px;
-}
+    .form-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
 
-.input {
-  padding: 14px;
-  border-radius: 12px;
-  border: 2px solid #e5e7eb;
-  font-size: 14px;
-  transition: all 0.3s ease;
-}
+    .form-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
 
-.input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
+    .input-group {
+      margin-bottom: 20px;
+    }
 
-.btn {
-  padding: 14px 20px;
-  border-radius: 12px;
-  border: none;
-  background: var(--accent);
-  color: white;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 14px;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
+    .input-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
 
-.btn:hover {
-  background: #2563eb;
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
-}
+    .input-field {
+      width: 100%;
+      height: 48px;
+      padding: 0 16px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 16px;
+      background: var(--surface);
+      transition: all 0.3s ease;
+      outline: none;
+    }
 
-.btn.ghost {
-  background: transparent;
-  color: var(--accent);
-  border: 2px solid var(--accent);
-}
+    .input-field:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
 
-.btn.ghost:hover {
-  background: var(--accent);
-  color: white;
-}
+    .btn-primary {
+      width: 100%;
+      height: 48px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 12px;
+    }
 
-.btn.success {
-  background: var(--success);
-}
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
 
-.btn.success:hover {
-  background: #059669;
-}
+    .btn-secondary {
+      width: 100%;
+      height: 48px;
+      background: transparent;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+      border-radius: var(--radius);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
 
-.list {
-  max-height: 300px;
-  overflow: auto;
-  padding-right: 8px;
-}
+    .btn-secondary:hover {
+      background: var(--primary);
+      color: white;
+    }
 
-.list::-webkit-scrollbar {
-  width: 4px;
-}
+    .form-message {
+      text-align: center;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-top: 16px;
+      min-height: 20px;
+    }
 
-.list::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 2px;
-}
+    .form-message.error {
+      background: #fed7d7;
+      color: #c53030;
+    }
 
-.list::-webkit-scrollbar-thumb {
-  background: var(--accent);
-  border-radius: 2px;
-}
+    .form-message.success {
+      background: #c6f6d5;
+      color: #25543e;
+    }
 
-.list-item {
-  padding: 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  margin-bottom: 12px;
-  background: #fafafa;
-  transition: all 0.3s ease;
-}
+    /* ===== MAIN APP ===== */
+    .main-app {
+      width: 100%;
+      height: 100vh;
+      display: none;
+      flex-direction: column;
+      background: var(--background);
+    }
 
-.list-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-}
+    .main-app.visible {
+      display: flex;
+    }
 
-.ref-code {
-  padding: 16px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #f0f7ff, #e0f2fe);
-  border: 2px solid rgba(59, 130, 246, 0.2);
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-align: center;
-  font-size: 18px;
-  color: var(--accent);
-}
+    .app-header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow);
+    }
 
-.profile-row {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-}
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-.avatar {
-  width: 64px;
-  height: 64px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  display: grid;
-  place-items: center;
-  color: #fff;
-  font-weight: 700;
-  font-size: 24px;
-  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
-}
+    .header-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+    }
 
-.ad-box {
-  display: flex;
-  justify-content: center;
-  padding: 8px;
-}
+    .header-title {
+      font-size: 20px;
+      font-weight: 600;
+    }
 
-/* Modal for offerwall */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
+    .header-right {
+      font-size: 12px;
+      opacity: 0.9;
+    }
 
-.modal {
-  width: 95%;
-  max-width: 800px;
-  background: var(--card);
-  border-radius: var(--radius);
-  padding: 12px;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
-  height: 85vh;
-  display: flex;
-  flex-direction: column;
-}
+    .content-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      padding-bottom: 100px;
+    }
 
-.modal .modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid #e5e7eb;
-}
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
 
-.modal .modal-body {
-  flex: 1;
-  overflow: hidden;
-  border-radius: 12px;
-  margin-top: 12px;
-}
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      padding: 8px 0;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    }
 
-.modal iframe {
-  width: 100%;
-  height: 100%;
-  border: 0;
-  border-radius: 12px;
-}
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
 
-.modal .close-btn {
-  background: #f3f4f6;
-  border-radius: 8px;
-  padding: 8px 12px;
-  border: none;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
+    .nav-item.active {
+      color: var(--primary);
+    }
 
-.modal .close-btn:hover {
-  background: #e5e7eb;
-}
+    .nav-icon {
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
 
-/* Toast notifications */
-#toast {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 100px;
-  background: #1f2937;
-  color: #fff;
-  padding: 12px 20px;
-  border-radius: 12px;
-  display: none;
-  z-index: 1100;
-  font-weight: 500;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-}
+    /* Animations */
+    @keyframes logoFadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-/* Bottom navigation - Enhanced */
-.bottom-nav {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 16px;
-  width: 95%;
-  max-width: 400px;
-  display: flex;
-  gap: 4px;
-  padding: 8px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  z-index: 1200;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
+    @keyframes cardSlideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-.bottom-nav .tab {
-  flex: 1;
-  padding: 12px 8px;
-  border-radius: 16px;
-  text-align: center;
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  color: var(--muted);
-}
+    /* Responsive */
+    @media (max-width: 480px) {
+      .auth-container { padding: 20px; }
+      .login-card { padding: 24px; }
+      .app-title { font-size: 24px; }
+      .logo-icon { width: 70px; height: 70px; font-size: 28px; }
+    }
 
-.bottom-nav .tab.active {
-  background: var(--accent);
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3);
-}
+    /* Hide Elements */
+    .hidden { display: none !important; }
+    
+    /* Content Styles */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
 
-/* Stats cards */
-.stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 16px;
-}
+    .stat-card {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 20px;
+      border-radius: var(--radius);
+      text-align: center;
+    }
 
-.stat-card {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  padding: 16px;
-  border-radius: 12px;
-  color: white;
-  text-align: center;
-}
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
 
-.stat-value {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
+    .stat-label {
+      font-size: 12px;
+      opacity: 0.9;
+    }
 
-.stat-label {
-  font-size: 12px;
-  opacity: 0.9;
-}
+    .btn {
+      padding: 12px 20px;
+      border-radius: var(--radius);
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: var(--primary);
+      color: white;
+    }
 
-/* Responsive design */
-@media (max-width: 480px) {
-  :root {
-    --radius: 12px;
-  }
-  
-  body {
-    padding: 16px;
-    padding-bottom: 100px;
-  }
-  
-  .header {
-    padding: 12px;
-  }
-  
-  .card {
-    padding: 16px;
-  }
-  
-  .bottom-nav {
-    width: 100%;
-    margin: 0 16px;
-  }
-}
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
 
-/* ===== GAMIFICATION STYLES ===== */
+    .btn.ghost {
+      background: transparent;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
 
-/* Tier System */
-.tier-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
+    .btn.ghost:hover {
+      background: var(--primary);
+      color: white;
+    }
 
-.tier-bronze { background: linear-gradient(135deg, #cd7f32, #a0522d); color: white; }
-.tier-silver { background: linear-gradient(135deg, #c0c0c0, #999999); color: white; }
-.tier-gold { background: linear-gradient(135deg, #ffd700, #ffb347); color: #8b4513; }
-.tier-platinum { background: linear-gradient(135deg, #e5e4e2, #b8b8b8); color: #2c3e50; }
+    .btn.success {
+      background: var(--success);
+    }
 
-/* Progress Bar */
-.progress-bar {
-  width: 100%;
-  height: 8px;
-  background: rgba(0,0,0,0.1);
-  border-radius: 4px;
-  overflow: hidden;
-}
+    .list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
 
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--accent), var(--success));
-  border-radius: 4px;
-  transition: width 0.5s ease;
-}
+    .list-item {
+      padding: 16px;
+      border-radius: var(--radius);
+      background: #f8fafc;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
 
-/* Streak Indicator */
-.streak-indicator {
-  text-align: center;
-}
+    .list-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
 
-.streak-flame {
-  font-size: 24px;
-  margin-bottom: 4px;
-  animation: flicker 2s infinite alternate;
-}
+    .small {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
 
-@keyframes flicker {
-  0% { transform: scale(1); }
-  100% { transform: scale(1.1); }
-}
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--text-primary);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 25px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 10000;
+      box-shadow: var(--shadow);
+      display: none;
+    }
 
-/* Level Card */
-.level-card {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  border: 2px solid rgba(255,255,255,0.2);
-}
-
-.level-card .small {
-  color: rgba(255,255,255,0.9);
-}
-
-/* Multiplier Badge */
-.multiplier-badge {
-  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-  color: white;
-  padding: 4px 12px;
-  border-radius: 16px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-/* Enhanced Stat Cards */
-.leaderboard-card, .achievements-card {
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.leaderboard-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 25px rgba(255,193,7,0.3);
-  background: linear-gradient(135deg, #ffc107, #ff8f00);
-  color: white;
-}
-
-.achievements-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 25px rgba(156,39,176,0.3);
-  background: linear-gradient(135deg, #9c27b0, #7b1fa2);
-  color: white;
-}
+    .toast.success { background: var(--success); }
+    .toast.error { background: var(--error); }
   </style>
-  
-  <!-- User ad scripts -->
-  <script type="text/javascript">
-    atOptions = {
-      'key': 'dcd1fe8af5a9b6b3ea85f25d84751980',
-      'format': 'iframe',
-      'height': 50,
-      'width': 320,
-      'params': {}
-    };
-  </script>
-  <script type="text/javascript" src="//www.highperformanceformat.com/dcd1fe8af5a9b6b3ea85f25d84751980/invoke.js"></script>
-  <script type="text/javascript" src="https://singingfiles.com/script_include.php?id=1847459"></script>
 </head>
 
 <body>
-  <div id="app">
-    <header class="header">
-      <div class="brand">
-        <div class="logo">MR</div>
-        <div>
-          <h1 class="h1">Mreward PRO</h1>
-          <div class="subtitle">Premium rewards platform ✨</div>
-        </div>
+  <!-- Full Screen Login -->
+  <div id="auth-container" class="auth-container">
+    <div class="app-logo">
+      <div class="logo-icon">MR</div>
+      <h1 class="app-title">Mreward PRO</h1>
+      <p class="app-subtitle">Premium Rewards Platform</p>
+    </div>
+    
+    <div class="login-card">
+      <div class="form-header">
+        <h2 class="form-title">Welcome Back</h2>
+        <p class="form-subtitle">Sign in to continue earning rewards</p>
       </div>
-      <div id="user-area"></div>
+      
+      <div class="input-group">
+        <label class="input-label" for="email-input">Email</label>
+        <input type="email" id="email-input" class="input-field" placeholder="Enter your email" required>
+      </div>
+      
+      <div class="input-group">
+        <label class="input-label" for="password-input">Password</label>
+        <input type="password" id="password-input" class="input-field" placeholder="Enter your password" required>
+      </div>
+      
+      <button id="signin-btn" class="btn-primary">Sign In</button>
+      <button id="signup-btn" class="btn-secondary">Create Account</button>
+      
+      <div id="auth-message" class="form-message"></div>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="main-app" class="main-app">
+    <header class="app-header">
+      <div class="header-left">
+        <div class="header-logo">MR</div>
+        <div class="header-title">Mreward PRO</div>
+      </div>
+      <div class="header-right" id="user-info">Hi, User!</div>
     </header>
-
-    <div id="content-area">
-      <!-- Authentication Panel -->
-      <div id="auth-panel" class="card" style="display:none">
-        <h3 style="margin:0 0 16px 0">🔐 Sign in / Sign up</h3>
-        <div class="form-row">
-          <input id="email" class="input" placeholder="Enter your email" type="email" />
-          <input id="password" class="input" placeholder="Password (min 6 chars)" type="password" />
-          <div style="display:flex;gap:12px">
-            <button id="signin-btn" class="btn">🚀 Sign In</button>
-            <button id="signup-btn" class="btn ghost">📝 Sign Up</button>
-          </div>
-          <div id="auth-msg" class="small" style="min-height:20px"></div>
-        </div>
-      </div>
-
-      <!-- Tasks Tab Panel - Enhanced with Gamification -->
-      <div id="tasks" class="tab-panel">
-        <!-- User Level & Progress Card -->
-        <div class="card level-card">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px">
-            <div>
-              <div class="tier-badge" id="user-tier">🥉 BRONZE</div>
-              <div class="small">Level <span id="user-level">1</span> • <span id="tier-progress">0</span>/<span id="tier-target">1000</span> XP</div>
-            </div>
-            <div class="streak-indicator">
-              <div class="streak-flame">🔥</div>
-              <div class="small"><span id="daily-streak">0</span> Day Streak</div>
-            </div>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill" id="tier-progress-bar" style="width: 0%"></div>
-          </div>
-        </div>
-
+    
+    <div class="content-container" id="content-area">
+      <!-- Home Tab -->
+      <div id="home-content" class="tab-content">
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-value"><span id="coin-balance">0</span></div>
             <div class="stat-label">💰 Total Coins</div>
           </div>
-          <div class="stat-card" id="daily-reward-card">
+          <div class="stat-card">
             <div class="stat-value" id="daily-status">🎁</div>
             <div class="stat-label">Daily Reward</div>
           </div>
-          <div class="stat-card leaderboard-card" onclick="openLeaderboard()">
-            <div class="stat-value">#<span id="user-rank">--</span></div>
-            <div class="stat-label">🏆 Your Rank</div>
-          </div>
-          <div class="stat-card achievements-card" onclick="openAchievements()">
-            <div class="stat-value"><span id="badge-count">0</span></div>
-            <div class="stat-label">🏅 Badges</div>
-          </div>
         </div>
 
         <div class="card">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px">
-            <h3 style="margin: 0">🎁 Daily Rewards</h3>
-            <div class="multiplier-badge" id="coin-multiplier">1x</div>
-          </div>
-          <p class="small">Claim daily rewards to maintain your streak and earn bonus XP!</p>
-          <div style="margin-top: 12px">
-            <button id="claim-daily" class="btn success">🎁 Claim Daily Reward (<span id="daily-reward-amount">50</span> coins)</button>
-            <div id="daily-msg" class="small" style="margin-top: 12px"></div>
-          </div>
+          <h3 style="margin: 0 0 16px 0">🎁 Daily Reward</h3>
+          <p class="small">Claim your daily bonus coins once every 24 hours.</p>
+          <button id="claim-daily" class="btn success" style="margin-top: 12px;">🎁 Claim Daily Reward</button>
+          <div id="daily-msg" class="small" style="margin-top: 12px;"></div>
         </div>
 
         <div class="card">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px">
-            <h3 style="margin: 0">🎯 Personalized Tasks</h3>
-            <button class="btn ghost" onclick="refreshTasks()" style="font-size: 12px">🔄 Refresh</button>
-          </div>
-          <p class="small">AI-curated tasks based on your preferences and success rate.</p>
-          <div id="tasks-list" class="list" style="margin-top: 12px">
-            <div class="small">Loading personalized tasks...</div>
+          <h3 style="margin: 0 0 16px 0">📊 Quick Stats</h3>
+          <div class="stats-grid">
+            <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: var(--radius);">
+              <div style="font-size: 20px; font-weight: 700; color: var(--primary);" id="total-tasks">0</div>
+              <div class="small">Tasks Completed</div>
+            </div>
+            <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: var(--radius);">
+              <div style="font-size: 20px; font-weight: 700; color: var(--success);" id="total-earned">0</div>
+              <div class="small">Total Earned</div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Referral Tab Panel -->
-      <div id="referral" class="tab-panel" style="display:none">
+      <!-- Tasks Tab -->
+      <div id="tasks-content" class="tab-content hidden">
         <div class="card">
-          <h3 style="margin:0 0 12px 0">🤝 Referral Program</h3>
-          <p class="small">Invite friends and earn bonus coins for each successful referral.</p>
+          <h3 style="margin: 0 0 16px 0">🎯 Available Tasks</h3>
+          <p class="small">Complete tasks to earn coins instantly.</p>
+          <div id="tasks-list" class="list" style="margin-top: 16px;">
+            <div class="small">Loading tasks...</div>
+          </div>
+        </div>
+      </div>
 
-          <div style="margin-top:16px">
-            <div class="small" style="margin-bottom:8px">Your Referral Code:</div>
-            <div style="display:flex;gap:12px;align-items:center">
-              <div class="ref-code" id="ref-code">LOADING</div>
+      <!-- Rewards Tab -->
+      <div id="rewards-content" class="tab-content hidden">
+        <div class="card">
+          <h3 style="margin: 0 0 16px 0">🏆 Rewards & Referrals</h3>
+          <p class="small">Share your referral code and earn bonus coins.</p>
+          
+          <div style="margin-top: 16px;">
+            <div class="small" style="margin-bottom: 8px;">Your Referral Code:</div>
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <div style="flex: 1; padding: 16px; background: linear-gradient(135deg, #f0f7ff, #e0f2fe); border-radius: var(--radius); font-weight: 700; text-align: center; color: var(--primary); font-size: 18px;" id="ref-code">LOADING</div>
               <button id="copy-ref" class="btn ghost">📋 Copy</button>
             </div>
           </div>
 
-          <div style="margin-top:16px">
-            <div class="small" style="margin-bottom:12px">Share your referral:</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-              <button class="btn ghost" id="share-wa">📱 WhatsApp</button>
-              <button class="btn ghost" id="share-tg">✈️ Telegram</button>
-            </div>
-            <div style="margin-top:12px">
-              <button class="btn" id="open-offerwall">🎯 Open Offerwall</button>
-            </div>
+          <div style="margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <button class="btn ghost" id="share-wa">📱 WhatsApp</button>
+            <button class="btn ghost" id="share-tg">✈️ Telegram</button>
           </div>
 
-          <div style="margin-top:16px" class="card" style="background:#f8fafc">
-            <div class="small" style="text-align:center">
-              💡 Earn 100 coins for each friend who joins with your code!
-            </div>
+          <div style="margin-top: 16px; padding: 16px; background: #f8fafc; border-radius: var(--radius);">
+            <div class="small" style="text-align: center;">💡 Earn 100 coins for each friend who joins!</div>
           </div>
         </div>
-      </div>
 
-      <!-- Withdrawal Tab Panel -->
-      <div id="withdraw" class="tab-panel" style="display:none">
+        <!-- Withdrawal Section -->
         <div class="card">
-          <h3 style="margin:0 0 12px 0">💸 Request Withdrawal</h3>
-          <p class="small">Convert your coins to real money through various payment methods.</p>
-          
-          <div style="margin-top:16px">
-            <div class="stats-grid">
-              <div class="card" style="text-align:center;margin:0;padding:16px">
-                <div><strong>💳 UPI</strong></div>
-                <div class="small">Min: 2000 coins (₹200)</div>
-                <button class="btn withdraw-btn" data-method="UPI" data-min="2000" style="margin-top:8px">Withdraw</button>
-              </div>
-              <div class="card" style="text-align:center;margin:0;padding:16px">
-                <div><strong>📱 Paytm</strong></div>
-                <div class="small">Min: 5000 coins (₹500)</div>
-                <button class="btn withdraw-btn" data-method="Paytm" data-min="5000" style="margin-top:8px">Withdraw</button>
-              </div>
-            </div>
-            
-            <div style="margin-top:12px">
-              <div class="card" style="text-align:center;margin:0;padding:16px">
-                <div><strong>🏦 Bank Transfer</strong></div>
-                <div class="small">Min: 10000 coins (₹1000)</div>
-                <button class="btn withdraw-btn" data-method="Bank" data-min="10000" style="margin-top:8px">Withdraw</button>
-              </div>
-            </div>
-          </div>
-
-          <div style="margin-top:20px">
-            <h4 style="margin:0 0 12px 0">📋 Withdrawal History</h4>
-            <div id="withdraw-history" class="list">
-              <div class="small">No withdrawal requests yet.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Profile Tab Panel -->
-      <div id="profile" class="tab-panel" style="display:none">
-        <div class="card profile-row">
-          <div class="avatar" id="avatar">U</div>
-          <div style="flex:1">
-            <h3 id="profile-name" style="margin:0">User</h3>
-            <div id="profile-email" class="small">email@example.com</div>
-            <div style="margin-top:12px">
-              <button id="logout" class="btn ghost">🚪 Logout</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <h4 style="margin:0 0 12px 0">📊 Account Summary</h4>
+          <h3 style="margin: 0 0 16px 0">💸 Request Withdrawal</h3>
           <div class="stats-grid">
-            <div class="card" style="text-align:center;margin:0;padding:12px">
-              <div class="stat-value" id="profile-coins">0</div>
-              <div class="stat-label">💰 Total Coins</div>
+            <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: var(--radius);">
+              <div><strong>💳 UPI</strong></div>
+              <div class="small">Min: 2000 coins</div>
+              <button class="btn withdraw-btn" data-method="UPI" data-min="2000" style="margin-top: 8px;">Withdraw</button>
             </div>
-            <div class="card" style="text-align:center;margin:0;padding:12px">
-              <div class="stat-value" id="profile-withdraw-count">0</div>
-              <div class="stat-label">💸 Withdrawals</div>
+            <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: var(--radius);">
+              <div><strong>📱 Paytm</strong></div>
+              <div class="small">Min: 5000 coins</div>
+              <button class="btn withdraw-btn" data-method="Paytm" data-min="5000" style="margin-top: 8px;">Withdraw</button>
+            </div>
+          </div>
+          <div id="withdraw-history" class="list" style="margin-top: 16px;">
+            <div class="small">No withdrawals yet.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Tab -->
+      <div id="profile-content" class="tab-content hidden">
+        <div class="card">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 700;" id="avatar">U</div>
+            <div style="flex: 1;">
+              <h3 id="profile-name" style="margin: 0;">User</h3>
+              <div id="profile-email" class="small">email@example.com</div>
+              <button id="logout" class="btn ghost" style="margin-top: 12px;">🚪 Logout</button>
             </div>
           </div>
         </div>
 
         <div class="card">
-          <h4 style="margin:0 0 12px 0">📈 Recent Activity</h4>
+          <h4 style="margin: 0 0 16px 0;">📊 Account Summary</h4>
+          <div class="stats-grid">
+            <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: var(--radius);">
+              <div style="font-size: 20px; font-weight: 700; color: var(--primary);" id="profile-coins">0</div>
+              <div class="small">Total Coins</div>
+            </div>
+            <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: var(--radius);">
+              <div style="font-size: 20px; font-weight: 700; color: var(--success);" id="profile-withdrawals">0</div>
+              <div class="small">Withdrawals</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4 style="margin: 0 0 16px 0;">📈 Recent Activity</h4>
           <div id="recent-activity" class="list">
-            <div class="small">No recent activity yet.</div>
+            <div class="small">No recent activity.</div>
           </div>
         </div>
       </div>
     </div>
-
-    <div class="small" style="text-align:center;margin-top:16px;color:rgba(255,255,255,0.7)">
-      Made with ❤️ — Premium rewards platform
-    </div>
+    
+    <nav class="bottom-nav">
+      <div class="nav-item active" data-tab="home">
+        <div class="nav-icon">🏠</div>
+        <span>Home</span>
+      </div>
+      <div class="nav-item" data-tab="tasks">
+        <div class="nav-icon">🎯</div>
+        <span>Tasks</span>
+      </div>
+      <div class="nav-item" data-tab="rewards">
+        <div class="nav-icon">🏆</div>
+        <span>Rewards</span>
+      </div>
+      <div class="nav-item" data-tab="profile">
+        <div class="nav-icon">👤</div>
+        <span>Profile</span>
+      </div>
+    </nav>
   </div>
 
-  <!-- Offerwall Modal -->
-  <div id="modal-backdrop" class="modal-backdrop">
-    <div class="modal" role="dialog" aria-modal="true">
-      <div class="modal-header">
-        <strong>🎯 Offerwall</strong>
-        <div>
-          <button id="open-in-new" class="close-btn">🔗 Open in new tab</button>
-          <button id="close-modal" class="close-btn">❌ Close</button>
-        </div>
-      </div>
-      <div class="modal-body" id="modal-body">
-        <iframe id="offer-iframe" src="" frameborder="0" title="Offerwall"></iframe>
-      </div>
-    </div>
-  </div>
-
-  <!-- Bottom Navigation -->
-  <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
-    <div class="tab active" data-tab="tasks">
-      🎯<br><span style="font-size:10px">Tasks</span>
-    </div>
-    <div class="tab" data-tab="referral">
-      🤝<br><span style="font-size:10px">Referral</span>
-    </div>
-    <div class="tab" data-tab="withdraw">
-      💸<br><span style="font-size:10px">Withdraw</span>
-    </div>
-    <div class="tab" data-tab="profile">
-      👤<br><span style="font-size:10px">Profile</span>
-    </div>
-  </nav>
-
-  <!-- Leaderboard Modal -->
-  <div id="leaderboard-modal" class="modal-overlay">
-    <div class="modal-content">
-      <div class="modal-header-new">
-        <h3>🏆 Leaderboards</h3>
-        <button class="close-btn-modal" onclick="closeLeaderboard()">×</button>
-      </div>
-      
-      <!-- Leaderboard Tabs -->
-      <div style="display: flex; gap: 8px; margin-bottom: 16px">
-        <button class="btn ghost leaderboard-tab active" data-type="daily">📅 Daily</button>
-        <button class="btn ghost leaderboard-tab" data-type="weekly">📊 Weekly</button>
-        <button class="btn ghost leaderboard-tab" data-type="alltime">👑 All-Time</button>
-        <button class="btn ghost leaderboard-tab" data-type="referral">🤝 Referrals</button>
-      </div>
-      
-      <div id="leaderboard-content">
-        <div class="small">Loading leaderboard...</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Achievements Modal -->
-  <div id="achievements-modal" class="modal-overlay">
-    <div class="modal-content">
-      <div class="modal-header-new">
-        <h3>🏅 Achievements</h3>
-        <button class="close-btn-modal" onclick="closeAchievements()">×</button>
-      </div>
-      
-      <div id="achievements-content">
-        <!-- Achievement badges will be populated here -->
-      </div>
-    </div>
-  </div>
-
-  <!-- Toast Notification -->
-  <div id="toast"></div>
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
 
   <script>
-    /* ===== FIREBASE CONFIG =====*/
+    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyBNT7CLJ6QCcsFD_lhcrru3UOEqLmiYc3E",
       authDomain: "mreward-5e36d.firebaseapp.com",
@@ -796,693 +652,36 @@ body {
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    /* ===== UI REFERENCES ===== */
-    const tabs = document.querySelectorAll('.tab');
-    const panels = {
-      tasks: document.getElementById('tasks'),
-      referral: document.getElementById('referral'),
-      withdraw: document.getElementById('withdraw'),
-      profile: document.getElementById('profile')
-    };
-    const authPanel = document.getElementById('auth-panel');
-    const userArea = document.getElementById('user-area');
-    const emailInput = document.getElementById('email');
-    const passInput = document.getElementById('password');
+    // UI Elements
+    const authContainer = document.getElementById('auth-container');
+    const mainApp = document.getElementById('main-app');
+    const emailInput = document.getElementById('email-input');
+    const passwordInput = document.getElementById('password-input');
     const signinBtn = document.getElementById('signin-btn');
     const signupBtn = document.getElementById('signup-btn');
-    const authMsg = document.getElementById('auth-msg');
-
-    const coinBalanceEl = document.getElementById('coin-balance');
-    const refCodeEl = document.getElementById('ref-code');
-    const avatarEl = document.getElementById('avatar');
-    const profileNameEl = document.getElementById('profile-name');
-    const profileEmailEl = document.getElementById('profile-email');
-    const profileCoinsEl = document.getElementById('profile-coins');
-    const withdrawHistoryEl = document.getElementById('withdraw-history');
-    const profileWithdrawCount = document.getElementById('profile-withdraw-count');
-    const recentActivityEl = document.getElementById('recent-activity');
-    const dailyMsgEl = document.getElementById('daily-msg');
-    const dailyStatusEl = document.getElementById('daily-status');
-
-    const openOfferwallBtn = document.getElementById('open-offerwall');
-    const modalBackdrop = document.getElementById('modal-backdrop');
-    const offerIframe = document.getElementById('offer-iframe');
-    const closeModal = document.getElementById('close-modal');
-    const openInNew = document.getElementById('open-in-new');
-    const toast = document.getElementById('toast');
-
-    /* ===== GAMIFICATION SYSTEM ===== */
+    const authMessage = document.getElementById('auth-message');
+    const navItems = document.querySelectorAll('.nav-item');
+    const tabContents = document.querySelectorAll('.tab-content');
     
-    // Tier Configuration
-    const TIERS = {
-      BRONZE: { name: 'BRONZE', emoji: '🥉', min: 0, max: 999, multiplier: 1.0, class: 'tier-bronze' },
-      SILVER: { name: 'SILVER', emoji: '🥈', min: 1000, max: 4999, multiplier: 1.2, class: 'tier-silver' },
-      GOLD: { name: 'GOLD', emoji: '🥇', min: 5000, max: 14999, multiplier: 1.5, class: 'tier-gold' },
-      PLATINUM: { name: 'PLATINUM', emoji: '💎', min: 15000, max: 999999, multiplier: 2.0, class: 'tier-platinum' }
-    };
-
-    // Achievement Configuration
-    const ACHIEVEMENTS = {
-      'first_task': { icon: '🎯', title: 'First Task', desc: 'Complete your first task', xp: 50, unlocked: false },
-      'streak_7': { icon: '🔥', title: 'Week Warrior', desc: 'Maintain 7-day streak', xp: 100, unlocked: false },
-      'streak_30': { icon: '🚀', title: 'Monthly Master', desc: 'Maintain 30-day streak', xp: 300, unlocked: false },
-      'coins_1000': { icon: '💰', title: 'Coin Collector', desc: 'Earn 1,000 coins', xp: 100, unlocked: false },
-      'coins_10000': { icon: '💎', title: 'Coin Magnate', desc: 'Earn 10,000 coins', xp: 500, unlocked: false },
-      'referral_5': { icon: '🤝', title: 'Friend Bringer', desc: 'Refer 5 friends', xp: 200, unlocked: false },
-      'referral_25': { icon: '👑', title: 'Referral King', desc: 'Refer 25 friends', xp: 1000, unlocked: false },
-      'task_100': { icon: '⭐', title: 'Task Master', desc: 'Complete 100 tasks', xp: 300, unlocked: false },
-      'withdrawal_first': { icon: '🏦', title: 'First Cashout', desc: 'Make your first withdrawal', xp: 150, unlocked: false }
-    };
-
-    // Global gamification variables
-    let userGamificationData = {
-      xp: 0,
-      level: 1,
-      tier: 'BRONZE',
-      dailyStreak: 0,
-      totalTasks: 0,
-      totalReferrals: 0,
-      achievements: [],
-      lastStreakDate: null
-    };
-
-    /* ===== TIER SYSTEM FUNCTIONS ===== */
-    function calculateTierFromXP(xp) {
-      for (const [key, tier] of Object.entries(TIERS)) {
-        if (xp >= tier.min && xp <= tier.max) {
-          return key;
-        }
-      }
-      return 'BRONZE';
-    }
-
-    function updateTierDisplay(userData) {
-      const tier = TIERS[userData.tier || 'BRONZE'];
-      const tierEl = document.getElementById('user-tier');
-      const levelEl = document.getElementById('user-level');
-      const progressEl = document.getElementById('tier-progress');
-      const targetEl = document.getElementById('tier-target');
-      const progressBarEl = document.getElementById('tier-progress-bar');
-      const multiplierEl = document.getElementById('coin-multiplier');
-
-      if (tierEl) {
-        tierEl.textContent = `${tier.emoji} ${tier.name}`;
-        tierEl.className = `tier-badge ${tier.class}`;
-      }
-
-      if (levelEl) levelEl.textContent = userData.level || 1;
-      if (progressEl) progressEl.textContent = userData.xp || 0;
-      if (targetEl) targetEl.textContent = tier.max + 1;
-      if (multiplierEl) multiplierEl.textContent = `${tier.multiplier}x`;
-
-      // Update progress bar
-      if (progressBarEl) {
-        const progress = ((userData.xp || 0) - tier.min) / (tier.max - tier.min + 1) * 100;
-        progressBarEl.style.width = `${Math.min(progress, 100)}%`;
-      }
-    }
-
-    /* ===== STREAK SYSTEM ===== */
-    function updateStreakDisplay(streakDays) {
-      const streakEl = document.getElementById('daily-streak');
-      const streakFlame = document.querySelector('.streak-flame');
-      
-      if (streakEl) streakEl.textContent = streakDays;
-      
-      // Animate flame based on streak
-      if (streakFlame) {
-        if (streakDays >= 7) {
-          streakFlame.style.filter = 'hue-rotate(120deg)'; // Green flame for week+
-        } else if (streakDays >= 3) {
-          streakFlame.style.filter = 'hue-rotate(60deg)'; // Yellow flame for 3+ days
-        } else {
-          streakFlame.style.filter = 'none'; // Normal orange flame
-        }
-      }
-    }
-
-    function calculateStreak(lastStreakDate) {
-      if (!lastStreakDate) return 0;
-      
-      const today = new Date().toISOString().slice(0, 10);
-      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-      
-      if (lastStreakDate === today || lastStreakDate === yesterday) {
-        // Continue existing streak logic from user data
-        return userGamificationData.dailyStreak;
-      } else {
-        // Streak broken
-        return 0;
-      }
-    }
-
-    /* ===== XP & ACHIEVEMENT SYSTEM ===== */
-    async function awardXP(userId, amount, reason) {
-      try {
-        const userRef = db.collection('users').doc(userId);
-        
-        await db.runTransaction(async (transaction) => {
-          const userDoc = await transaction.get(userRef);
-          const userData = userDoc.data() || {};
-          const currentXP = userData.xp || 0;
-          const newXP = currentXP + amount;
-          const newLevel = Math.floor(newXP / 100) + 1; // Every 100 XP = 1 level
-          const newTier = calculateTierFromXP(newXP);
-          
-          transaction.update(userRef, {
-            xp: newXP,
-            level: newLevel,
-            tier: newTier
-          });
-          
-          // Log XP gain activity
-          const activityRef = db.collection('user_activity').doc();
-          transaction.set(activityRef, {
-            userId: userId,
-            title: 'XP Gained',
-            notes: `+${amount} XP - ${reason}`,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          });
-        });
-        
-        showNotification(`+${amount} XP earned! 🌟`, 'success');
-        
-        // Check for new achievements
-        await checkAchievements(userId);
-        
-      } catch (error) {
-        console.error('Error awarding XP:', error);
-      }
-    }
-
-    async function checkAchievements(userId) {
-      try {
-        const userDoc = await db.collection('users').doc(userId).get();
-        const userData = userDoc.data() || {};
-        const currentAchievements = userData.achievements || [];
-        
-        const newAchievements = [];
-        
-        // Check each achievement condition
-        for (const [key, achievement] of Object.entries(ACHIEVEMENTS)) {
-          if (currentAchievements.includes(key)) continue; // Already unlocked
-          
-          let unlocked = false;
-          
-          switch (key) {
-            case 'first_task':
-              unlocked = (userData.totalTasks || 0) >= 1;
-              break;
-            case 'streak_7':
-              unlocked = (userData.dailyStreak || 0) >= 7;
-              break;
-            case 'streak_30':
-              unlocked = (userData.dailyStreak || 0) >= 30;
-              break;
-            case 'coins_1000':
-              unlocked = (userData.totalEarned || 0) >= 1000;
-              break;
-            case 'coins_10000':
-              unlocked = (userData.totalEarned || 0) >= 10000;
-              break;
-            case 'referral_5':
-              unlocked = (userData.totalReferrals || 0) >= 5;
-              break;
-            case 'referral_25':
-              unlocked = (userData.totalReferrals || 0) >= 25;
-              break;
-            case 'task_100':
-              unlocked = (userData.totalTasks || 0) >= 100;
-              break;
-            case 'withdrawal_first':
-              unlocked = (userData.totalWithdrawals || 0) >= 1;
-              break;
-          }
-          
-          if (unlocked) {
-            newAchievements.push(key);
-          }
-        }
-        
-        // Award new achievements
-        if (newAchievements.length > 0) {
-          await db.collection('users').doc(userId).update({
-            achievements: firebase.firestore.FieldValue.arrayUnion(...newAchievements)
-          });
-          
-          // Award XP for achievements
-          let totalAchievementXP = 0;
-          newAchievements.forEach(key => {
-            totalAchievementXP += ACHIEVEMENTS[key].xp;
-            showAchievementUnlocked(ACHIEVEMENTS[key]);
-          });
-          
-          if (totalAchievementXP > 0) {
-            await awardXP(userId, totalAchievementXP, 'Achievement unlocked');
-          }
-        }
-        
-      } catch (error) {
-        console.error('Error checking achievements:', error);
-      }
-    }
-
-    function showAchievementUnlocked(achievement) {
-      showNotification(`🏅 Achievement Unlocked: ${achievement.title}!`, 'success');
-      
-      // Update badge count
-      const badgeCountEl = document.getElementById('badge-count');
-      if (badgeCountEl) {
-        const current = parseInt(badgeCountEl.textContent) || 0;
-        badgeCountEl.textContent = current + 1;
-        badgeCountEl.parentElement.classList.add('coin-animation');
-        setTimeout(() => {
-          badgeCountEl.parentElement.classList.remove('coin-animation');
-        }, 600);
-      }
-    }
-
-    /* ===== LEADERBOARD SYSTEM ===== */
-    function openLeaderboard() {
-      const modal = document.getElementById('leaderboard-modal');
-      if (modal) {
-        modal.style.display = 'flex';
-        loadLeaderboard('daily'); // Load default daily leaderboard
-      }
-    }
-
-    function closeLeaderboard() {
-      const modal = document.getElementById('leaderboard-modal');
-      if (modal) modal.style.display = 'none';
-    }
-
-    async function loadLeaderboard(type) {
-      try {
-        const contentEl = document.getElementById('leaderboard-content');
-        if (!contentEl) return;
-        
-        contentEl.innerHTML = '<div class="small">Loading leaderboard...</div>';
-        
-        // Update active tab
-        document.querySelectorAll('.leaderboard-tab').forEach(tab => {
-          tab.classList.remove('active');
-          if (tab.dataset.type === type) {
-            tab.classList.add('active');
-          }
-        });
-        
-        let query;
-        const now = new Date();
-        
-        switch (type) {
-          case 'daily':
-            const today = now.toISOString().slice(0, 10);
-            query = db.collection('leaderboard_daily').where('date', '==', today).orderBy('coins', 'desc').limit(10);
-            break;
-          case 'weekly':
-            const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
-            query = db.collection('leaderboard_weekly').where('weekStart', '==', weekStart.toISOString().slice(0, 10)).orderBy('coins', 'desc').limit(10);
-            break;
-          case 'alltime':
-            query = db.collection('users').orderBy('totalEarned', 'desc').limit(10);
-            break;
-          case 'referral':
-            query = db.collection('users').orderBy('totalReferrals', 'desc').limit(10);
-            break;
-        }
-        
-        const snapshot = await query.get();
-        
-        if (snapshot.empty) {
-          contentEl.innerHTML = '<div class="small">No data available yet. Be the first!</div>';
-          return;
-        }
-        
-        let html = '';
-        let rank = 1;
-        
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          const rankClass = rank <= 3 ? `rank-${rank}` : 'rank-other';
-          const displayValue = type === 'referral' ? (data.totalReferrals || 0) : (data.coins || data.totalEarned || 0);
-          const metric = type === 'referral' ? 'referrals' : 'coins';
-          
-          html += `
-            <div class="leaderboard-item">
-              <div class="leaderboard-rank ${rankClass}">${rank}</div>
-              <div style="flex: 1">
-                <div style="font-weight: 600">${escapeHtml(data.displayName || data.email?.split('@')[0] || 'Anonymous')}</div>
-                <div class="small">${displayValue.toLocaleString()} ${metric}</div>
-              </div>
-              ${data.tier ? `<div class="tier-badge ${TIERS[data.tier]?.class || 'tier-bronze'}">${TIERS[data.tier]?.emoji || '🥉'}</div>` : ''}
-            </div>
-          `;
-          rank++;
-        });
-        
-        contentEl.innerHTML = html;
-        
-      } catch (error) {
-        console.error('Error loading leaderboard:', error);
-        const contentEl = document.getElementById('leaderboard-content');
-        if (contentEl) contentEl.innerHTML = '<div class="small">Error loading leaderboard</div>';
-      }
-    }
-
-    // Attach leaderboard tab listeners
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('.leaderboard-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-          loadLeaderboard(tab.dataset.type);
-        });
-      });
-    });
-
-    /* ===== ACHIEVEMENTS MODAL ===== */
-    function openAchievements() {
-      const modal = document.getElementById('achievements-modal');
-      if (modal) {
-        modal.style.display = 'flex';
-        loadAchievements();
-      }
-    }
-
-    function closeAchievements() {
-      const modal = document.getElementById('achievements-modal');
-      if (modal) modal.style.display = 'none';
-    }
-
-    async function loadAchievements() {
-      try {
-        const user = auth.currentUser;
-        if (!user) return;
-        
-        const userDoc = await db.collection('users').doc(user.uid).get();
-        const userData = userDoc.data() || {};
-        const unlockedAchievements = userData.achievements || [];
-        
-        const contentEl = document.getElementById('achievements-content');
-        if (!contentEl) return;
-        
-        let html = '';
-        
-        for (const [key, achievement] of Object.entries(ACHIEVEMENTS)) {
-          const isUnlocked = unlockedAchievements.includes(key);
-          const badgeClass = isUnlocked ? 'achievement-unlocked' : '';
-          const opacity = isUnlocked ? '1' : '0.5';
-          
-          html += `
-            <div class="achievement-badge ${badgeClass}" style="opacity: ${opacity}">
-              <div class="achievement-icon">${achievement.icon}</div>
-              <div style="flex: 1">
-                <div style="font-weight: 600">${achievement.title}</div>
-                <div class="small">${achievement.desc}</div>
-              </div>
-              <div class="xp-badge">+${achievement.xp} XP</div>
-            </div>
-          `;
-        }
-        
-        contentEl.innerHTML = html;
-        
-      } catch (error) {
-        console.error('Error loading achievements:', error);
-      }
-    }
-
-    /* ===== ENHANCED NOTIFICATION SYSTEM ===== */
-    function showNotification(message, type = 'info', duration = 3000) {
-      // Remove existing notifications
-      document.querySelectorAll('.notification').forEach(n => n.remove());
-      
-      const notification = document.createElement('div');
-      notification.className = `notification ${type}`;
-      notification.textContent = message;
-      
-      document.body.appendChild(notification);
-      
-      setTimeout(() => {
-        notification.remove();
-      }, duration);
-    }
-
-    /* ===== TASK REFRESH FUNCTION ===== */
-    function refreshTasks() {
-      showNotification('Refreshing personalized tasks...', 'info');
-      // This will trigger the existing task listener to reload
-      // In future, we can add AI-based filtering here
-    }
-    function showToast(msg, ms = 3000) {
-      toast.textContent = msg;
+    // Utility Functions
+    function showToast(message, type = 'success', duration = 3000) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast ${type}`;
       toast.style.display = 'block';
-      setTimeout(() => toast.style.display = 'none', ms);
+      setTimeout(() => { toast.style.display = 'none'; }, duration);
     }
 
-    function showAuth(show) {
-      authPanel.style.display = show ? 'block' : 'none';
+    function switchTab(tabName) {
+      // Update nav items
+      navItems.forEach(item => item.classList.remove('active'));
+      document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+      
+      // Update content
+      tabContents.forEach(content => content.classList.add('hidden'));
+      document.getElementById(`${tabName}-content`).classList.remove('hidden');
     }
 
-    function escapeHtml(str) {
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
-    }
-
-    /* ===== ENHANCED TAB SWITCHING ===== */
-    function switchToTab(tabName) {
-      // Remove active class from all tabs
-      tabs.forEach(tab => tab.classList.remove('active'));
-      
-      // Add active class to clicked tab
-      const clickedTab = document.querySelector(`[data-tab="${tabName}"]`);
-      if (clickedTab) {
-        clickedTab.classList.add('active');
-      }
-      
-      // Hide all panels
-      Object.values(panels).forEach(panel => {
-        if (panel) panel.style.display = 'none';
-      });
-      
-      // Show selected panel
-      if (panels[tabName]) {
-        panels[tabName].style.display = 'block';
-      }
-      
-      // Show auth panel for profile if not signed in
-      if (tabName === 'profile' && !auth.currentUser) {
-        showAuth(true);
-      } else if (auth.currentUser) {
-        showAuth(false);
-      }
-    }
-
-    // Attach tab event listeners
-    tabs.forEach(tab => {
-      tab.addEventListener('click', (e) => {
-        e.preventDefault();
-        const tabName = tab.dataset.tab;
-        if (tabName) {
-          switchToTab(tabName);
-        }
-      });
-    });
-
-    /* ===== AUTHENTICATION ===== */
-    auth.onAuthStateChanged(async user => {
-      try {
-        if (user) {
-          showAuth(false);
-          userArea.innerHTML = `<div class="small" style="color: rgba(255,255,255,0.9)">Hi, ${escapeHtml(user.email?.split('@')[0] || 'User')} 👋</div>`;
-          
-          const userRef = db.collection('users').doc(user.uid);
-          await userRef.set({
-            email: user.email,
-            displayName: user.displayName || null,
-            lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-          }, { merge: true });
-
-          // Real-time user data listener
-          userRef.onSnapshot(doc => {
-            const data = doc.data() || {};
-            const coins = data.coins || 0;
-            
-            // Update coin displays with animation
-            const currentCoins = parseInt(coinBalanceEl.textContent.replace(/,/g, '')) || 0;
-            if (coins > currentCoins) {
-              coinBalanceEl.parentElement.classList.add('coin-animation');
-              setTimeout(() => {
-                coinBalanceEl.parentElement.classList.remove('coin-animation');
-              }, 600);
-            }
-            
-            coinBalanceEl.textContent = coins.toLocaleString();
-            profileCoinsEl.textContent = coins.toLocaleString();
-            
-            // Update gamification data
-            userGamificationData = {
-              xp: data.xp || 0,
-              level: data.level || 1,
-              tier: data.tier || 'BRONZE',
-              dailyStreak: data.dailyStreak || 0,
-              totalTasks: data.totalTasks || 0,
-              totalReferrals: data.totalReferrals || 0,
-              achievements: data.achievements || [],
-              lastStreakDate: data.lastStreakDate
-            };
-            
-            // Update displays
-            updateTierDisplay(data);
-            updateStreakDisplay(data.dailyStreak || 0);
-            
-            // Update badge count
-            const badgeCountEl = document.getElementById('badge-count');
-            if (badgeCountEl) {
-              badgeCountEl.textContent = (data.achievements || []).length;
-            }
-            
-            // Update user rank (simplified - in production, use proper ranking)
-            const userRankEl = document.getElementById('user-rank');
-            if (userRankEl) {
-              // This is a simplified ranking - in production, calculate from leaderboard
-              const rank = Math.max(1, Math.floor((data.totalEarned || 0) / 1000) + 1);
-              userRankEl.textContent = rank > 999 ? '999+' : rank;
-            }
-            
-            // Update referral code
-            const refCode = data.referral_code || generateAndSaveReferral(user.uid);
-            refCodeEl.textContent = refCode;
-            
-            // Update profile info
-            const displayName = data.displayName || user.email?.split('@')[0] || 'User';
-            avatarEl.textContent = displayName[0].toUpperCase();
-            profileNameEl.textContent = displayName;
-            profileEmailEl.textContent = user.email;
-            
-            // Update daily status and reward amount
-            const today = new Date().toISOString().slice(0, 10);
-            const lastClaim = data.lastClaim;
-            const tier = TIERS[data.tier || 'BRONZE'];
-            const baseReward = 50;
-            const multipliedReward = Math.floor(baseReward * tier.multiplier);
-            
-            const dailyRewardAmountEl = document.getElementById('daily-reward-amount');
-            if (dailyRewardAmountEl) {
-              dailyRewardAmountEl.textContent = multipliedReward;
-            }
-            
-            if (lastClaim === today) {
-              dailyStatusEl.textContent = '✅';
-              document.getElementById('daily-reward-card').style.opacity = '0.7';
-            } else {
-              dailyStatusEl.textContent = '🎁';
-              document.getElementById('daily-reward-card').style.opacity = '1';
-            }
-          });
-
-          loadWithdrawHistory(user.uid);
-          loadRecentActivity(user.uid);
-        } else {
-          // User signed out
-          showAuth(true);
-          userArea.innerHTML = '';
-          coinBalanceEl.textContent = '0';
-          refCodeEl.textContent = 'LOADING';
-          avatarEl.textContent = 'U';
-          profileNameEl.textContent = 'User';
-          profileEmailEl.textContent = 'email@example.com';
-          dailyStatusEl.textContent = '🎁';
-        }
-      } catch (error) {
-        console.error('Auth state change error:', error);
-        showToast('Authentication error occurred');
-      }
-    });
-
-    /* ===== SIGN UP ===== */
-    signupBtn.addEventListener('click', async () => {
-      const email = emailInput.value.trim();
-      const pass = passInput.value;
-      authMsg.textContent = '';
-      
-      if (!email || pass.length < 6) {
-        authMsg.textContent = 'Enter valid email & password (min 6 chars)';
-        return;
-      }
-      
-      try {
-        authMsg.textContent = 'Creating account...';
-        const cred = await auth.createUserWithEmailAndPassword(email, pass);
-        const user = cred.user;
-        
-        await db.collection('users').doc(user.uid).set({
-          email: user.email,
-          coins: 500, // Welcome bonus
-          referral_code: generateReferralCode(6),
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-        
-        // Log welcome activity
-        await db.collection('user_activity').add({
-          userId: user.uid,
-          title: 'Welcome Bonus',
-          notes: '+500 coins for joining!',
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        authMsg.textContent = 'Account created successfully! 🎉';
-        showToast('Welcome! You received 500 bonus coins! 🎉');
-        
-        // Clear form
-        emailInput.value = '';
-        passInput.value = '';
-        
-      } catch (error) {
-        console.error('Signup error:', error);
-        authMsg.textContent = error.message;
-      }
-    });
-
-    /* ===== SIGN IN ===== */
-    signinBtn.addEventListener('click', async () => {
-      const email = emailInput.value.trim();
-      const pass = passInput.value;
-      authMsg.textContent = '';
-      
-      if (!email || pass.length < 6) {
-        authMsg.textContent = 'Enter valid email & password (min 6 chars)';
-        return;
-      }
-      
-      try {
-        authMsg.textContent = 'Signing in...';
-        await auth.signInWithEmailAndPassword(email, pass);
-        authMsg.textContent = 'Signed in successfully! 🎉';
-        showToast('Welcome back! 👋');
-        
-        // Clear form
-        emailInput.value = '';
-        passInput.value = '';
-        
-      } catch (error) {
-        console.error('Signin error:', error);
-        authMsg.textContent = error.message;
-      }
-    });
-
-    /* ===== LOGOUT ===== */
-    document.getElementById('logout').addEventListener('click', async () => {
-      try {
-        await auth.signOut();
-        showToast('Signed out successfully');
-        switchToTab('tasks'); // Switch to tasks after logout
-      } catch (error) {
-        console.error('Logout error:', error);
-        showToast('Error signing out');
-      }
-    });
-
-    /* ===== REFERRAL FUNCTIONS ===== */
     function generateReferralCode(length = 6) {
       const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
       let code = '';
@@ -1492,170 +691,143 @@ body {
       return code;
     }
 
-    async function generateAndSaveReferral(uid) {
-      try {
-        const userRef = db.collection('users').doc(uid);
-        const doc = await userRef.get();
-        const data = doc.data() || {};
+    // Authentication
+    auth.onAuthStateChanged(async user => {
+      if (user) {
+        // User signed in
+        authContainer.classList.add('hidden');
+        mainApp.classList.add('visible');
         
-        if (data.referral_code) return data.referral_code;
+        document.getElementById('user-info').textContent = `Hi, ${user.email.split('@')[0]}!`;
         
-        const newCode = generateReferralCode(6);
-        await userRef.set({ referral_code: newCode }, { merge: true });
-        return newCode;
-      } catch (error) {
-        console.error('Error generating referral code:', error);
-        return 'ERROR';
-      }
-    }
+        // Initialize user data
+        const userRef = db.collection('users').doc(user.uid);
+        await userRef.set({
+          email: user.email,
+          coins: firebase.firestore.FieldValue.increment(0),
+          totalTasks: firebase.firestore.FieldValue.increment(0),
+          totalEarned: firebase.firestore.FieldValue.increment(0)
+        }, { merge: true });
 
-    /* ===== COPY REFERRAL CODE ===== */
-    document.getElementById('copy-ref').addEventListener('click', async () => {
-      const refCode = refCodeEl.textContent;
-      if (refCode === 'LOADING' || refCode === 'ERROR') return;
-      
-      try {
-        const referralUrl = `${window.location.origin}${window.location.pathname}?ref=${refCode}`;
-        await navigator.clipboard.writeText(referralUrl);
-        showToast('Referral link copied! 📋');
-      } catch (error) {
-        // Fallback for older browsers
-        const textArea = document.createElement('textarea');
-        textArea.value = `${window.location.origin}${window.location.pathname}?ref=${refCode}`;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        showToast('Referral link copied! 📋');
-      }
-    });
+        // Set up real-time listener
+        userRef.onSnapshot(doc => {
+          const data = doc.data() || {};
+          
+          // Update UI
+          document.getElementById('coin-balance').textContent = (data.coins || 0).toLocaleString();
+          document.getElementById('total-tasks').textContent = data.totalTasks || 0;
+          document.getElementById('total-earned').textContent = (data.totalEarned || 0).toLocaleString();
+          document.getElementById('profile-coins').textContent = (data.coins || 0).toLocaleString();
+          
+          // Set referral code
+          if (!data.referralCode) {
+            const refCode = generateReferralCode();
+            userRef.update({ referralCode: refCode });
+            document.getElementById('ref-code').textContent = refCode;
+          } else {
+            document.getElementById('ref-code').textContent = data.referralCode;
+          }
+          
+          // Update profile
+          document.getElementById('profile-name').textContent = user.email.split('@')[0];
+          document.getElementById('profile-email').textContent = user.email;
+          document.getElementById('avatar').textContent = user.email[0].toUpperCase();
+          
+          // Update daily status
+          const today = new Date().toISOString().slice(0, 10);
+          if (data.lastClaim === today) {
+            document.getElementById('daily-status').textContent = '✅';
+          } else {
+            document.getElementById('daily-status').textContent = '🎁';
+          }
+        });
 
-    /* ===== SOCIAL SHARING ===== */
-    document.getElementById('share-wa').addEventListener('click', () => {
-      const refCode = refCodeEl.textContent;
-      if (refCode === 'LOADING' || refCode === 'ERROR') return;
-      
-      const message = `🎉 Join Mreward PRO and earn coins instantly! Use my referral code: ${refCode} 
-💰 Get 50 bonus coins when you sign up!
-🔗 ${window.location.origin}${window.location.pathname}?ref=${refCode}`;
-      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-      window.open(whatsappUrl, '_blank');
-    });
-
-    document.getElementById('share-tg').addEventListener('click', () => {
-      const refCode = refCodeEl.textContent;
-      if (refCode === 'LOADING' || refCode === 'ERROR') return;
-      
-      const message = `🎉 Join Mreward PRO and earn coins instantly! Use my referral code: ${refCode} 
-💰 Get 50 bonus coins when you sign up!
-🔗 ${window.location.origin}${window.location.pathname}?ref=${refCode}`;
-      const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.origin + window.location.pathname + '?ref=' + refCode)}&text=${encodeURIComponent(message)}`;
-      window.open(telegramUrl, '_blank');
-    });
-
-    /* ===== OFFERWALL SETTINGS ===== */
-    let cpagripUrl = '';
-
-    async function loadSettings() {
-      try {
-        const settingsDoc = await db.collection('app_settings').doc('settings').get();
-        const data = settingsDoc.exists ? settingsDoc.data() : null;
-        if (data && data.cpagrip_url) {
-          cpagripUrl = data.cpagrip_url;
-        }
-      } catch (error) {
-        console.warn('Settings load error:', error);
-      }
-    }
-
-    // Load settings on app start
-    loadSettings();
-
-    function isCpagripUrl(url) {
-      try {
-        if (!url) return false;
-        const u = new URL(url.indexOf('http') === 0 ? url : ('https://' + url));
-        return u.hostname.includes('cpagrip') || url.includes('cpagrip');
-      } catch (error) {
-        return url && url.includes('cpagrip');
-      }
-    }
-
-    /* ===== OFFERWALL MODAL - ENHANCED ===== */
-    function openOfferUrl(url) {
-      if (!url) {
-        showToast('No offer URL configured');
-        return;
-      }
-      
-      // Normalize URL
-      if (!/^https?:\/\//i.test(url)) {
-        url = 'https://' + url;
-      }
-      
-      if (isCpagripUrl(url)) {
-        // For CPAGrip, always open in new tab (no overlay)
-        window.open(url, '_blank');
-        showToast('Offerwall opened in new tab');
+        loadTasks();
+        loadWithdrawHistory(user.uid);
+        loadActivity(user.uid);
+        
       } else {
-        // For other URLs, use modal
-        offerIframe.src = url;
-        modalBackdrop.style.display = 'flex';
+        // User signed out
+        authContainer.classList.remove('hidden');
+        mainApp.classList.remove('visible');
       }
-    }
+    });
 
-    openOfferwallBtn.addEventListener('click', () => {
-      const user = auth.currentUser;
-      if (!user) {
-        showToast('Please sign in first');
-        switchToTab('profile');
+    // Sign In
+    signinBtn.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      
+      if (!email || password.length < 6) {
+        authMessage.textContent = 'Please enter valid email and password (min 6 chars)';
+        authMessage.className = 'form-message error';
         return;
       }
       
-      const url = cpagripUrl || '';
-      if (!url) {
-        showToast('Offerwall not configured by admin');
+      try {
+        signinBtn.textContent = 'Signing in...';
+        await auth.signInWithEmailAndPassword(email, password);
+        authMessage.textContent = 'Signed in successfully!';
+        authMessage.className = 'form-message success';
+        showToast('Welcome back! 👋');
+      } catch (error) {
+        authMessage.textContent = error.message;
+        authMessage.className = 'form-message error';
+        signinBtn.textContent = 'Sign In';
+      }
+    });
+
+    // Sign Up
+    signupBtn.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      
+      if (!email || password.length < 6) {
+        authMessage.textContent = 'Please enter valid email and password (min 6 chars)';
+        authMessage.className = 'form-message error';
         return;
       }
       
-      openOfferUrl(url);
-    });
-
-    closeModal.addEventListener('click', () => {
-      offerIframe.src = ''; // Stop loading offer content
-      modalBackdrop.style.display = 'none';
-    });
-
-    openInNew.addEventListener('click', () => {
-      const url = offerIframe.src || cpagripUrl || '';
-      if (url) {
-        window.open(url, '_blank');
-        modalBackdrop.style.display = 'none';
+      try {
+        signupBtn.textContent = 'Creating account...';
+        const cred = await auth.createUserWithEmailAndPassword(email, password);
+        
+        // Initialize user with welcome bonus
+        await db.collection('users').doc(cred.user.uid).set({
+          email: cred.user.email,
+          coins: 500,
+          totalTasks: 0,
+          totalEarned: 500,
+          referralCode: generateReferralCode(),
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        authMessage.textContent = 'Account created! Welcome bonus: 500 coins! 🎉';
+        authMessage.className = 'form-message success';
+        showToast('Welcome! You got 500 bonus coins! 🎉');
+      } catch (error) {
+        authMessage.textContent = error.message;
+        authMessage.className = 'form-message error';
+        signupBtn.textContent = 'Create Account';
       }
     });
 
-    // Close modal on backdrop click
-    modalBackdrop.addEventListener('click', (e) => {
-      if (e.target === modalBackdrop) {
-        closeModal.click();
-      }
+    // Navigation
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        switchTab(item.dataset.tab);
+      });
     });
 
-    /* ===== ENHANCED DAILY REWARD SYSTEM ===== */
+    // Daily Reward
     document.getElementById('claim-daily').addEventListener('click', async () => {
       const user = auth.currentUser;
-      if (!user) {
-        dailyMsgEl.textContent = 'Please sign in first';
-        showToast('Please sign in to claim daily reward');
-        return;
-      }
+      if (!user) return;
       
       const userRef = db.collection('users').doc(user.uid);
       const today = new Date().toISOString().slice(0, 10);
       
       try {
-        dailyMsgEl.textContent = 'Claiming...';
-        
         await db.runTransaction(async (transaction) => {
           const userDoc = await transaction.get(userRef);
           const userData = userDoc.data() || {};
@@ -1664,108 +836,93 @@ body {
             throw new Error('Already claimed today! Come back tomorrow 🌅');
           }
           
-          const currentCoins = userData.coins || 0;
-          const currentStreak = userData.dailyStreak || 0;
-          const lastStreakDate = userData.lastStreakDate;
-          
-          // Calculate streak
-          const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-          let newStreak = 1;
-          
-          if (lastStreakDate === yesterday) {
-            newStreak = currentStreak + 1;
-          } else if (lastStreakDate === today) {
-            newStreak = currentStreak; // Already claimed today
-          }
-          
-          // Calculate reward with tier multiplier
-          const tier = TIERS[userData.tier || 'BRONZE'];
-          const baseReward = 50;
-          const streakBonus = Math.min(newStreak * 5, 100); // Max 100 bonus coins
-          const totalReward = Math.floor((baseReward + streakBonus) * tier.multiplier);
-          
-          const newCoins = currentCoins + totalReward;
-          
-          // XP rewards
-          const baseXP = 10;
-          const streakXPBonus = newStreak >= 7 ? 20 : 0;
-          const totalXP = baseXP + streakXPBonus;
-          
+          const newCoins = (userData.coins || 0) + 50;
           transaction.update(userRef, {
             coins: newCoins,
             lastClaim: today,
-            dailyStreak: newStreak,
-            lastStreakDate: today,
-            xp: firebase.firestore.FieldValue.increment(totalXP),
-            totalEarned: firebase.firestore.FieldValue.increment(totalReward)
-          });
-          
-          // Log activity
-          const activityRef = db.collection('user_activity').doc();
-          transaction.set(activityRef, {
-            userId: user.uid,
-            title: 'Daily Reward Claimed',
-            notes: `+${totalReward} coins, +${totalXP} XP (Day ${newStreak})`,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            totalEarned: firebase.firestore.FieldValue.increment(50)
           });
         });
         
-        const tier = TIERS[userGamificationData.tier || 'BRONZE'];
-        const baseReward = 50;
-        const streakBonus = Math.min(userGamificationData.dailyStreak * 5, 100);
-        const totalReward = Math.floor((baseReward + streakBonus) * tier.multiplier);
-        
-        dailyMsgEl.textContent = `Daily reward claimed! +${totalReward} coins 🎉`;
-        showNotification(`🎁 Daily reward claimed! +${totalReward} coins`, 'success');
-        
-        // Award XP
-        await awardXP(user.uid, 10, 'Daily login');
-        
-        // Check achievements
-        await checkAchievements(user.uid);
-        
+        document.getElementById('daily-msg').textContent = 'Daily reward claimed! +50 coins 🎉';
+        showToast('🎁 Daily reward claimed! +50 coins');
       } catch (error) {
-        console.error('Daily claim error:', error);
-        dailyMsgEl.textContent = error.message || 'Error claiming reward';
+        document.getElementById('daily-msg').textContent = error.message;
       }
     });
 
-    /* ===== WITHDRAWAL SYSTEM - ENHANCED ===== */
+    // Logout
+    document.getElementById('logout').addEventListener('click', () => {
+      auth.signOut();
+      showToast('Signed out successfully');
+    });
+
+    // Copy Referral
+    document.getElementById('copy-ref').addEventListener('click', async () => {
+      const refCode = document.getElementById('ref-code').textContent;
+      const referralUrl = `${window.location.origin}${window.location.pathname}?ref=${refCode}`;
+      
+      try {
+        await navigator.clipboard.writeText(referralUrl);
+        showToast('Referral link copied! 📋');
+      } catch (error) {
+        showToast('Failed to copy link', 'error');
+      }
+    });
+
+    // Social Sharing
+    document.getElementById('share-wa').addEventListener('click', () => {
+      const refCode = document.getElementById('ref-code').textContent;
+      const message = `🎉 Join Mreward PRO and earn coins instantly! Use my referral code: ${refCode}
+💰 Get bonus coins when you sign up!
+🔗 ${window.location.origin}${window.location.pathname}?ref=${refCode}`;
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+    });
+
+    document.getElementById('share-tg').addEventListener('click', () => {
+      const refCode = document.getElementById('ref-code').textContent;
+      const message = `🎉 Join Mreward PRO and earn coins instantly! Use my referral code: ${refCode}
+💰 Get bonus coins when you sign up!
+🔗 ${window.location.origin}${window.location.pathname}?ref=${refCode}`;
+      const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.origin + window.location.pathname + '?ref=' + refCode)}&text=${encodeURIComponent(message)}`;
+      window.open(telegramUrl, '_blank');
+    });
+
+    // Withdrawal
     document.querySelectorAll('.withdraw-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
         const method = btn.dataset.method;
-        const minCoins = parseInt(btn.dataset.min, 10);
+        const minCoins = parseInt(btn.dataset.min);
         const user = auth.currentUser;
         
         if (!user) {
           alert('Please sign in first');
-          switchToTab('profile');
           return;
         }
         
+        const userDoc = await db.collection('users').doc(user.uid).get();
+        const userData = userDoc.data() || {};
+        const currentCoins = userData.coins || 0;
+        
+        if (currentCoins < minCoins) {
+          alert(`Insufficient coins! You need at least ${minCoins} coins.`);
+          return;
+        }
+        
+        const amount = prompt(`Enter amount to withdraw (min ${minCoins}, max ${currentCoins}):`);
+        if (!amount) return;
+        
+        const coinsToWithdraw = parseInt(amount);
+        if (isNaN(coinsToWithdraw) || coinsToWithdraw < minCoins || coinsToWithdraw > currentCoins) {
+          alert('Invalid amount');
+          return;
+        }
+        
+        const destination = prompt(`Enter ${method} details:`);
+        if (!destination) return;
+        
         try {
-          const userDoc = await db.collection('users').doc(user.uid).get();
-          const userData = userDoc.data() || {};
-          const currentCoins = userData.coins || 0;
-          
-          if (currentCoins < minCoins) {
-            alert(`Insufficient coins! You need at least ${minCoins} coins for ${method} withdrawal.`);
-            return;
-          }
-          
-          const amount = prompt(`Enter amount to withdraw in coins (min ${minCoins}, max ${currentCoins}):`);
-          if (!amount) return;
-          
-          const coinsToWithdraw = parseInt(amount, 10);
-          if (isNaN(coinsToWithdraw) || coinsToWithdraw < minCoins || coinsToWithdraw > currentCoins) {
-            alert('Invalid amount entered');
-            return;
-          }
-          
-          const destination = prompt(`Enter ${method} details:\n${method === 'UPI' ? 'UPI ID' : method === 'Paytm' ? 'Mobile Number' : 'Bank Account Details'}`);
-          if (!destination) return;
-          
-          // Create withdrawal request
           await db.collection('withdraw_requests').add({
             userId: user.uid,
             email: user.email,
@@ -1776,287 +933,128 @@ body {
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
           
-          // Deduct coins immediately
           await db.collection('users').doc(user.uid).update({
             coins: currentCoins - coinsToWithdraw
           });
           
-          // Log activity
-          await db.collection('user_activity').add({
-            userId: user.uid,
-            title: 'Withdrawal Requested',
-            notes: `${method} withdrawal of ${coinsToWithdraw} coins`,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          });
-          
           showToast(`Withdrawal request submitted! Processing ${coinsToWithdraw} coins via ${method}`);
-          
         } catch (error) {
-          console.error('Withdrawal error:', error);
-          showToast('Error processing withdrawal request');
+          showToast('Error processing withdrawal', 'error');
         }
       });
     });
 
-    /* ===== WITHDRAWAL HISTORY ===== */
+    // Load Tasks
+    async function loadTasks() {
+      try {
+        const tasksSnapshot = await db.collection('tasks').orderBy('coins', 'desc').get();
+        const tasksList = document.getElementById('tasks-list');
+        
+        if (tasksSnapshot.empty) {
+          tasksList.innerHTML = '<div class="small">No tasks available at the moment.</div>';
+          return;
+        }
+        
+        tasksList.innerHTML = '';
+        tasksSnapshot.forEach(doc => {
+          const data = doc.data();
+          const taskItem = document.createElement('div');
+          taskItem.className = 'list-item';
+          taskItem.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong>${data.title || 'Task'}</strong>
+                <div class="small">${data.desc || 'Complete this task'}</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="color: var(--success); font-weight: 700;">+${data.coins || 0} coins</div>
+                <button class="btn" onclick="claimTask('${doc.id}', ${data.coins || 0})" style="margin-top: 4px; font-size: 12px;">Claim</button>
+              </div>
+            </div>
+          `;
+          tasksList.appendChild(taskItem);
+        });
+      } catch (error) {
+        console.error('Error loading tasks:', error);
+      }
+    }
+
+    // Claim Task
+    window.claimTask = async function(taskId, coins) {
+      const user = auth.currentUser;
+      if (!user) return;
+      
+      try {
+        const userRef = db.collection('users').doc(user.uid);
+        await db.runTransaction(async (transaction) => {
+          const userDoc = await transaction.get(userRef);
+          const userData = userDoc.data() || {};
+          
+          transaction.update(userRef, {
+            coins: firebase.firestore.FieldValue.increment(coins),
+            totalTasks: firebase.firestore.FieldValue.increment(1),
+            totalEarned: firebase.firestore.FieldValue.increment(coins)
+          });
+        });
+        
+        showToast(`🎉 Task completed! +${coins} coins`);
+      } catch (error) {
+        showToast('Error claiming task', 'error');
+      }
+    };
+
+    // Load Withdrawal History
     async function loadWithdrawHistory(uid) {
       try {
-        withdrawHistoryEl.innerHTML = '<div class="small">Loading withdrawal history...</div>';
-        
-        const query = db.collection('withdraw_requests')
+        const withdrawalsSnapshot = await db.collection('withdraw_requests')
           .where('userId', '==', uid)
           .orderBy('createdAt', 'desc')
-          .limit(10);
+          .limit(10)
+          .get();
           
-        query.onSnapshot(snapshot => {
-          withdrawHistoryEl.innerHTML = '';
-          
-          if (snapshot.empty) {
-            withdrawHistoryEl.innerHTML = '<div class="small">No withdrawal requests yet.</div>';
-            profileWithdrawCount.textContent = '0';
-            return;
-          }
-          
-          let count = 0;
-          snapshot.forEach(doc => {
-            count++;
-            const data = doc.data();
-            const createdAt = data.createdAt?.toDate() || new Date();
-            const statusColor = data.status === 'approved' ? '#10b981' : 
-                              data.status === 'rejected' ? '#ef4444' : '#f59e0b';
-            
-            const element = document.createElement('div');
-            element.className = 'list-item';
-            element.innerHTML = `
-              <div style="display: flex; justify-content: space-between; align-items: center">
-                <div>
-                  <strong>${escapeHtml(data.method)} - ${data.coins} coins</strong>
-                  <div class="small">${createdAt.toLocaleDateString()}</div>
-                </div>
-                <div style="color: ${statusColor}; font-weight: 600; text-transform: uppercase; font-size: 12px">
-                  ${data.status}
-                </div>
+        const historyContainer = document.getElementById('withdraw-history');
+        
+        if (withdrawalsSnapshot.empty) {
+          historyContainer.innerHTML = '<div class="small">No withdrawals yet.</div>';
+          document.getElementById('profile-withdrawals').textContent = '0';
+          return;
+        }
+        
+        historyContainer.innerHTML = '';
+        let count = 0;
+        
+        withdrawalsSnapshot.forEach(doc => {
+          count++;
+          const data = doc.data();
+          const item = document.createElement('div');
+          item.className = 'list-item';
+          item.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong>${data.method} - ${data.coins} coins</strong>
+                <div class="small">${data.createdAt?.toDate()?.toLocaleDateString() || 'Recent'}</div>
               </div>
-            `;
-            withdrawHistoryEl.appendChild(element);
-          });
-          
-          profileWithdrawCount.textContent = count.toString();
+              <div style="color: var(--warning); font-weight: 600; text-transform: uppercase; font-size: 12px;">
+                ${data.status}
+              </div>
+            </div>
+          `;
+          historyContainer.appendChild(item);
         });
         
+        document.getElementById('profile-withdrawals').textContent = count.toString();
       } catch (error) {
         console.error('Error loading withdrawal history:', error);
-        withdrawHistoryEl.innerHTML = '<div class="small">Error loading history.</div>';
       }
     }
 
-    /* ===== RECENT ACTIVITY ===== */
-    function loadRecentActivity(uid) {
-      try {
-        const query = db.collection('user_activity')
-          .where('userId', '==', uid)
-          .orderBy('createdAt', 'desc')
-          .limit(10);
-          
-        query.onSnapshot(snapshot => {
-          recentActivityEl.innerHTML = '';
-          
-          if (snapshot.empty) {
-            recentActivityEl.innerHTML = '<div class="small">No recent activity yet.</div>';
-            return;
-          }
-          
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const element = document.createElement('div');
-            element.className = 'list-item';
-            element.innerHTML = `
-              <div>
-                <strong>${escapeHtml(data.title || '')}</strong>
-                <div class="small">${escapeHtml(data.notes || '')}</div>
-              </div>
-            `;
-            recentActivityEl.appendChild(element);
-          });
-        });
-        
-      } catch (error) {
-        console.error('Error loading recent activity:', error);
-        recentActivityEl.innerHTML = '<div class="small">Error loading activity.</div>';
-      }
+    // Load Recent Activity
+    async function loadActivity(uid) {
+      const activityContainer = document.getElementById('recent-activity');
+      activityContainer.innerHTML = '<div class="small">No recent activity.</div>';
     }
 
-    /* ===== ENHANCED DYNAMIC TASKS SYSTEM ===== */
-    function renderTasks(taskDocs) {
-      const tasksList = document.getElementById('tasks-list');
-      tasksList.innerHTML = '';
-      
-      if (!taskDocs || taskDocs.length === 0) {
-        tasksList.innerHTML = '<div class="small">No tasks available at the moment. Check back later! 📅</div>';
-        return;
-      }
-      
-      taskDocs.forEach(doc => {
-        const data = doc.data();
-        const element = document.createElement('div');
-        element.className = 'list-item';
-        
-        // Calculate difficulty based on coin reward
-        let difficulty = 'easy';
-        let difficultyClass = 'difficulty-easy';
-        if (data.coins >= 100) {
-          difficulty = 'hard';
-          difficultyClass = 'difficulty-hard';
-        } else if (data.coins >= 50) {
-          difficulty = 'medium';
-          difficultyClass = 'difficulty-medium';
-        }
-        
-        // Simulate success rate (in production, calculate from user completion data)
-        const successRate = Math.max(60, Math.min(95, 90 - Math.floor(data.coins / 20)));
-        
-        // Calculate coin reward with user's tier multiplier
-        const tier = TIERS[userGamificationData.tier || 'BRONZE'];
-        const multipliedCoins = Math.floor((data.coins || 0) * tier.multiplier);
-        const xpReward = Math.floor((data.coins || 0) / 10) + 5;
-        
-        const offerButton = data.offer_url ? 
-          `<button class="btn ghost open-offer" data-url="${escapeHtml(data.offer_url)}" style="margin-right: 8px; font-size: 12px">
-             📋 Start Survey
-           </button>` : '';
-        
-        element.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px">
-            <div style="flex: 1">
-              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px">
-                <strong>${escapeHtml(data.title || 'Untitled Task')}</strong>
-                <div class="task-difficulty ${difficultyClass}">${difficulty}</div>
-              </div>
-              <div class="small" style="margin-bottom: 6px">${escapeHtml(data.desc || 'Complete this task to earn coins')}</div>
-              <div style="display: flex; gap: 12px; align-items: center">
-                <div class="success-rate">📊 ${successRate}% success</div>
-                <div class="xp-badge">+${xpReward} XP</div>
-              </div>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end">
-              <div style="color: var(--success); font-weight: 700; font-size: 16px">+${multipliedCoins} coins</div>
-              <div style="display: flex; gap: 8px; align-items: center">
-                ${offerButton}
-                <button class="btn success claim-task" data-id="${doc.id}" data-coins="${(data.coins || 0)}" style="font-size: 12px">
-                  🎁 Claim
-                </button>
-              </div>
-            </div>
-          </div>
-        `;
-        
-        tasksList.appendChild(element);
-      });
-      
-      // Attach event listeners for offer buttons
-      document.querySelectorAll('.open-offer').forEach(button => {
-        button.addEventListener('click', (event) => {
-          const user = auth.currentUser;
-          if (!user) {
-            showToast('Please sign in first');
-            switchToTab('profile');
-            return;
-          }
-          
-          const url = event.target.dataset.url;
-          if (url) {
-            openOfferUrl(url);
-          }
-        });
-      });
-      
-      // Attach event listeners for claim buttons
-      document.querySelectorAll('.claim-task').forEach(button => {
-        button.addEventListener('click', async (event) => {
-          const user = auth.currentUser;
-          if (!user) {
-            alert('Please sign in first');
-            switchToTab('profile');
-            return;
-          }
-          
-          const taskId = event.target.dataset.id;
-          const coins = parseInt(event.target.dataset.coins, 10) || 0;
-          
-          if (coins <= 0) {
-            showToast('Invalid task reward');
-            return;
-          }
-          
-          try {
-            event.target.disabled = true;
-            event.target.textContent = 'Claiming...';
-            
-            const userRef = db.collection('users').doc(user.uid);
-            
-            await db.runTransaction(async (transaction) => {
-              const userDoc = await transaction.get(userRef);
-              const userData = userDoc.data() || {};
-              const currentCoins = userData.coins || 0;
-              const tier = TIERS[userData.tier || 'BRONZE'];
-              
-              // Apply tier multiplier to task rewards
-              const multipliedCoins = Math.floor(coins * tier.multiplier);
-              const newCoins = currentCoins + multipliedCoins;
-              
-              // XP calculation
-              const taskXP = Math.floor(coins / 10) + 5; // Base 5 XP + bonus based on coin reward
-              
-              transaction.update(userRef, { 
-                coins: newCoins,
-                totalTasks: firebase.firestore.FieldValue.increment(1),
-                totalEarned: firebase.firestore.FieldValue.increment(multipliedCoins),
-                xp: firebase.firestore.FieldValue.increment(taskXP)
-              });
-              
-              // Log the task completion activity
-              const activityRef = db.collection('user_activity').doc();
-              transaction.set(activityRef, {
-                userId: user.uid,
-                title: 'Task Completed',
-                notes: `+${multipliedCoins} coins, +${taskXP} XP`,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-              });
-            });
-            
-            const tier = TIERS[userGamificationData.tier || 'BRONZE'];
-            const multipliedCoins = Math.floor(coins * tier.multiplier);
-            const taskXP = Math.floor(coins / 10) + 5;
-            
-            showNotification(`🎉 Task completed! +${multipliedCoins} coins, +${taskXP} XP`, 'success');
-            
-            // Check achievements
-            await checkAchievements(user.uid);
-            
-          } catch (error) {
-            console.error('Task claim error:', error);
-            showToast('Error claiming task reward');
-            event.target.disabled = false;
-            event.target.textContent = `🎁 Claim +${coins}`;
-          }
-        });
-      });
-    }
-
-    /* ===== REAL-TIME TASKS LISTENER ===== */
-    db.collection('tasks')
-      .orderBy('coins', 'desc')
-      .onSnapshot(
-        snapshot => {
-          renderTasks(snapshot.docs);
-        },
-        error => {
-          console.warn('Tasks listener error:', error);
-          renderTasks([]);
-        }
-      );
-
-    /* ===== REFERRAL SYSTEM ===== */
+    // Handle referral from URL
     function handleReferralOnSignup() {
       const urlParams = new URLSearchParams(window.location.search);
       const refCode = urlParams.get('ref');
@@ -2066,115 +1064,10 @@ body {
       }
     }
 
-    // Handle referral bonus when user signs up
-    auth.onAuthStateChanged(async user => {
-      if (!user) return;
-      
-      const pendingRef = localStorage.getItem('pending_referral');
-      if (pendingRef) {
-        try {
-          const referrerQuery = await db.collection('users')
-            .where('referral_code', '==', pendingRef)
-            .limit(1)
-            .get();
-            
-          if (!referrerQuery.empty) {
-            const referrerDoc = referrerQuery.docs[0];
-            const referrerUid = referrerDoc.id;
-            const referrerData = referrerDoc.data();
-            
-            // Check if user hasn't already been referred
-            const currentUserDoc = await db.collection('users').doc(user.uid).get();
-            const currentUserData = currentUserDoc.data() || {};
-            
-            if (!currentUserData.referred_by) {
-              const batch = db.batch();
-              
-              // Give bonus to referrer
-              batch.update(db.collection('users').doc(referrerUid), {
-                coins: firebase.firestore.FieldValue.increment(100)
-              });
-              
-              // Give bonus to new user and mark as referred
-              batch.update(db.collection('users').doc(user.uid), {
-                coins: firebase.firestore.FieldValue.increment(50),
-                referred_by: pendingRef
-              });
-              
-              await batch.commit();
-              
-              // Log activities
-              await Promise.all([
-                db.collection('user_activity').add({
-                  userId: referrerUid,
-                  title: 'Referral Bonus',
-                  notes: `+100 coins for referring ${user.email}`,
-                  createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                }),
-                db.collection('user_activity').add({
-                  userId: user.uid,
-                  title: 'Referral Signup Bonus',
-                  notes: '+50 coins for using referral code',
-                  createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                })
-              ]);
-              
-              localStorage.removeItem('pending_referral');
-              showToast('🎉 Referral bonus applied! +50 coins');
-            }
-          }
-        } catch (error) {
-          console.error('Referral processing error:', error);
-        }
-      }
-    });
-
-    /* ===== INITIALIZATION ===== */
+    // Initialize
     document.addEventListener('DOMContentLoaded', () => {
-      // Initialize referral system
       handleReferralOnSignup();
-      
-      // Set initial tab visibility
-      Object.values(panels).forEach(panel => {
-        if (panel) panel.style.display = 'none';
-      });
-      
-      if (panels.tasks) {
-        panels.tasks.style.display = 'block';
-      }
-      
-      // Initialize auth state
-      const user = auth.currentUser;
-      if (!user) {
-        showAuth(true);
-      }
     });
-
-    /* ===== KEYBOARD SHORTCUTS ===== */
-    document.addEventListener('keydown', (e) => {
-      // ESC to close modal
-      if (e.key === 'Escape' && modalBackdrop.style.display === 'flex') {
-        closeModal.click();
-      }
-      
-      // Enter to submit auth forms
-      if (e.key === 'Enter' && (emailInput === document.activeElement || passInput === document.activeElement)) {
-        if (emailInput.value && passInput.value) {
-          signinBtn.click();
-        }
-      }
-    });
-
-    /* ===== ERROR HANDLING ===== */
-    window.addEventListener('error', (event) => {
-      console.error('Global error:', event.error);
-      showToast('An error occurred. Please refresh the page.');
-    });
-
-    window.addEventListener('unhandledrejection', (event) => {
-      console.error('Unhandled promise rejection:', event.reason);
-    });
-
   </script>
 </body>
 </html>
