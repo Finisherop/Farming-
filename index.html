@@ -51,186 +51,13 @@
       color: var(--text-primary);
     }
 
-    /* ===== FULL SCREEN LOGIN ===== */
-    .auth-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100vh;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 32px;
-      z-index: 9999;
-    }
-
-    .auth-container.hidden {
-      display: none;
-    }
-
-    .app-logo {
-      text-align: center;
-      margin-bottom: 48px;
-      animation: logoFadeIn 1s ease-out;
-    }
-
-    .logo-icon {
-      width: 80px;
-      height: 80px;
-      border-radius: 24px;
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(20px);
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 16px;
-      font-size: 32px;
-      font-weight: 800;
-      color: white;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    }
-
-    .app-title {
-      font-size: 28px;
-      font-weight: 700;
-      color: white;
-      margin-bottom: 8px;
-    }
-
-    .app-subtitle {
-      font-size: 16px;
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    .login-card {
-      width: 100%;
-      max-width: 360px;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border-radius: 20px;
-      padding: 32px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      animation: cardSlideUp 0.8s ease-out 0.3s both;
-    }
-
-    .form-header {
-      text-align: center;
-      margin-bottom: 32px;
-    }
-
-    .form-title {
-      font-size: 24px;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 8px;
-    }
-
-    .form-subtitle {
-      font-size: 14px;
-      color: var(--text-secondary);
-    }
-
-    .input-group {
-      margin-bottom: 20px;
-    }
-
-    .input-label {
-      display: block;
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text-primary);
-      margin-bottom: 8px;
-    }
-
-    .input-field {
-      width: 100%;
-      height: 48px;
-      padding: 0 16px;
-      border: 2px solid var(--border);
-      border-radius: var(--radius);
-      font-size: 16px;
-      background: var(--surface);
-      transition: all 0.3s ease;
-      outline: none;
-    }
-
-    .input-field:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    .btn-primary {
-      width: 100%;
-      height: 48px;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: white;
-      border: none;
-      border-radius: var(--radius);
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      margin-bottom: 12px;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-    }
-
-    .btn-secondary {
-      width: 100%;
-      height: 48px;
-      background: transparent;
-      color: var(--primary);
-      border: 2px solid var(--primary);
-      border-radius: var(--radius);
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .btn-secondary:hover {
-      background: var(--primary);
-      color: white;
-    }
-
-    .form-message {
-      text-align: center;
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 14px;
-      margin-top: 16px;
-      min-height: 20px;
-    }
-
-    .form-message.error {
-      background: #fed7d7;
-      color: #c53030;
-    }
-
-    .form-message.success {
-      background: #c6f6d5;
-      color: #25543e;
-    }
-
     /* ===== MAIN APP ===== */
     .main-app {
       width: 100%;
       height: 100vh;
-      display: none;
+      display: flex !important;
       flex-direction: column;
       background: var(--background);
-    }
-
-    .main-app.visible {
-      display: flex;
     }
 
     .app-header {
@@ -661,45 +488,14 @@
 </head>
 
 <body>
-  <!-- Full Screen Login -->
-  <div id="auth-container" class="auth-container">
-    <div class="app-logo">
-      <div class="logo-icon">MR</div>
-      <h1 class="app-title">Mreward PRO</h1>
-      <p class="app-subtitle">Premium Rewards Platform</p>
-    </div>
-    
-    <div class="login-card">
-      <div class="form-header">
-        <h2 class="form-title">Welcome Back</h2>
-        <p class="form-subtitle">Sign in to continue earning rewards</p>
-      </div>
-      
-      <div class="input-group">
-        <label class="input-label" for="email-input">Email</label>
-        <input type="email" id="email-input" class="input-field" placeholder="Enter your email" required>
-      </div>
-      
-      <div class="input-group">
-        <label class="input-label" for="password-input">Password</label>
-        <input type="password" id="password-input" class="input-field" placeholder="Enter your password" required>
-      </div>
-      
-      <button id="signin-btn" class="btn-primary">Sign In</button>
-      <button id="signup-btn" class="btn-secondary">Create Account</button>
-      
-      <div id="auth-message" class="form-message"></div>
-    </div>
-  </div>
-
-  <!-- Main App -->
-  <div id="main-app" class="main-app">
+  <!-- Main App - Always Visible -->
+  <div id="main-app" class="main-app" style="display: flex !important;">
     <header class="app-header">
       <div class="header-left">
         <div class="header-logo">MR</div>
         <div class="header-title">Mreward PRO</div>
       </div>
-      <div class="header-right" id="user-info">Hi, User!</div>
+      <div class="header-right" id="user-info">Hi, Guest!</div>
     </header>
     
     <div class="content-container" id="content-area">
@@ -1083,59 +879,31 @@
       
       // Check if Firebase is loaded
       if (typeof firebase === 'undefined') {
-        throw new Error('Firebase SDK not loaded. Please check your internet connection.');
+        console.log('Firebase not loaded - running in offline mode');
+      } else {
+        firebase.initializeApp(firebaseConfig);
+        auth = firebase.auth();
+        db = firebase.firestore();
+        console.log('✅ Firebase initialized successfully');
       }
-      
-      firebase.initializeApp(firebaseConfig);
-      auth = firebase.auth();
-      db = firebase.firestore();
-      
-      console.log('✅ Firebase initialized successfully');
-      console.log('🔐 Auth object:', auth);
-      console.log('💾 Database object:', db);
-      
-      // Test Firebase connection
-      db.enableNetwork().then(() => {
-        console.log('🌐 Firestore network enabled');
-      }).catch(error => {
-        console.error('⚠️ Firestore network error:', error);
-      });
       
     } catch (error) {
       console.error('❌ Firebase initialization error:', error);
-      
-      // Show user-friendly error
-      const authMessage = document.getElementById('auth-message');
-      if (authMessage) {
-        authMessage.textContent = 'Connection failed. Please refresh page and try again.';
-        authMessage.className = 'form-message error';
-      }
-      
-      // Disable buttons if Firebase fails
-      const signinBtn = document.getElementById('signin-btn');
-      const signupBtn = document.getElementById('signup-btn');
-      if (signinBtn) {
-        signinBtn.disabled = true;
-        signinBtn.textContent = 'Connection Error';
-      }
-      if (signupBtn) {
-        signupBtn.disabled = true;
-        signupBtn.textContent = 'Connection Error';
-      }
-      
-      alert('Firebase connection failed: ' + error.message + '\n\nPlease refresh page and try again.');
+      console.log('Running app without authentication');
     }
 
-    // UI Elements
-    const authContainer = document.getElementById('auth-container');
+    // UI Elements - Remove auth-related elements
     const mainApp = document.getElementById('main-app');
-    const emailInput = document.getElementById('email-input');
-    const passwordInput = document.getElementById('password-input');
-    const signinBtn = document.getElementById('signin-btn');
-    const signupBtn = document.getElementById('signup-btn');
-    const authMessage = document.getElementById('auth-message');
     const navItems = document.querySelectorAll('.nav-item');
     const tabContents = document.querySelectorAll('.tab-content');
+    
+    // Set default user data for guest mode
+    let currentUserData = {
+      coins: 5000,  // Give user plenty of coins to start
+      totalTasks: 0,
+      totalEarned: 5000,
+      referralCode: 'GUEST123'
+    };
     
     // Enhanced Utility Functions
     function showToast(message, type = 'success', duration = 3000) {
@@ -1231,11 +999,8 @@
       document.getElementById(`${tabName}-content`).classList.remove('hidden');
     }
 
-    function updateUI(data, user) {
-      // Store current user data globally
-      currentUserData = data;
-      
-      // Safely update UI elements
+    function updateUI() {
+      // Update UI with guest user data
       const coinBalance = document.getElementById('coin-balance');
       const totalTasks = document.getElementById('total-tasks');
       const totalEarned = document.getElementById('total-earned');
@@ -1244,54 +1009,18 @@
       const profileName = document.getElementById('profile-name');
       const profileEmail = document.getElementById('profile-email');
       const avatar = document.getElementById('avatar');
-      const dailyStatus = document.getElementById('daily-status');
       
-      if (coinBalance) coinBalance.textContent = (data.coins || 0).toLocaleString();
-      if (totalTasks) totalTasks.textContent = data.totalTasks || 0;
-      if (totalEarned) totalEarned.textContent = (data.totalEarned || 0).toLocaleString();
-      if (profileCoins) profileCoins.textContent = (data.coins || 0).toLocaleString();
-      
-      // Handle referral code
-      if (refCode) {
-        if (data.referralCode) {
-          refCode.textContent = data.referralCode;
-        } else {
-          refCode.textContent = 'LOADING...';
-          // Generate and save new referral code
-          const newRefCode = generateReferralCode();
-          db.collection('users').doc(user.uid).update({ 
-            referralCode: newRefCode 
-          }).then(() => {
-            refCode.textContent = newRefCode;
-          }).catch(() => {
-            refCode.textContent = newRefCode; // Show anyway
-          });
-        }
-      }
-      
-      // Update profile info
-      if (profileName) profileName.textContent = user.email.split('@')[0];
-      if (profileEmail) profileEmail.textContent = user.email;
-      if (avatar) avatar.textContent = user.email[0].toUpperCase();
-      
-      // Update daily status
-      if (dailyStatus) {
-        const today = new Date().toISOString().slice(0, 10);
-        if (data.lastClaim === today) {
-          dailyStatus.textContent = '✅';
-          const claimBtn = document.getElementById('claim-daily');
-          if (claimBtn) {
-            claimBtn.disabled = true;
-            claimBtn.style.opacity = '0.6';
-            claimBtn.querySelector('#daily-text').textContent = '✅ Claimed Today';
-          }
-        } else {
-          dailyStatus.textContent = '🎁';
-        }
-      }
+      if (coinBalance) coinBalance.textContent = currentUserData.coins.toLocaleString();
+      if (totalTasks) totalTasks.textContent = currentUserData.totalTasks;
+      if (totalEarned) totalEarned.textContent = currentUserData.totalEarned.toLocaleString();
+      if (profileCoins) profileCoins.textContent = currentUserData.coins.toLocaleString();
+      if (refCode) refCode.textContent = currentUserData.referralCode;
+      if (profileName) profileName.textContent = 'Guest User';
+      if (profileEmail) profileEmail.textContent = 'guest@mreward.com';
+      if (avatar) avatar.textContent = 'G';
       
       // Update spin status
-      loadSpinStatus(user.uid);
+      loadSpinStatus();
     }
 
     // Enhanced task claiming with better error handling and tracking
@@ -1409,16 +1138,11 @@
       }
     }
 
+    // Simplified spin function for guest mode
     async function handleSpin() {
       if (isSpinning) return;
       
-      const user = auth.currentUser;
-      if (!user) {
-        showEnhancedNotification('Please sign in first', 'error');
-        return;
-      }
-      
-      if (!currentUserData || currentUserData.coins < SPIN_COST) {
+      if (currentUserData.coins < SPIN_COST) {
         showEnhancedNotification(`You need ${SPIN_COST} coins to spin!`, 'error');
         return;
       }
@@ -1434,15 +1158,9 @@
         spinBtn.innerHTML = '🎰 SPINNING...';
         spinMessage.innerHTML = '<span style="color: var(--primary);">🎰 Spinning the wheel...</span>';
         
-        // Deduct spin cost first
-        const userRef = db.collection('users').doc(user.uid);
-        await userRef.update({
-          coins: firebase.firestore.FieldValue.increment(-SPIN_COST)
-        });
-        
-        // Update local data
-        currentUserData.coins = (currentUserData.coins || 0) - SPIN_COST;
-        updateProfileUI();
+        // Deduct spin cost
+        currentUserData.coins -= SPIN_COST;
+        updateUI();
         
         showEnhancedNotification(`-${SPIN_COST} coins deducted for spin`, 'info');
         
@@ -1453,8 +1171,8 @@
         // Calculate rotation angle (each segment is 45 degrees)
         const segmentAngle = 360 / REWARDS.length; // 45 degrees
         const baseAngle = winningIndex * segmentAngle;
-        const randomOffset = Math.random() * (segmentAngle * 0.8) + (segmentAngle * 0.1); // Random within segment
-        const finalAngle = 1440 + (360 - baseAngle - randomOffset); // 4 full rotations + landing position
+        const randomOffset = Math.random() * (segmentAngle * 0.8) + (segmentAngle * 0.1);
+        const finalAngle = 1440 + (360 - baseAngle - randomOffset); // 4 full rotations
         
         // Apply rotation
         wheel.style.transform = `rotate(${finalAngle}deg)`;
@@ -1464,12 +1182,9 @@
         
         // Award reward if greater than 0
         if (reward > 0) {
-          await userRef.update({
-            coins: firebase.firestore.FieldValue.increment(reward)
-          });
-          
-          currentUserData.coins = (currentUserData.coins || 0) + reward;
-          updateProfileUI();
+          currentUserData.coins += reward;
+          currentUserData.totalEarned += reward;
+          updateUI();
           
           showEnhancedNotification(`🎉 You won ${reward} coins!`, 'success');
           spinMessage.innerHTML = `<span style="color: var(--success);">🎉 Congratulations! You won ${reward} coins!</span>`;
@@ -1487,18 +1202,6 @@
         console.error('Spin error:', error);
         showEnhancedNotification('Error during spin. Please try again.', 'error');
         spinMessage.innerHTML = '<span style="color: var(--error);">❌ Spin failed. Please try again.</span>';
-        
-        // Refund spin cost on error
-        try {
-          await db.collection('users').doc(user.uid).update({
-            coins: firebase.firestore.FieldValue.increment(SPIN_COST)
-          });
-          currentUserData.coins = (currentUserData.coins || 0) + SPIN_COST;
-          updateProfileUI();
-          showEnhancedNotification('Spin cost refunded due to error', 'info');
-        } catch (refundError) {
-          console.error('Refund error:', refundError);
-        }
       } finally {
         // Reset button and state
         isSpinning = false;
@@ -1511,7 +1214,7 @@
         }, 2000);
         
         // Update spin status
-        loadSpinStatus(user.uid);
+        loadSpinStatus();
       }
     }
 
@@ -1992,139 +1695,56 @@
 
     // Enhanced Load Tasks with error handling
     async function loadTasks() {
-      const tasksList = document.getElementById('tasks-list');
-      
-      if (!tasksList) return;
-      
-      tasksList.innerHTML = '<div class="small">Loading tasks...</div>';
-      
-      try {
-        // Create some default tasks if none exist
-        const tasksSnapshot = await db.collection('tasks').get();
+        const tasksList = document.getElementById('tasks-list');
         
-        if (tasksSnapshot.empty) {
-          // Create default tasks
-          const defaultTasks = [
-            {
-              title: 'Watch YouTube Video',
-              desc: 'Watch a 2-minute video and earn coins',
-              coins: 25,
-              active: true,
-              createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            },
-            {
-              title: 'Complete Survey',
-              desc: 'Fill out a short 5-question survey',
-              coins: 50,
-              active: true,
-              createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            },
-            {
-              title: 'Share on Social Media',
-              desc: 'Share our app on your social media',
-              coins: 30,
-              active: true,
-              createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            }
-          ];
+        if (!tasksList) return;
+        
+        tasksList.innerHTML = '';
+        
+        // Create some demo tasks
+        const demoTasks = [
+          { id: '1', title: 'Watch YouTube Video', desc: 'Watch a 2-minute tech review', coins: 25, type: 'youtube' },
+          { id: '2', title: 'Complete Survey', desc: 'Answer 5 quick questions', coins: 50, type: 'survey' },
+          { id: '3', title: 'Follow Instagram', desc: 'Follow our official page', coins: 30, type: 'social' },
+          { id: '4', title: 'Daily Check-in', desc: 'Simple daily task', coins: 20, type: 'simple' },
+          { id: '5', title: 'Share with Friends', desc: 'Share app with 3 friends', coins: 100, type: 'social' }
+        ];
+        
+        demoTasks.forEach(task => {
+          const taskItem = document.createElement('div');
+          taskItem.className = 'list-item';
           
-          // Add default tasks (this might fail due to permissions, that's OK)
-          for (const task of defaultTasks) {
-            try {
-              await db.collection('tasks').add(task);
-            } catch (error) {
-              console.log('Could not create default task:', error);
-            }
-          }
-        }
-        
-        // Listen for real-time updates
-        db.collection('tasks').where('active', '==', true).onSnapshot(
-          snapshot => {
-            tasksList.innerHTML = '';
-            
-            if (snapshot.empty) {
-              tasksList.innerHTML = `
-                <div class="card" style="text-align: center; padding: 40px;">
-                  <h3>🎯 No Tasks Available</h3>
-                  <p class="small">Tasks will appear here when added by admin.</p>
-                  <p class="small">Check back later or contact support.</p>
+          // Task type icons
+          const taskIcons = {
+            'simple': '🎯',
+            'youtube': '📺',
+            'survey': '📋',
+            'social': '📱'
+          };
+          
+          const taskIcon = taskIcons[task.type] || '🎯';
+          
+          taskItem.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+              <div style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                  <span style="font-size: 18px;">${taskIcon}</span>
+                  <strong>${task.title}</strong>
+                  <span style="background: #e3f2fd; color: #1976d2; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 600; margin-left: 8px;">${task.type.toUpperCase()}</span>
                 </div>
-              `;
-              return;
-            }
-            
-            snapshot.forEach(doc => {
-              const data = doc.data();
-              const taskItem = document.createElement('div');
-              taskItem.className = 'list-item';
-              
-              // Task type icons and styles
-              const taskIcons = {
-                'simple': '🎯',
-                'external': '🔗',
-                'youtube': '📺',
-                'survey': '📋',
-                'social': '📱'
-              };
-              
-              const taskIcon = taskIcons[data.type] || '🎯';
-              
-              // Create task buttons based on type
-              let taskButtons = '';
-              if (data.link && data.type !== 'simple') {
-                taskButtons = `
-                  <div style="display: flex; gap: 8px; flex-direction: column;">
-                    <button class="btn" onclick="openTaskLink('${data.link}', '${doc.id}', '${data.type}')" 
-                            style="font-size: 12px; padding: 8px 16px; background: linear-gradient(135deg, #667eea, #764ba2);">
-                      ${taskIcon} Open ${data.type === 'youtube' ? 'Video' : data.type === 'survey' ? 'Survey' : 'Link'}
-                    </button>
-                    <button class="btn" onclick="claimTask('${doc.id}', ${data.coins || 0})" 
-                            style="font-size: 12px; padding: 8px 16px; background: linear-gradient(135deg, #51cf66, #40c057);">
-                      🎁 Claim ${data.coins || 0} Coins
-                    </button>
-                  </div>
-                `;
-              } else {
-                taskButtons = `
-                  <button class="btn" onclick="claimTask('${doc.id}', ${data.coins || 0})" 
-                          style="font-size: 12px; padding: 8px 16px;">
-                    ${taskIcon} Claim ${data.coins || 0} Coins
-                  </button>
-                `;
-              }
-              
-              taskItem.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px;">
-                  <div style="flex: 1;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                      <span style="font-size: 18px;">${taskIcon}</span>
-                      <strong>${escapeHtml(data.title || 'Task')}</strong>
-                      ${data.type !== 'simple' ? '<span style="background: #e3f2fd; color: #1976d2; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 600; margin-left: 8px;">' + (data.type || 'external').toUpperCase() + '</span>' : ''}
-                    </div>
-                    <div class="small" style="margin-bottom: 4px;">${escapeHtml(data.desc || 'Complete this task to earn coins')}</div>
-                    ${data.instructions ? `<div class="small" style="color: #666; font-style: italic;">💡 ${escapeHtml(data.instructions)}</div>` : ''}
-                  </div>
-                  <div style="text-align: right; display: flex; flex-direction: column; gap: 8px; min-width: 140px;">
-                    <div style="color: var(--success); font-weight: 700; font-size: 16px;">+${data.coins || 0} coins</div>
-                    ${taskButtons}
-                  </div>
-                </div>
-              `;
-              tasksList.appendChild(taskItem);
-            });
-          },
-          error => {
-            console.error('Tasks listener error:', error);
-            tasksList.innerHTML = `
-              <div class="card" style="text-align: center; padding: 20px;">
-                <p class="small">Could not load tasks. Please refresh the page.</p>
-                <button class="btn" onclick="loadTasks()" style="margin-top: 12px;">🔄 Retry</button>
+                <div class="small" style="margin-bottom: 4px;">${task.desc}</div>
               </div>
-            `;
-          }
-        );
-        
+              <div style="text-align: right; display: flex; flex-direction: column; gap: 8px; min-width: 140px;">
+                <div style="color: var(--success); font-weight: 700; font-size: 16px;">+${task.coins} coins</div>
+                <button class="btn" onclick="claimTask('${task.id}', ${task.coins})" 
+                        style="font-size: 12px; padding: 8px 16px; background: linear-gradient(135deg, #51cf66, #40c057);">
+                  ${taskIcon} Claim ${task.coins} Coins
+                </button>
+              </div>
+            </div>
+          `;
+          tasksList.appendChild(taskItem);
+        });
       } catch (error) {
         console.error('Error loading tasks:', error);
         tasksList.innerHTML = `
@@ -2253,62 +1873,73 @@
       }
     }
 
-    // Initialize
+    // Initialize - No Authentication Required
     document.addEventListener('DOMContentLoaded', () => {
-      console.log('🚀 DOM Content Loaded - Starting debug checks...');
+      console.log('🚀 App loaded - No login required!');
       
-      // Debug check all elements
-      const elements = {
-        'auth-container': document.getElementById('auth-container'),
-        'main-app': document.getElementById('main-app'),
-        'email-input': document.getElementById('email-input'),
-        'password-input': document.getElementById('password-input'),
-        'signin-btn': document.getElementById('signin-btn'),
-        'signup-btn': document.getElementById('signup-btn'),
-        'auth-message': document.getElementById('auth-message')
-      };
+      // Initialize UI immediately  
+      updateUI();
       
-      console.log('🔍 Element check results:');
-      for (const [name, element] of Object.entries(elements)) {
-        if (element) {
-          console.log(`✅ ${name}: Found`);
-        } else {
-          console.error(`❌ ${name}: NOT Found`);
-        }
+      // Load demo tasks
+      loadTasks();
+      
+      // Navigation
+      const navItems = document.querySelectorAll('.nav-item');
+      navItems.forEach(item => {
+        item.addEventListener('click', () => {
+          switchTab(item.dataset.tab);
+        });
+      });
+
+      // Daily Reward Button
+      const claimBtn = document.getElementById('claim-daily');
+      if (claimBtn) {
+        claimBtn.addEventListener('click', () => {
+          const today = new Date().toISOString().slice(0, 10);
+          const lastClaim = localStorage.getItem('lastClaim');
+          
+          if (lastClaim === today) {
+            showEnhancedNotification('Already claimed today! Come back tomorrow 🌅', 'error');
+            return;
+          }
+          
+          currentUserData.coins += 50;
+          currentUserData.totalEarned += 50;
+          localStorage.setItem('lastClaim', today);
+          
+          updateUI();
+          animateCoinBalance();
+          
+          showEnhancedNotification('🎁 Daily reward claimed! +50 coins', 'success');
+          
+          claimBtn.disabled = true;
+          claimBtn.style.opacity = '0.6';
+          claimBtn.innerHTML = '✅ Claimed Today';
+        });
       }
-      
-      // Check Firebase objects
-      console.log('🔍 Firebase objects check:');
-      console.log('🔥 firebase object:', typeof firebase !== 'undefined' ? '✅ Loaded' : '❌ Not loaded');
-      console.log('🔐 auth object:', auth ? '✅ Initialized' : '❌ Not initialized');
-      console.log('💾 db object:', db ? '✅ Initialized' : '❌ Not initialized');
-      
-      // Check if event listeners are attached
-      const signinBtn = document.getElementById('signin-btn');
-      const signupBtn = document.getElementById('signup-btn');
-      
-      if (signinBtn) {
-        console.log('🔐 Sign in button found, attaching listener...');
-        signinBtn.addEventListener('click', handleSignIn);
-        console.log('✅ Sign in listener attached');
-      }
-      
-      if (signupBtn) {
-        console.log('📝 Sign up button found, attaching listener...');  
-        signupBtn.addEventListener('click', handleSignUp);
-        console.log('✅ Sign up listener attached');
-      }
-      
-      handleReferralOnSignup();
-      
-      // Spin & Win Button Event Listener
+
+      // Spin Button
       const spinBtn = document.getElementById('spin-btn');
       if (spinBtn) {
         spinBtn.addEventListener('click', handleSpin);
-        console.log('🎰 Spin button listener attached');
       }
       
-      console.log('✅ Initialization complete!');
+      // Copy Referral
+      const copyBtn = document.getElementById('copy-ref');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+          const referralUrl = `${window.location.origin}${window.location.pathname}?ref=${currentUserData.referralCode}`;
+          
+          try {
+            navigator.clipboard.writeText(referralUrl);
+            showToast('Referral link copied! 📋');
+          } catch (error) {
+            showToast('Failed to copy link', 'error');
+          }
+        });
+      }
+      
+      console.log('✅ App ready to use - No frustrating login! 🎉');
     });
   </script>
 </body>
