@@ -893,7 +893,6 @@
 
     // Load Statistics with enhanced error handling
     async function loadStats() {
-    async function loadStats() {
       try {
         showToast('Refreshing statistics...', 'info');
 
@@ -1503,7 +1502,9 @@
       }, 15000);
       
       // Set default active section to withdrawals (most critical)
-      showSection('withdrawals');
+      setTimeout(() => {
+        showSection('withdrawals');
+      }, 500);
     });
 
     // Update Settings

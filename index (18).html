@@ -782,148 +782,154 @@
             </div>
           </h3>
           
-          <div style="text-align: center; margin: 20px 0;">
-            <div id="wheel-of-fortune" style="
-              width: 250px;
-              height: 250px;
-              border-radius: 50%;
-              background: conic-gradient(
-                from 0deg,
-                #ff6b6b 0deg 45deg,
-                #4ecdc4 45deg 90deg,
-                #45b7d1 90deg 135deg,
-                #f39c12 135deg 180deg,
-                #e74c3c 180deg 225deg,
-                #9b59b6 225deg 270deg,
-                #2ecc71 270deg 315deg,
-                #f1c40f 315deg 360deg
-              );
-              margin: 0 auto;
-              position: relative;
-              border: 8px solid #fff;
-              box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-              transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 24px;
-              font-weight: bold;
-              color: white;
-              text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            ">
-              <!-- Reward Values on Wheel - Fixed Centering -->
-              
-              <!-- Top Center (0 degrees) - 10 coins -->
+          <div style="text-align: center; margin: 20px 0; position: relative;">
+            <!-- Wheel Container with Arrow -->
+            <div style="position: relative; display: inline-block;">
+              <!-- Fixed Arrow Pointer at Top -->
               <div style="
                 position: absolute;
-                top: 20px;
+                top: -15px;
                 left: 50%;
                 transform: translateX(-50%);
-                font-size: 16px;
-                font-weight: bold;
-                color: white;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-                z-index: 2;
-              ">10</div>
+                width: 0;
+                height: 0;
+                border-left: 15px solid transparent;
+                border-right: 15px solid transparent;
+                border-top: 25px solid #ff4444;
+                z-index: 10;
+                filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+              "></div>
               
-              <!-- Top Right (45 degrees) - 25 coins -->
-              <div style="
-                position: absolute;
-                top: 25px;
-                right: 25px;
-                transform: translate(50%, -50%) rotate(45deg);
-                font-size: 16px;
+              <!-- Spin Wheel -->
+              <div id="wheel-of-fortune" style="
+                width: 250px;
+                height: 250px;
+                border-radius: 50%;
+                background: conic-gradient(
+                  from 0deg,
+                  #ff6b6b 0deg 45deg,
+                  #4ecdc4 45deg 90deg,
+                  #45b7d1 90deg 135deg,
+                  #f39c12 135deg 180deg,
+                  #e74c3c 180deg 225deg,
+                  #9b59b6 225deg 270deg,
+                  #2ecc71 270deg 315deg,
+                  #f1c40f 315deg 360deg
+                );
+                margin: 0 auto;
+                position: relative;
+                border: 8px solid #fff;
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+                transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-                z-index: 2;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
               ">
-                <span style="transform: rotate(-45deg); display: block;">25</span>
-              </div>
-              
-              <!-- Right Center (90 degrees) - 5 coins -->
-              <div style="
-                position: absolute;
-                top: 50%;
-                right: 20px;
-                transform: translateY(-50%);
-                font-size: 16px;
-                font-weight: bold;
-                color: white;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-                z-index: 2;
-              ">5</div>
-              
-              <!-- Bottom Right (135 degrees) - 20 coins -->
-              <div style="
-                position: absolute;
-                bottom: 25px;
-                right: 25px;
-                transform: translate(50%, 50%) rotate(135deg);
-                font-size: 16px;
-                font-weight: bold;
-                color: white;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-                z-index: 2;
-              ">
-                <span style="transform: rotate(-135deg); display: block;">20</span>
-              </div>
-              
-              <!-- Bottom Center (180 degrees) - 0 coins -->
-              <div style="
-                position: absolute;
-                bottom: 20px;
-                left: 50%;
-                transform: translateX(-50%);
-                font-size: 16px;
-                font-weight: bold;
-                color: white;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-                z-index: 2;
-              ">0</div>
-              
-              <!-- Bottom Left (225 degrees) - 50 coins -->
-              <div style="
-                position: absolute;
-                bottom: 25px;
-                left: 25px;
-                transform: translate(-50%, 50%) rotate(225deg);
-                font-size: 16px;
-                font-weight: bold;
-                color: white;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-                z-index: 2;
-              ">
-                <span style="transform: rotate(-225deg); display: block;">50</span>
-              </div>
-              
-              <!-- Left Center (270 degrees) - 15 coins -->
-              <div style="
-                position: absolute;
-                top: 50%;
-                left: 20px;
-                transform: translateY(-50%);
-                font-size: 16px;
-                font-weight: bold;
-                color: white;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-                z-index: 2;
-              ">15</div>
-              
-              <!-- Top Left (315 degrees) - 0 coins -->
-              <div style="
-                position: absolute;
-                top: 25px;
-                left: 25px;
-                transform: translate(-50%, -50%) rotate(315deg);
-                font-size: 16px;
-                font-weight: bold;
-                color: white;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-                z-index: 2;
-              ">
-                <span style="transform: rotate(-315deg); display: block;">0</span>
-              </div>
+                <!-- Reward Values on Wheel - Fixed for Arrow Pointing -->
+                
+                <!-- Top Center (0 degrees - Arrow Points Here) - 10 coins -->
+                <div style="
+                  position: absolute;
+                  top: 20px;
+                  left: 50%;
+                  transform: translateX(-50%);
+                  font-size: 18px;
+                  font-weight: bold;
+                  color: white;
+                  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                  z-index: 2;
+                ">10</div>
+                
+                <!-- Top Right (45 degrees) - 25 coins -->
+                <div style="
+                  position: absolute;
+                  top: 35px;
+                  right: 35px;
+                  font-size: 18px;
+                  font-weight: bold;
+                  color: white;
+                  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                  z-index: 2;
+                ">25</div>
+                
+                <!-- Right Center (90 degrees) - 5 coins -->
+                <div style="
+                  position: absolute;
+                  top: 50%;
+                  right: 20px;
+                  transform: translateY(-50%);
+                  font-size: 18px;
+                  font-weight: bold;
+                  color: white;
+                  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                  z-index: 2;
+                ">5</div>
+                
+                <!-- Bottom Right (135 degrees) - 0 coins -->
+                <div style="
+                  position: absolute;
+                  bottom: 35px;
+                  right: 35px;
+                  font-size: 18px;
+                  font-weight: bold;
+                  color: white;
+                  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                  z-index: 2;
+                ">0</div>
+                
+                <!-- Bottom Center (180 degrees) - 20 coins -->
+                <div style="
+                  position: absolute;
+                  bottom: 20px;
+                  left: 50%;
+                  transform: translateX(-50%);
+                  font-size: 18px;
+                  font-weight: bold;
+                  color: white;
+                  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                  z-index: 2;
+                ">20</div>
+                
+                <!-- Bottom Left (225 degrees) - 50 coins -->
+                <div style="
+                  position: absolute;
+                  bottom: 35px;
+                  left: 35px;
+                  font-size: 18px;
+                  font-weight: bold;
+                  color: white;
+                  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                  z-index: 2;
+                ">50</div>
+                
+                <!-- Left Center (270 degrees) - 15 coins -->
+                <div style="
+                  position: absolute;
+                  top: 50%;
+                  left: 20px;
+                  transform: translateY(-50%);
+                  font-size: 18px;
+                  font-weight: bold;
+                  color: white;
+                  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                  z-index: 2;
+                ">15</div>
+                
+                <!-- Top Left (315 degrees) - 0 coins -->
+                <div style="
+                  position: absolute;
+                  top: 35px;
+                  left: 35px;
+                  font-size: 18px;
+                  font-weight: bold;
+                  color: white;
+                  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                  z-index: 2;
+                ">0</div>
               
               <!-- Center Icon -->
               <div style="
@@ -1133,9 +1139,10 @@
     // Global Firebase variables
     let auth, db;
     
-    // Spin & Win Configuration
+    // Spin & Win Configuration - Fixed to match wheel layout
     const SPIN_COST = 5;
-    const REWARDS = [10, 5, 20, 0, 50, 15, 0, 25]; // 8 segments
+    // Rewards array matches wheel layout: [0°, 45°, 90°, 135°, 180°, 225°, 270°, 315°]
+    const REWARDS = [10, 25, 5, 20, 0, 50, 15, 0]; // 8 segments clockwise from top
     let isSpinning = false;
     let currentUserData = {};
     
@@ -1612,6 +1619,17 @@
       try {
         showEnhancedNotification('Processing task claim...', 'info');
         
+        // Check if already completed
+        const completionCheck = await db.collection('user_task_completions')
+          .where('userId', '==', user.uid)
+          .where('taskId', '==', taskId)
+          .get();
+          
+        if (!completionCheck.empty) {
+          showEnhancedNotification('Task already completed!', 'warning');
+          return;
+        }
+        
         const userRef = db.collection('users').doc(user.uid);
         const taskRef = db.collection('tasks').doc(taskId);
         
@@ -1648,6 +1666,16 @@
             completedCount: (taskData.completedCount || 0) + 1,
             lastCompleted: firebase.firestore.FieldValue.serverTimestamp()
           }, { merge: true });
+          
+          // Record task completion
+          const completionRef = db.collection('user_task_completions').doc();
+          transaction.set(completionRef, {
+            userId: user.uid,
+            userEmail: user.email,
+            taskId: taskId,
+            coinsEarned: coins,
+            completedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
         });
         
         // Track task completion
@@ -1661,6 +1689,21 @@
         });
         
         showEnhancedNotification(`🎉 Task completed successfully! +${coins} coins earned`, 'success');
+        
+        // Update UI - mark task as completed
+        const taskElement = document.getElementById(`task-${taskId}`);
+        if (taskElement) {
+          const buttonContainer = taskElement.querySelector('.btn')?.parentElement;
+          if (buttonContainer) {
+            buttonContainer.innerHTML = `
+              <button class="btn" disabled 
+                      style="font-size: 12px; padding: 8px 16px; background: #28a745; color: white; cursor: not-allowed;">
+                ✅ Task Completed
+              </button>
+            `;
+          }
+        }
+        
         animateCoinBalance();
         addBounceEffect(document.getElementById('coin-balance'));
         
@@ -1675,6 +1718,53 @@
         } else {
           showEnhancedNotification('Error claiming task. Please try again.', 'error');
         }
+      }
+    // Task link opening and completion tracking
+    window.openTaskLink = async function(link, taskId, taskType) {
+      const user = auth.currentUser;
+      if (!user) {
+        showEnhancedNotification('Please sign in first', 'error');
+        return;
+      }
+      
+      try {
+        // Record task opening
+        await db.collection('task_activities').add({
+          userId: user.uid,
+          userEmail: user.email,
+          taskId: taskId,
+          action: 'opened',
+          taskType: taskType,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        // Open the link
+        window.open(link, '_blank');
+        
+        showEnhancedNotification(`${taskType.charAt(0).toUpperCase() + taskType.slice(1)} opened! Complete it and return to claim coins.`, 'info');
+        
+        // Mark task as in progress and enable claim button after a delay
+        setTimeout(() => {
+          markTaskAsCompleted(taskId);
+        }, taskType === 'youtube' ? 10000 : 5000); // 10s for videos, 5s for others
+        
+      } catch (error) {
+        console.error('Error opening task link:', error);
+        showEnhancedNotification('Error opening task', 'error');
+      }
+    }
+    
+    // Mark task as completed and enable claim button
+    function markTaskAsCompleted(taskId) {
+      const claimButton = document.getElementById(`claim-${taskId}`);
+      if (claimButton) {
+        claimButton.disabled = false;
+        claimButton.style.background = 'linear-gradient(135deg, #51cf66, #40c057)';
+        claimButton.style.color = 'white';
+        claimButton.style.cursor = 'pointer';
+        claimButton.innerHTML = '🎁 Claim Coins Now!';
+        
+        showEnhancedNotification('✅ Task completed! You can now claim your reward.', 'success');
       }
     }
     
@@ -1753,21 +1843,39 @@
         
         showEnhancedNotification(`-${SPIN_COST} coins deducted for spin`, 'info');
         
-        // Calculate winning segment (0-7)
+        // Calculate winning segment (0-7) - Fixed Arrow Alignment
         const winningIndex = Math.floor(Math.random() * REWARDS.length);
         const reward = REWARDS[winningIndex];
         
-        // Calculate rotation angle (each segment is 45 degrees)
-        const segmentAngle = 360 / REWARDS.length; // 45 degrees
-        const baseAngle = winningIndex * segmentAngle;
-        const randomOffset = Math.random() * (segmentAngle * 0.8) + (segmentAngle * 0.1); // Random within segment
-        const finalAngle = 1440 + (360 - baseAngle - randomOffset); // 4 full rotations + landing position
+        console.log(`🎯 Spinning for segment ${winningIndex}, reward: ${reward} coins`);
+        
+        // Calculate rotation angle - Arrow points to TOP, so we adjust accordingly
+        const segmentAngle = 360 / REWARDS.length; // 45 degrees per segment
+        
+        // Segments are arranged starting from top (12 o'clock) going clockwise
+        // Segment 0 (10 coins) is at top, segment 1 (25 coins) is at top-right, etc.
+        const segmentStartAngle = winningIndex * segmentAngle;
+        const segmentCenterAngle = segmentStartAngle + (segmentAngle / 2);
+        
+        // Add randomness within the segment
+        const randomOffset = (Math.random() - 0.5) * (segmentAngle * 0.6); // Stay within segment
+        const targetAngle = segmentCenterAngle + randomOffset;
+        
+        // Since arrow points up, we need to rotate wheel so target segment points up
+        // Add multiple full rotations for animation effect
+        const fullRotations = 4 * 360; // 4 complete spins
+        const finalAngle = fullRotations - targetAngle; // Negative because wheel rotates opposite direction
+        
+        console.log(`🔄 Wheel will rotate ${finalAngle} degrees to land on segment ${winningIndex}`);
         
         // Apply rotation
         wheel.style.transform = `rotate(${finalAngle}deg)`;
         
         // Wait for animation to complete
         await new Promise(resolve => setTimeout(resolve, 4500));
+        
+        // Show which number was actually hit
+        console.log(`✅ Landed on segment ${winningIndex} with reward ${reward} coins`);
         
         // Award reward if greater than 0
         if (reward > 0) {
@@ -2322,10 +2430,26 @@
               return;
             }
             
-            snapshot.forEach(doc => {
+            snapshot.forEach(async doc => {
               const data = doc.data();
               const taskItem = document.createElement('div');
               taskItem.className = 'list-item';
+              taskItem.id = `task-${doc.id}`;
+              
+              // Check if user has completed this task
+              const user = auth.currentUser;
+              let hasCompleted = false;
+              if (user) {
+                try {
+                  const completionCheck = await db.collection('user_task_completions')
+                    .where('userId', '==', user.uid)
+                    .where('taskId', '==', doc.id)
+                    .get();
+                  hasCompleted = !completionCheck.empty;
+                } catch (error) {
+                  console.log('Could not check task completion status:', error);
+                }
+              }
               
               // Task type icons and styles
               const taskIcons = {
@@ -2338,9 +2462,21 @@
               
               const taskIcon = taskIcons[data.type] || '🎯';
               
-              // Create task buttons based on type
+              // Create task buttons based on completion status
               let taskButtons = '';
-              if (data.link && data.type !== 'simple') {
+              
+              if (hasCompleted) {
+                // Task already completed
+                taskButtons = `
+                  <div style="display: flex; gap: 8px; flex-direction: column;">
+                    <button class="btn" disabled 
+                            style="font-size: 12px; padding: 8px 16px; background: #28a745; color: white; cursor: not-allowed;">
+                      ✅ Task Completed
+                    </button>
+                  </div>
+                `;
+              } else if (data.link && data.type !== 'simple') {
+                // External task - needs to complete first
                 taskButtons = `
                   <div style="display: flex; gap: 8px; flex-direction: column;">
                     <button class="btn" onclick="openTaskLink('${data.link}', '${doc.id}', '${data.type}')" 
@@ -2348,12 +2484,14 @@
                       ${taskIcon} Open ${data.type === 'youtube' ? 'Video' : data.type === 'survey' ? 'Survey' : 'Link'}
                     </button>
                     <button class="btn" onclick="claimTask('${doc.id}', ${data.coins || 0})" 
-                            style="font-size: 12px; padding: 8px 16px; background: linear-gradient(135deg, #51cf66, #40c057);">
-                      🎁 Claim ${data.coins || 0} Coins
+                            disabled id="claim-${doc.id}"
+                            style="font-size: 12px; padding: 8px 16px; background: #ccc; color: #666; cursor: not-allowed;">
+                      🎁 Complete Task First
                     </button>
                   </div>
                 `;
               } else {
+                // Simple task - can claim directly
                 taskButtons = `
                   <button class="btn" onclick="claimTask('${doc.id}', ${data.coins || 0})" 
                           style="font-size: 12px; padding: 8px 16px;">
