@@ -954,29 +954,36 @@
               ">🎰</div>
             </div>
             
-            <!-- Wheel Pointer with Number Display -->
+            <!-- **FIXED: Triangle Arrow में Number Display** -->
             <div style="position: relative; display: flex; justify-content: center; margin-bottom: 20px;">
-              <!-- Triangle Arrow -->
+              <!-- Triangle Arrow - Bigger size -->
               <div style="
                 width: 0;
                 height: 0;
-                border-left: 20px solid transparent;
-                border-right: 20px solid transparent;
-                border-bottom: 35px solid #333;
+                border-left: 25px solid transparent;
+                border-right: 25px solid transparent;
+                border-bottom: 40px solid #333;
                 position: relative;
                 z-index: 10;
+                display: flex;
+                align-items: center;
+                justify-content: center;
               ">
-                <!-- Number inside triangle -->
+                <!-- **FIX: Number को Triangle के अंदर perfectly center करें** -->
                 <div id="spinner-result" style="
                   position: absolute;
-                  top: 8px;
+                  top: 12px;
                   left: 50%;
                   transform: translateX(-50%);
                   color: white;
-                  font-size: 14px;
-                  font-weight: bold;
-                  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-                  z-index: 11;
+                  font-size: 18px;
+                  font-weight: 900;
+                  text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+                  z-index: 15;
+                  font-family: Arial Black, Arial, sans-serif;
+                  line-height: 1;
+                  width: 30px;
+                  text-align: center;
                 ">?</div>
               </div>
             </div>
@@ -1722,7 +1729,7 @@
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         
-        showEnhancedNotification(`🎉 Task completed successfully! +${coins} coins earned`, 'success');
+        showEnhancedNotification(`🎉 Task पूरा! +${coins} coins मिले`, 'success');
         animateCoinBalance();
         addBounceEffect(document.getElementById('coin-balance'));
         
@@ -1825,57 +1832,70 @@
         
         showEnhancedNotification(`-${SPIN_COST} coins deducted for spin`, 'info');
         
-        // **CRITICAL FIX: Perfect synchronization between visual and reward**
+        // **CRITICAL FIX: सही synchronization के लिए नया logic**
         
-        // First, randomly select the winning segment
+        // पहले randomly winning segment select करें
         const winningIndex = Math.floor(Math.random() * REWARDS.length);
         const reward = REWARDS[winningIndex];
         
-        console.log(`🎯 Selected segment ${winningIndex} with reward: ${reward} coins`);
-        console.log(`📊 Rewards array: [${REWARDS.join(', ')}]`);
+        console.log(`🎯 SELECTED: Segment ${winningIndex}, Value: ${reward} coins`);
+        console.log(`📊 Wheel Values: [${REWARDS.join(', ')}]`);
         
-        // **PRECISION CALCULATION: Ensure arrow points exactly to winning segment**
-        const segmentAngle = 360 / REWARDS.length; // 45° per segment
+        // **EXACT CALCULATION: Arrow को सही segment पर point करवाने के लिए**
+        const segmentAngle = 360 / REWARDS.length; // हर segment 45°
         
-        // Calculate the exact center angle of the winning segment
-        // Segments start from 12 o'clock (0°) going clockwise
-        const segmentCenterAngle = winningIndex * segmentAngle + (segmentAngle / 2);
+        // Winning segment का exact center angle निकालें (0° से start होकर clockwise)
+        const segmentStartAngle = winningIndex * segmentAngle;
+        const segmentCenterAngle = segmentStartAngle + (segmentAngle / 2);
         
-        // Add small random variation within segment (±10° max)
-        const randomVariation = (Math.random() - 0.5) * 20; // ±10 degrees
-        const finalLandingAngle = segmentCenterAngle + randomVariation;
+        console.log(`📐 Segment ${winningIndex}: Start=${segmentStartAngle}°, Center=${segmentCenterAngle}°`);
         
-        // Calculate total rotation (multiple spins + precise landing)
-        const numberOfSpins = 4; // 4 complete rotations for effect
-        const totalRotation = (numberOfSpins * 360) + finalLandingAngle;
+        // थोड़ा random variation segment के अंदर ही (±15° max)
+        const randomOffset = (Math.random() - 0.5) * 30; // ±15°
+        const finalTargetAngle = segmentCenterAngle + randomOffset;
         
-        // Since arrow points down and we want wheel to stop with winning segment under arrow
-        // We need to rotate wheel so winning segment is at bottom (270° position)
-        const arrowPosition = 270; // Arrow points down (bottom of circle)
-        const wheelRotation = totalRotation + (arrowPosition - finalLandingAngle);
+        // Multiple rotations के साथ total angle calculate करें
+        const fullRotations = 4; // 4 complete चक्कर
+        const baseRotation = fullRotations * 360;
         
-        console.log(`📐 Calculations:`);
-        console.log(`   - Segment center: ${segmentCenterAngle}°`);
-        console.log(`   - Final landing: ${finalLandingAngle}°`);
-        console.log(`   - Total rotation: ${totalRotation}°`);
-        console.log(`   - Final wheel rotation: ${wheelRotation}°`);
+        // **KEY FIX: Arrow नीचे point करती है (270°), इसलिए wheel को उल्टा rotate करना होगा**
+        // जो segment हमें चाहिए, उसे arrow के नीचे लाना है
+        const arrowPositionDegrees = 270; // Arrow bottom में point करती है
         
-        // Apply the calculated rotation with smooth animation
-        wheel.style.transition = 'transform 4.5s cubic-bezier(0.25, 0.1, 0.25, 1)';
-        wheel.style.transform = `rotate(${wheelRotation}deg)`;
+        // Final wheel rotation calculate करें
+        const finalWheelRotation = baseRotation + (arrowPositionDegrees - finalTargetAngle);
+        
+        console.log(`🔄 ROTATION CALCULATION:`);
+        console.log(`   Target angle: ${finalTargetAngle}°`);
+        console.log(`   Arrow position: ${arrowPositionDegrees}°`);
+        console.log(`   Final wheel rotation: ${finalWheelRotation}°`);
+        
+        // Animation apply करें
+        wheel.style.transition = 'transform 4s cubic-bezier(0.23, 1, 0.32, 1)';
+        wheel.style.transform = `rotate(${finalWheelRotation}deg)`;
+        
+        console.log(`✅ Wheel rotation applied: ${finalWheelRotation}°`);
         
         // Wait for animation to complete
         await new Promise(resolve => setTimeout(resolve, 4500));
         
-        // Update triangle display with result - Enhanced
+        // **ENHANCED: Triangle में result दिखाएं**
         const spinnerResult = document.getElementById('spinner-result');
         if (spinnerResult) {
           spinnerResult.textContent = reward;
-          spinnerResult.style.color = reward > 0 ? '#51cf66' : '#ff6b6b';
-          spinnerResult.style.fontSize = '16px';
-          spinnerResult.style.fontWeight = 'bold';
-          spinnerResult.style.textShadow = '1px 1px 2px rgba(0,0,0,0.8)';
+          spinnerResult.style.color = reward > 0 ? '#4ade80' : '#ef4444'; // Green for win, Red for lose
+          spinnerResult.style.fontSize = '18px';
+          spinnerResult.style.fontWeight = '900';
+          spinnerResult.style.textShadow = '2px 2px 4px rgba(0,0,0,0.9)';
+          
+          // Animate the number
+          spinnerResult.style.transform = 'translateX(-50%) scale(1.2)';
+          setTimeout(() => {
+            spinnerResult.style.transform = 'translateX(-50%) scale(1)';
+          }, 300);
         }
+        
+        console.log(`🎯 Triangle updated with result: ${reward}`);
         
         // Award reward if greater than 0
         if (reward > 0) {
@@ -2638,37 +2658,61 @@
       }
     }
 
-    // **FIX: Page focus and visibility detection for task completion**
+    // **FIXED: Task Return Detection और Claim Button Management**
     function setupTaskRefreshListeners() {
-      // Detect when user returns to page
+      console.log('🔧 Setting up task refresh listeners...');
+      
+      // **Page Visibility Detection: जब user दूसरे tab से वापस आए**
       document.addEventListener('visibilitychange', function() {
         if (!document.hidden && auth.currentUser) {
-          console.log('👁️ Page visible - Checking for completed tasks');
+          console.log('👁️ User वापस आया page पर - Task status check कर रहे हैं');
+          
           setTimeout(() => {
+            // सभी opened tasks के लिए claim button enable करें
+            openedTasks.forEach(taskId => {
+              console.log(`✅ Enabling claim for task: ${taskId}`);
+              updateTaskButtons(taskId, 'external');
+            });
+            
+            // Task list भी refresh करें
+            forceTaskStatusRefresh();
+            
+            if (openedTasks.size > 0) {
+              showEnhancedNotification(`🎉 Welcome back! ${openedTasks.size} task(s) ready to claim!`, 'success', 4000);
+            }
+          }, 800);
+        }
+      });
+
+      // **Window Focus Detection: जब browser window focus में आए**
+      window.addEventListener('focus', function() {
+        if (auth.currentUser) {
+          console.log('🎯 Page focused - Task refresh कर रहे हैं');
+          
+          setTimeout(() => {
+            // Auto-enable claim buttons for opened tasks
+            openedTasks.forEach(taskId => {
+              updateTaskButtons(taskId, 'external');
+            });
+            
             forceTaskStatusRefresh();
           }, 500);
         }
       });
 
-      // Detect when page gets focus
-      window.addEventListener('focus', function() {
-        if (auth.currentUser) {
-          console.log('🎯 Page focused - Refreshing task status');
-          setTimeout(() => {
-            forceTaskStatusRefresh();  
-          }, 300);
-        }
-      });
-
-      // Detect when tasks tab is clicked
+      // **Tab Click Detection: Tasks tab पर click**
       document.addEventListener('click', function(e) {
-        if (e.target.matches('[data-tab="tasks"]') && auth.currentUser) {
-          console.log('📋 Tasks tab clicked - Force refresh');
-          setTimeout(() => {
-            forceTaskStatusRefresh();
-          }, 200);
+        if (e.target.matches('[data-tab="tasks"]') || e.target.textContent.includes('Tasks')) {
+          if (auth.currentUser) {
+            console.log('📋 Tasks tab clicked - Force refresh');
+            setTimeout(() => {
+              forceTaskStatusRefresh();
+            }, 200);
+          }
         }
       });
+      
+      console.log('✅ Task refresh listeners setup complete');
     }
 
     // **ENHANCED: Function to update task buttons dynamically**
@@ -2704,18 +2748,20 @@
       }
     }
 
-    // **ENHANCED: Open task link with immediate button update**
+    // **ENHANCED: Open Task Link with बेहतर tracking**
     window.openTaskLink = function(link, taskId, taskType) {
       if (!link) {
-        showEnhancedNotification('No link available for this task', 'error');
+        showEnhancedNotification('❌ Task link उपलब्ध नहीं है', 'error');
         return;
       }
+      
+      console.log(`📂 Opening task: ${taskId}, Type: ${taskType}`);
       
       // Track task opening
       try {
         const user = auth.currentUser;
         if (user) {
-          // Record task opened activity
+          // Firebase में record करें
           db.collection('task_activities').add({
             userId: user.uid,
             taskId: taskId,
@@ -2725,53 +2771,56 @@
             userEmail: user.email
           }).catch(console.error);
           
-          // Mark this task as opened for this user session
+          // Local session में mark करें
           openedTasks.add(taskId);
-          console.log(`📂 Task ${taskId} marked as opened`);
+          console.log(`✅ Task ${taskId} को opened के रूप में mark किया`);
           
-          // **IMMEDIATE UI UPDATE: Show claim button right away**
+          // **IMMEDIATE UI UPDATE: 2 seconds बाद claim button show करें**
           setTimeout(() => {
             updateTaskButtons(taskId, taskType);
-            showEnhancedNotification('✅ Task opened! You can now claim your reward.', 'success', 3000);
-          }, 1000);
+            showEnhancedNotification('🎯 Task खुल गया! अब आप reward claim कर सकते हैं।', 'success', 3000);
+          }, 2000);
           
-          // Set up fallback timer for automatic claim button show
-          taskReturnTimers.set(taskId, setTimeout(() => {
+          // **FALLBACK TIMER: 8 seconds बाद automatically claim button enable करें**
+          const fallbackTimer = setTimeout(() => {
             if (openedTasks.has(taskId)) {
               updateTaskButtons(taskId, taskType);
-              console.log(`⏰ Auto-enabled claim for task ${taskId}`);
+              console.log(`⏰ Auto-enabled claim button for task: ${taskId}`);
+              showEnhancedNotification('⏰ Auto-enabled! अब claim कर सकते हैं।', 'info', 2000);
             }
-            taskReturnTimers.delete(taskId);
-          }, 10000)); // 10 seconds fallback
+          }, 8000);
+          
+          // Store timer for cleanup
+          taskReturnTimers.set(taskId, fallbackTimer);
         }
       } catch (error) {
-        console.error('Error tracking task activity:', error);
+        console.error('Error tracking task:', error);
       }
       
-      // Show instructions
+      // Task type के हिसाब से instructions दें
       let instruction = '';
       switch(taskType) {
         case 'youtube':
-          instruction = '📺 Watch the full video and return here to claim your reward!';
+          instruction = '📺 पूरा video देखें और वापस यहाँ आकर reward claim करें!';
           break;
         case 'survey':
-          instruction = '📋 Complete the survey and return here to claim!';
+          instruction = '📋 Survey पूरा करें और वापस यहाँ आकर claim करें!';
           break;
         case 'social':
-          instruction = '📱 Follow/Like and return here to claim coins!';
+          instruction = '📱 Follow/Like करें और वापस आकर coins claim करें!';
           break;
         default:
-          instruction = '🔗 Complete the task and return to claim your reward!';
+          instruction = '🔗 Task complete करके वापस आएं और reward claim करें!';
       }
       
       showEnhancedNotification(instruction, 'info', 5000);
       
-      // Open link in new tab
+      // नए tab में link खोलें
       const newWindow = window.open(link, '_blank');
       if (!newWindow) {
-        showEnhancedNotification('Please allow popups to open task links', 'error');
+        showEnhancedNotification('❌ Popup को allow करें task links खोलने के लिए', 'error');
       } else {
-        showEnhancedNotification('⏱️ Task opened! Return here to claim after completion.', 'info', 4000);
+        showEnhancedNotification('🚀 Task खुल गया! Complete करके यहाँ वापस आएं।', 'info', 4000);
       }
     };
 
