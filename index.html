@@ -1531,94 +1531,8 @@
       if (totalEarned) totalEarned.textContent = (currentUserData.totalEarned || 0).toLocaleString();
     }
 
-    // Authentication with enhanced debugging
-    auth.onAuthStateChanged(async user => {
-      console.log('🔄 Auth state changed:', user ? user.email : 'No user');
-      
-      if (user) {
-        // User signed in
-        console.log('✅ User signed in, redirecting to main app...');
-        
-        // Hide auth container and show main app
-        authContainer.classList.add('hidden');
-        mainApp.classList.add('visible');
-        
-        document.getElementById('user-info').textContent = `Hi, ${user.email.split('@')[0]}!`;
-        
-        // Initialize user data with proper error handling
-        const userRef = db.collection('users').doc(user.uid);
-        
-        // Create user document if it doesn't exist
-        try {
-          await userRef.set({
-            email: user.email,
-            coins: 0,
-            totalTasks: 0,
-            totalEarned: 0,
-            referralCode: generateReferralCode(),
-            lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          }, { merge: true });
-          console.log('✅ User document initialized');
-        } catch (error) {
-          console.log('⚠️ User document creation skipped:', error);
-        }
-
-        // Set up real-time listener with error handling
-        const unsubscribe = userRef.onSnapshot(doc => {
-          if (doc.exists) {
-            const data = doc.data();
-            console.log('📊 User data updated:', data);
-            
-            // Update UI safely
-            updateUI(data, user);
-          } else {
-            console.log('📝 Creating new user document...');
-            // Document doesn't exist, create it
-            userRef.set({
-              email: user.email,
-              coins: 500, // Welcome bonus
-              totalTasks: 0,
-              totalEarned: 500,
-              referralCode: generateReferralCode(),
-              lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-              createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            }).catch(console.error);
-          }
-        }, error => {
-          console.error('🔥 Firestore listener error:', error);
-          // Fallback to default values
-          updateUI({
-            coins: 0,
-            totalTasks: 0,
-            totalEarned: 0,
-            referralCode: generateReferralCode()
-          }, user);
-        });
-
-        loadTasks();
-        loadWithdrawHistory(user.uid);
-        loadActivity(user.uid);
-        
-      } else {
-        // User signed out
-        console.log('🚪 User signed out, showing login...');
-        authContainer.classList.remove('hidden');
-        mainApp.classList.remove('visible');
-        
-        // Reset form
-        const emailInput = document.getElementById('email-input');
-        const passwordInput = document.getElementById('password-input');
-        const authMessage = document.getElementById('auth-message');
-        
-        if (emailInput) emailInput.value = '';
-        if (passwordInput) passwordInput.value = '';
-        if (authMessage) authMessage.textContent = '';
-      }
-    });
-
-    // Sign In with enhanced debugging
-    signinBtn.addEventListener('click', async (e) => {
+    // Sign In Handler Function
+    async function handleSignIn(e) {
       e.preventDefault();
       console.log('🔐 Sign in button clicked!');
       
@@ -1700,10 +1614,10 @@
         signinBtn.textContent = 'Sign In';
         signinBtn.disabled = false;
       }
-    });
+    }
 
-    // Sign Up with enhanced debugging
-    signupBtn.addEventListener('click', async (e) => {
+    // Sign Up Handler Function  
+    async function handleSignUp(e) {
       e.preventDefault();
       console.log('📝 Sign up button clicked!');
       
@@ -1796,6 +1710,92 @@
         authMessage.className = 'form-message error';
         signupBtn.textContent = 'Create Account';
         signupBtn.disabled = false;
+      }
+    }
+
+    // Authentication with enhanced debugging
+    auth.onAuthStateChanged(async user => {
+      console.log('🔄 Auth state changed:', user ? user.email : 'No user');
+      
+      if (user) {
+        // User signed in
+        console.log('✅ User signed in, redirecting to main app...');
+        
+        // Hide auth container and show main app
+        authContainer.classList.add('hidden');
+        mainApp.classList.add('visible');
+        
+        document.getElementById('user-info').textContent = `Hi, ${user.email.split('@')[0]}!`;
+        
+        // Initialize user data with proper error handling
+        const userRef = db.collection('users').doc(user.uid);
+        
+        // Create user document if it doesn't exist
+        try {
+          await userRef.set({
+            email: user.email,
+            coins: 0,
+            totalTasks: 0,
+            totalEarned: 0,
+            referralCode: generateReferralCode(),
+            lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+          console.log('✅ User document initialized');
+        } catch (error) {
+          console.log('⚠️ User document creation skipped:', error);
+        }
+
+        // Set up real-time listener with error handling
+        const unsubscribe = userRef.onSnapshot(doc => {
+          if (doc.exists) {
+            const data = doc.data();
+            console.log('📊 User data updated:', data);
+            
+            // Update UI safely
+            updateUI(data, user);
+          } else {
+            console.log('📝 Creating new user document...');
+            // Document doesn't exist, create it
+            userRef.set({
+              email: user.email,
+              coins: 500, // Welcome bonus
+              totalTasks: 0,
+              totalEarned: 500,
+              referralCode: generateReferralCode(),
+              lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(console.error);
+          }
+        }, error => {
+          console.error('🔥 Firestore listener error:', error);
+          // Fallback to default values
+          updateUI({
+            coins: 0,
+            totalTasks: 0,
+            totalEarned: 0,
+            referralCode: generateReferralCode()
+          }, user);
+        });
+
+        loadTasks();
+        loadWithdrawHistory(user.uid);
+        loadActivity(user.uid);
+        
+      } else {
+        // User signed out
+        console.log('🚪 User signed out, showing login...');
+        authContainer.classList.remove('hidden');
+        mainApp.classList.remove('visible');
+        
+        // Reset form
+        const emailInput = document.getElementById('email-input');
+        const passwordInput = document.getElementById('password-input');
+        const authMessage = document.getElementById('auth-message');
+        
+        if (emailInput) emailInput.value = '';
+        if (passwordInput) passwordInput.value = '';
+        if (authMessage) authMessage.textContent = '';
       }
     });
 
@@ -2288,11 +2288,15 @@
       const signupBtn = document.getElementById('signup-btn');
       
       if (signinBtn) {
-        console.log('🔐 Sign in button found, listeners should be attached');
+        console.log('🔐 Sign in button found, attaching listener...');
+        signinBtn.addEventListener('click', handleSignIn);
+        console.log('✅ Sign in listener attached');
       }
       
       if (signupBtn) {
-        console.log('📝 Sign up button found, listeners should be attached');  
+        console.log('📝 Sign up button found, attaching listener...');  
+        signupBtn.addEventListener('click', handleSignUp);
+        console.log('✅ Sign up listener attached');
       }
       
       handleReferralOnSignup();
