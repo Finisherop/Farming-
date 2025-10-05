@@ -777,97 +777,107 @@
               color: white;
               text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
             ">
-              <!-- Reward Values on Wheel - Perfectly Centered -->
-              <!-- Top Center (0°) - 10 coins -->
+              <!-- Reward Values on Wheel - Optimally Centered -->
+              <!-- Each number positioned at the center of its color segment -->
+              
+              <!-- Top Center (0°) - 10 coins - Red segment -->
               <div style="
                 position: absolute;
-                top: 20px;
+                top: 25px;
                 left: 50%;
                 transform: translateX(-50%);
-                font-size: 16px;
+                font-size: 18px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
+                z-index: 2;
               ">10</div>
               
-              <!-- Top Right (45°) - 25 coins -->
+              <!-- Top Right (45°) - 25 coins - Teal segment -->
               <div style="
                 position: absolute;
-                top: 35px;
-                right: 35px;
-                font-size: 16px;
+                top: 45px;
+                right: 45px;
+                font-size: 18px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
+                z-index: 2;
               ">25</div>
               
-              <!-- Right Center (90°) - 5 coins -->
+              <!-- Right Center (90°) - 5 coins - Blue segment -->
               <div style="
                 position: absolute;
                 top: 50%;
-                right: 20px;
+                right: 25px;
                 transform: translateY(-50%);
-                font-size: 16px;
+                font-size: 18px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
+                z-index: 2;
               ">5</div>
               
-              <!-- Bottom Right (135°) - 20 coins -->
+              <!-- Bottom Right (135°) - 20 coins - Orange segment -->
               <div style="
                 position: absolute;
-                bottom: 35px;
-                right: 35px;
-                font-size: 16px;
+                bottom: 45px;
+                right: 45px;
+                font-size: 18px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
+                z-index: 2;
               ">20</div>
               
-              <!-- Bottom Center (180°) - 0 coins -->
+              <!-- Bottom Center (180°) - 0 coins - Red segment -->
               <div style="
                 position: absolute;
-                bottom: 20px;
+                bottom: 25px;
                 left: 50%;
                 transform: translateX(-50%);
-                font-size: 16px;
+                font-size: 18px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
+                z-index: 2;
               ">0</div>
               
-              <!-- Bottom Left (225°) - 50 coins -->
+              <!-- Bottom Left (225°) - 50 coins - Purple segment -->
               <div style="
                 position: absolute;
-                bottom: 35px;
-                left: 35px;
-                font-size: 16px;
+                bottom: 45px;
+                left: 45px;
+                font-size: 18px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
+                z-index: 2;
               ">50</div>
               
-              <!-- Left Center (270°) - 15 coins -->
+              <!-- Left Center (270°) - 15 coins - Green segment -->
               <div style="
                 position: absolute;
                 top: 50%;
-                left: 20px;
+                left: 25px;
                 transform: translateY(-50%);
-                font-size: 16px;
+                font-size: 18px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
+                z-index: 2;
               ">15</div>
               
-              <!-- Top Left (315°) - 0 coins -->
+              <!-- Top Left (315°) - 0 coins - Yellow segment -->
               <div style="
                 position: absolute;
-                top: 35px;
-                left: 35px;
-                font-size: 16px;
+                top: 45px;
+                left: 45px;
+                font-size: 18px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
+                z-index: 2;
               ">0</div>
               
               <!-- Center Icon -->
@@ -1130,6 +1140,9 @@
           
           const userInfo = document.getElementById('user-info');
           if (userInfo) userInfo.textContent = `Hi, ${user.email.split('@')[0]}!`;
+          
+          // Setup real-time listeners for this user
+          setupRealtimeListeners(user.uid);
           
           // Reset button states
           const signinBtn = document.getElementById('signin-btn');
@@ -1526,6 +1539,9 @@
           dailyStatus.textContent = '🎁';
         }
       }
+      
+      // Load user data with fallback capability
+      loadDataWithFallback(user.uid);
       
       // Update spin status
       loadSpinStatus(user.uid);
@@ -2004,6 +2020,192 @@
       });
     });
 
+    // Real-time Firebase Listeners with LocalStorage Fallback
+    function setupRealtimeListeners(userId) {
+      if (!db || !userId) return;
+
+      // Listen for withdrawal status changes
+      const withdrawalListener = db.collection('withdrawals')
+        .where('userId', '==', userId)
+        .onSnapshot((snapshot) => {
+          // Update withdrawal history in real-time
+          loadWithdrawHistory(userId);
+          
+          // Cache the latest withdrawal data
+          const withdrawals = [];
+          snapshot.forEach(doc => {
+            withdrawals.push({ id: doc.id, ...doc.data() });
+          });
+          localStorage.setItem(`withdrawals_${userId}`, JSON.stringify(withdrawals));
+        });
+
+      // Listen for task changes
+      const taskListener = db.collection('tasks')
+        .where('active', '==', true)
+        .onSnapshot((snapshot) => {
+          loadTasks(); // Refresh tasks list
+          
+          // Cache tasks for offline access
+          const tasks = [];
+          snapshot.forEach(doc => {
+            tasks.push({ id: doc.id, ...doc.data() });
+          });
+          localStorage.setItem('tasks_cache', JSON.stringify(tasks));
+        });
+
+      // Listen for user status changes (ban, VIP, etc.)
+      const userListener = db.collection('users').doc(userId)
+        .onSnapshot((doc) => {
+          if (doc.exists) {
+            const userData = doc.data();
+            currentUserData = userData;
+            updateUIWithUserData(userData);
+            
+            // Cache user data
+            localStorage.setItem(`user_${userId}`, JSON.stringify(userData));
+            
+            // Check for status changes
+            if (userData.banned) {
+              showEnhancedNotification('Your account has been suspended. Please contact support.', 'error');
+            }
+            if (userData.vip && !localStorage.getItem('vip_notified')) {
+              showEnhancedNotification('Congratulations! You are now a VIP member! 🌟', 'success');
+              localStorage.setItem('vip_notified', 'true');
+            }
+          }
+        });
+
+      // Listen for app configuration changes
+      const configListener = db.collection('config').doc('app')
+        .onSnapshot((doc) => {
+          if (doc.exists) {
+            const config = doc.data();
+            // Update global config variables
+            window.appConfig = config;
+            localStorage.setItem('app_config', JSON.stringify(config));
+          }
+        });
+
+      // Store listener references for cleanup
+      window.firebaseListeners = {
+        withdrawal: withdrawalListener,
+        task: taskListener,
+        user: userListener,
+        config: configListener
+      };
+    }
+
+    // Load data with localStorage fallback
+    async function loadDataWithFallback(userId) {
+      try {
+        // Try to load from Firebase first
+        await loadTasks();
+        await loadWithdrawHistory(userId);
+        
+      } catch (error) {
+        console.error('Firebase load error, using cached data:', error);
+        
+        // Fallback to localStorage
+        const cachedTasks = localStorage.getItem('tasks_cache');
+        if (cachedTasks) {
+          const tasks = JSON.parse(cachedTasks);
+          renderTasksFromCache(tasks);
+          showEnhancedNotification('Showing cached data. Some information may be outdated.', 'warning');
+        }
+        
+        const cachedWithdrawals = localStorage.getItem(`withdrawals_${userId}`);
+        if (cachedWithdrawals) {
+          const withdrawals = JSON.parse(cachedWithdrawals);
+          renderWithdrawalsFromCache(withdrawals);
+        }
+      }
+    }
+
+    // Render tasks from cached data
+    function renderTasksFromCache(tasks) {
+      const tasksList = document.getElementById('tasks-list');
+      if (!tasksList) return;
+      
+      tasksList.innerHTML = '';
+      
+      if (tasks.length === 0) {
+        tasksList.innerHTML = '<div class="card" style="text-align: center; padding: 40px;"><p>No tasks available</p></div>';
+        return;
+      }
+      
+      tasks.forEach(task => {
+        const taskCard = document.createElement('div');
+        taskCard.className = 'card';
+        taskCard.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+            <div style="flex: 1;">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <h4 style="margin: 0; color: var(--text-primary);">${task.title}</h4>
+                <span style="background: var(--background); color: var(--text-secondary); padding: 2px 6px; border-radius: 4px; font-size: 10px; text-transform: uppercase; font-weight: 600;">${task.type}</span>
+              </div>
+              <p style="margin: 0; color: var(--text-secondary); font-size: 14px;">${task.desc}</p>
+            </div>
+            <div style="text-align: right; display: flex; flex-direction: column; gap: 8px; min-width: 140px;">
+              <div style="background: linear-gradient(135deg, var(--success), #20c997); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 14px; text-align: center;">
+                🪙 ${task.coins} coins
+              </div>
+              <button class="btn-enhanced" style="padding: 8px 16px; font-size: 12px; opacity: 0.7; cursor: not-allowed;" disabled>
+                📡 Offline Mode
+              </button>
+            </div>
+          </div>
+        `;
+        tasksList.appendChild(taskCard);
+      });
+    }
+
+    // Render withdrawals from cached data
+    function renderWithdrawalsFromCache(withdrawals) {
+      const historyContainer = document.getElementById('withdraw-history');
+      if (!historyContainer) return;
+      
+      if (withdrawals.length === 0) {
+        historyContainer.innerHTML = '<div class="small">No withdrawals yet.</div>';
+        return;
+      }
+      
+      historyContainer.innerHTML = '';
+      withdrawals.forEach(withdrawal => {
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        
+        let statusColor = 'var(--warning)';
+        let statusText = 'Pending';
+        let statusIcon = '⏳';
+        
+        if (withdrawal.status === 'approved') {
+          statusColor = 'var(--success)';
+          statusText = 'Approved';
+          statusIcon = '✅';
+        } else if (withdrawal.status === 'rejected') {
+          statusColor = 'var(--error)';
+          statusText = 'Rejected';
+          statusIcon = '❌';
+        }
+        
+        item.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <strong>${withdrawal.method} - ${withdrawal.amount || withdrawal.coins} coins</strong>
+              <div class="small">${withdrawal.createdAt?.toDate?.()?.toLocaleDateString() || 'Recent'}</div>
+              ${withdrawal.destination ? `<div class="small" style="color: var(--text-secondary);">To: ${withdrawal.destination}</div>` : ''}
+            </div>
+            <div style="text-align: right;">
+              <div style="color: ${statusColor}; font-weight: 600; font-size: 12px;">
+                ${statusIcon} ${statusText} (Cached)
+              </div>
+            </div>
+          </div>
+        `;
+        historyContainer.appendChild(item);
+      });
+    }
+
     // Enhanced Daily Reward with Animations
     document.getElementById('claim-daily').addEventListener('click', async () => {
       const user = auth.currentUser;
@@ -2161,15 +2363,17 @@
         if (!destination) return;
         
         try {
-          // Create withdrawal request with enhanced data
-          await db.collection('withdraw_requests').add({
+          // Create withdrawal request with proper status tracking
+          await db.collection('withdrawals').add({
             userId: user.uid,
-            email: user.email,
+            userEmail: user.email,
             method: method,
             destination: destination,
-            coins: coinsToWithdraw,
-            status: 'pending',
+            amount: coinsToWithdraw,
+            status: 'pending', // Always start with pending
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            processedAt: null,
+            processedBy: null,
             userName: user.email.split('@')[0]
           });
           
@@ -2391,7 +2595,7 @@
     // Load Withdrawal History
     async function loadWithdrawHistory(uid) {
       try {
-        const withdrawalsSnapshot = await db.collection('withdraw_requests')
+        const withdrawalsSnapshot = await db.collection('withdrawals')
           .where('userId', '==', uid)
           .orderBy('createdAt', 'desc')
           .limit(10)
@@ -2413,14 +2617,34 @@
           const data = doc.data();
           const item = document.createElement('div');
           item.className = 'list-item';
+          
+          // Enhanced status display with colors
+          let statusColor = 'var(--warning)';
+          let statusText = 'Pending';
+          let statusIcon = '⏳';
+          
+          if (data.status === 'approved') {
+            statusColor = 'var(--success)';
+            statusText = 'Approved';
+            statusIcon = '✅';
+          } else if (data.status === 'rejected') {
+            statusColor = 'var(--error)';
+            statusText = 'Rejected';
+            statusIcon = '❌';
+          }
+          
           item.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <div>
-                <strong>${data.method} - ${data.coins} coins</strong>
+                <strong>${data.method} - ${data.amount || data.coins} coins</strong>
                 <div class="small">${data.createdAt?.toDate()?.toLocaleDateString() || 'Recent'}</div>
+                ${data.destination ? `<div class="small" style="color: var(--text-secondary);">To: ${data.destination}</div>` : ''}
               </div>
-              <div style="color: var(--warning); font-weight: 600; text-transform: uppercase; font-size: 12px;">
-                ${data.status}
+              <div style="text-align: right;">
+                <div style="color: ${statusColor}; font-weight: 600; font-size: 12px;">
+                  ${statusIcon} ${statusText}
+                </div>
+                ${data.processedAt ? `<div class="small">Processed: ${data.processedAt.toDate()?.toLocaleDateString()}</div>` : ''}
               </div>
             </div>
           `;
