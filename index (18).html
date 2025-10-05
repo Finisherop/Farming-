@@ -811,106 +811,118 @@
               color: white;
               text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
             ">
-              <!-- Reward Values on Wheel - Properly Centered -->
+              <!-- **FIXED: Reward Numbers - Properly Centered Using CSS Transforms** -->
               
-              <!-- Top Center (0 degrees) - 10 coins -->
-              <div style="
+              <!-- Segment 0: Top Center (0°) - 10 coins -->
+              <div class="spinner-number" style="
                 position: absolute;
-                top: 15px;
+                top: 50%;
                 left: 50%;
-                transform: translateX(-50%);
+                transform: translate(-50%, -50%) rotate(0deg) translateY(-100px);
                 font-size: 18px;
                 font-weight: bold;
                 color: white;
                 text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
                 z-index: 2;
+                pointer-events: none;
               ">10</div>
               
-              <!-- Top Right (45 degrees) - 25 coins -->
-              <div style="
+              <!-- Segment 1: Top Right (45°) - 25 coins -->
+              <div class="spinner-number" style="
                 position: absolute;
-                top: 35px;
-                right: 35px;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(45deg) translateY(-100px);
                 font-size: 18px;
                 font-weight: bold;
                 color: white;
                 text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
                 z-index: 2;
+                pointer-events: none;
               ">25</div>
               
-              <!-- Right Center (90 degrees) - 5 coins -->
-              <div style="
+              <!-- Segment 2: Right Center (90°) - 5 coins -->
+              <div class="spinner-number" style="
                 position: absolute;
                 top: 50%;
-                right: 15px;
-                transform: translateY(-50%);
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(90deg) translateY(-100px);
                 font-size: 18px;
                 font-weight: bold;
                 color: white;
                 text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
                 z-index: 2;
+                pointer-events: none;
               ">5</div>
               
-              <!-- Bottom Right (135 degrees) - 20 coins -->
-              <div style="
-                position: absolute;
-                bottom: 35px;
-                right: 35px;
-                font-size: 18px;
-                font-weight: bold;
-                color: white;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-                z-index: 2;
-              ">20</div>
-              
-              <!-- Bottom Center (180 degrees) - 0 coins -->
-              <div style="
-                position: absolute;
-                bottom: 15px;
-                left: 50%;
-                transform: translateX(-50%);
-                font-size: 18px;
-                font-weight: bold;
-                color: white;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-                z-index: 2;
-              ">0</div>
-              
-              <!-- Bottom Left (225 degrees) - 50 coins -->
-              <div style="
-                position: absolute;
-                bottom: 35px;
-                left: 35px;
-                font-size: 18px;
-                font-weight: bold;
-                color: white;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-                z-index: 2;
-              ">50</div>
-              
-              <!-- Left Center (270 degrees) - 15 coins -->
-              <div style="
+              <!-- Segment 3: Bottom Right (135°) - 20 coins -->
+              <div class="spinner-number" style="
                 position: absolute;
                 top: 50%;
-                left: 15px;
-                transform: translateY(-50%);
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(135deg) translateY(-100px);
                 font-size: 18px;
                 font-weight: bold;
                 color: white;
                 text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
                 z-index: 2;
+                pointer-events: none;
+              ">20</div>
+              
+              <!-- Segment 4: Bottom Center (180°) - 0 coins -->
+              <div class="spinner-number" style="
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(180deg) translateY(-100px);
+                font-size: 18px;
+                font-weight: bold;
+                color: white;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                z-index: 2;
+                pointer-events: none;
+              ">0</div>
+              
+              <!-- Segment 5: Bottom Left (225°) - 50 coins -->
+              <div class="spinner-number" style="
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(225deg) translateY(-100px);
+                font-size: 18px;
+                font-weight: bold;
+                color: white;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                z-index: 2;
+                pointer-events: none;
+              ">50</div>
+              
+              <!-- Segment 6: Left Center (270°) - 15 coins -->
+              <div class="spinner-number" style="
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(270deg) translateY(-100px);
+                font-size: 18px;
+                font-weight: bold;
+                color: white;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                z-index: 2;
+                pointer-events: none;
               ">15</div>
               
-              <!-- Top Left (315 degrees) - 0 coins -->
-              <div style="
+              <!-- Segment 7: Top Left (315°) - 0 coins -->
+              <div class="spinner-number" style="
                 position: absolute;
-                top: 35px;
-                left: 35px;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(315deg) translateY(-100px);
                 font-size: 18px;
                 font-weight: bold;
                 color: white;
                 text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
                 z-index: 2;
+                pointer-events: none;
               ">0</div>
               
               <!-- Center Icon -->
@@ -1136,9 +1148,10 @@
     // Global Firebase variables
     let auth, db;
     
-    // Spin & Win Configuration
+    // Spin & Win Configuration - Updated wheel segments to match visual layout
     const SPIN_COST = 5;
-    const REWARDS = [10, 5, 20, 0, 50, 15, 0, 25]; // 8 segments
+    // Rewards array matching the visual wheel segments (starting from top, clockwise)
+    const REWARDS = [10, 25, 5, 20, 0, 50, 15, 0]; // 8 segments, 45° each
     let isSpinning = false;
     let currentUserData = {};
     
@@ -1172,7 +1185,19 @@
       // Initialize user return detection
       detectUserReturn();
       
-      // Set up authentication state change handler immediately
+      // **FIXED: Enhanced tab switching with task refresh**
+      document.addEventListener('click', function(e) {
+        if (e.target.matches('[data-tab]')) {
+          const tabName = e.target.getAttribute('data-tab');
+          if (tabName === 'tasks' && auth.currentUser) {
+            // Force refresh tasks when tasks tab is clicked
+            setTimeout(() => {
+              loadTasks();
+              console.log('📋 Tasks tab activated - Refreshing task list');
+            }, 100);
+          }
+        }
+      });
       auth.onAuthStateChanged(async user => {
         console.log('🔄 Auth state changed:', user ? user.email : 'No user');
         
@@ -1752,10 +1777,18 @@
       const spinMessage = document.getElementById('spin-message');
       
       try {
-        // Disable button and show spinning state
+        // Disable button and show spinning state - Enhanced
         spinBtn.disabled = true;
         spinBtn.innerHTML = '🎰 SPINNING...';
+        spinBtn.style.opacity = '0.6';
         spinMessage.innerHTML = '<span style="color: var(--primary);">🎰 Spinning the wheel...</span>';
+        
+        // Reset triangle display
+        const spinnerResult = document.getElementById('spinner-result');
+        if (spinnerResult) {
+          spinnerResult.textContent = '?';
+          spinnerResult.style.color = 'white';
+        }
         
         // Deduct spin cost first
         const userRef = db.collection('users').doc(user.uid);
@@ -1769,27 +1802,44 @@
         
         showEnhancedNotification(`-${SPIN_COST} coins deducted for spin`, 'info');
         
-        // Calculate winning segment (0-7)
+        // **FIXED: Calculate winning segment and synchronize visual animation**
         const winningIndex = Math.floor(Math.random() * REWARDS.length);
         const reward = REWARDS[winningIndex];
         
-        // Calculate rotation angle (each segment is 45 degrees)
-        const segmentAngle = 360 / REWARDS.length; // 45 degrees
-        const baseAngle = winningIndex * segmentAngle;
-        const randomOffset = Math.random() * (segmentAngle * 0.8) + (segmentAngle * 0.1); // Random within segment
-        const finalAngle = 1440 + (360 - baseAngle - randomOffset); // 4 full rotations + landing position
+        console.log(`🎯 Winning segment: ${winningIndex}, Reward: ${reward} coins`);
         
-        // Apply rotation
+        // **FIX: Precise angle calculation for visual synchronization**
+        const segmentAngle = 360 / REWARDS.length; // 45 degrees per segment
+        
+        // Calculate the center angle for the winning segment (starting from top, clockwise)
+        const targetSegmentCenter = winningIndex * segmentAngle;
+        
+        // Add small random variation within the segment for realism
+        const randomOffsetInSegment = (Math.random() - 0.5) * (segmentAngle * 0.6);
+        const preciseTargetAngle = targetSegmentCenter + randomOffsetInSegment;
+        
+        // Calculate final rotation ensuring arrow points to correct segment
+        // Arrow points down (270°), so we need to adjust the wheel rotation
+        const baseRotations = 1440; // 4 full rotations for dramatic effect  
+        const finalAngle = baseRotations + (360 - preciseTargetAngle);
+        
+        console.log(`📐 Target segment center: ${targetSegmentCenter}°, Final angle: ${finalAngle}°`);
+        
+        // Apply rotation with proper transition
+        wheel.style.transition = 'transform 4s cubic-bezier(0.25, 0.1, 0.25, 1)';
         wheel.style.transform = `rotate(${finalAngle}deg)`;
         
         // Wait for animation to complete
         await new Promise(resolve => setTimeout(resolve, 4500));
         
-        // Update triangle display with result
+        // Update triangle display with result - Enhanced
         const spinnerResult = document.getElementById('spinner-result');
         if (spinnerResult) {
           spinnerResult.textContent = reward;
           spinnerResult.style.color = reward > 0 ? '#51cf66' : '#ff6b6b';
+          spinnerResult.style.fontSize = '16px';
+          spinnerResult.style.fontWeight = 'bold';
+          spinnerResult.style.textShadow = '1px 1px 2px rgba(0,0,0,0.8)';
         }
         
         // Award reward if greater than 0
@@ -1830,15 +1880,21 @@
           console.error('Refund error:', refundError);
         }
       } finally {
-        // Reset button and state
+        // Reset button and state - Enhanced
         isSpinning = false;
         spinBtn.disabled = false;
+        spinBtn.style.opacity = '1';
         spinBtn.innerHTML = '🎰 SPIN NOW (5 coins)';
         
-        // Reset wheel rotation after a delay
+        // Reset wheel rotation after a delay for next spin
         setTimeout(() => {
+          wheel.style.transition = 'none';
           wheel.style.transform = 'rotate(0deg)';
-        }, 2000);
+          // Re-enable transition after reset
+          setTimeout(() => {
+            wheel.style.transition = 'transform 4s cubic-bezier(0.25, 0.1, 0.25, 1)';
+          }, 100);
+        }, 3000);
         
         // Update spin status
         loadSpinStatus(user.uid);
@@ -2364,21 +2420,57 @@
               
               const taskIcon = taskIcons[data.type] || '🎯';
               
-              // Create task buttons based on type
+              // **FIXED: Enhanced task buttons with proper completion status check**
               let taskButtons = '';
-              if (data.link && data.type !== 'simple') {
-                // Initially only show "Open Link" button
+              
+              // Check if task is already completed by this user
+              const isTaskCompleted = await checkTaskCompletionStatus(doc.id, auth.currentUser?.uid);
+              
+              if (isTaskCompleted) {
+                // Task already completed - show completed status
                 taskButtons = `
-                  <div class="task-buttons" style="display: flex; gap: 8px; flex-direction: column;">
-                    <button class="btn" onclick="openTaskLink('${data.link}', '${doc.id}', '${data.type}')" 
-                            style="font-size: 12px; padding: 8px 16px; background: linear-gradient(135deg, #667eea, #764ba2);">
-                      ${taskIcon} Open ${data.type === 'youtube' ? 'Video' : data.type === 'survey' ? 'Survey' : 'Link'}
-                    </button>
-                    <div style="font-size: 11px; color: var(--text-secondary); text-align: center;">
-                      Complete the task first to unlock claim button
+                  <div class="task-buttons">
+                    <div style="
+                      padding: 8px 16px; 
+                      background: linear-gradient(135deg, #51cf66, #40c057); 
+                      color: white; 
+                      border-radius: 8px; 
+                      font-size: 12px; 
+                      font-weight: 600;
+                      text-align: center;
+                    ">
+                      ✅ Completed
                     </div>
                   </div>
                 `;
+              } else if (data.link && data.type !== 'simple') {
+                // External task with link - check if opened in current session
+                const isOpened = openedTasks.has(doc.id);
+                
+                if (isOpened) {
+                  // Task opened - show claim button
+                  taskButtons = `
+                    <div class="task-buttons" style="display: flex; gap: 8px; flex-direction: column;">
+                      <button class="btn" onclick="claimTask('${doc.id}', ${data.coins || 0})" 
+                              style="font-size: 12px; padding: 8px 16px; background: linear-gradient(135deg, #51cf66, #40c057);">
+                        🎁 Claim ${data.coins || 0} Coins
+                      </button>
+                    </div>
+                  `;
+                } else {
+                  // Task not opened yet - show open button
+                  taskButtons = `
+                    <div class="task-buttons" style="display: flex; gap: 8px; flex-direction: column;">
+                      <button class="btn" onclick="openTaskLink('${data.link}', '${doc.id}', '${data.type}')" 
+                              style="font-size: 12px; padding: 8px 16px; background: linear-gradient(135deg, #667eea, #764ba2);">
+                        ${taskIcon} Open ${data.type === 'youtube' ? 'Video' : data.type === 'survey' ? 'Survey' : 'Link'}
+                      </button>
+                      <div style="font-size: 11px; color: var(--text-secondary); text-align: center;">
+                        Complete the task first to unlock claim button
+                      </div>
+                    </div>
+                  `;
+                }
               } else {
                 // Simple tasks can be claimed immediately
                 taskButtons = `
@@ -2433,35 +2525,58 @@
       }
     }
 
+    // **FIXED: Enhanced Task Management with Status Tracking**
     // Track opened tasks per user session and detect when user returns
     let openedTasks = new Set();
     let taskReturnTimers = new Map();
+    let completedTasks = new Set(); // Track completed tasks
 
-    // Function to detect when user returns to page (from task completion)
+    // **FIX: Force task status refresh when user returns to page**
     function detectUserReturn() {
       document.addEventListener('visibilitychange', function() {
-        if (!document.hidden) {
-          // User returned to page
-          console.log('🔄 User returned to page');
+        if (!document.hidden && auth.currentUser) {
+          // User returned to page - Force refresh task status
+          console.log('🔄 User returned to page - Refreshing task status');
           
-          // Check for any pending task claims
-          taskReturnTimers.forEach((timer, taskId) => {
-            clearTimeout(timer);
-            
-            // Automatically show claim button for opened tasks
-            setTimeout(() => {
-              updateTaskButtons(taskId, 'external');
-              showEnhancedNotification('✅ Welcome back! You can now claim your task reward.', 'success', 4000);
-            }, 1000);
-          });
-          
-          // Clear all pending timers
+          // Clear existing timers and refresh tasks
           taskReturnTimers.clear();
+          
+          // Force reload tasks to get updated status
+          setTimeout(() => {
+            loadTasks(); // Force re-fetch from Firebase
+            showEnhancedNotification('✅ Welcome back! Checking for completed tasks...', 'info', 3000);
+          }, 500);
+        }
+      });
+
+      // Also refresh tasks when page gains focus
+      window.addEventListener('focus', function() {
+        if (auth.currentUser) {
+          console.log('📋 Page focused - Refreshing tasks');
+          loadTasks();
         }
       });
     }
 
-    // Open Task Link Function
+    // **FIXED: Check task completion status from Firebase**
+    async function checkTaskCompletionStatus(taskId, userId) {
+      if (!userId) return false;
+      
+      try {
+        const completionQuery = await db.collection('task_activities')
+          .where('taskId', '==', taskId)
+          .where('userId', '==', userId)
+          .where('action', '==', 'completed')
+          .get();
+          
+        return !completionQuery.empty;
+      } catch (error) {
+        console.error('Error checking task completion:', error);
+        return false;
+      }
+    }
+
+    // **FIXED: Enhanced Open Task Link Function with better status management**
     window.openTaskLink = function(link, taskId, taskType) {
       if (!link) {
         showEnhancedNotification('No link available for this task', 'error');
@@ -2472,24 +2587,30 @@
       try {
         const user = auth.currentUser;
         if (user) {
+          // Record task opened activity
           db.collection('task_activities').add({
             userId: user.uid,
             taskId: taskId,
             action: 'opened',
             taskType: taskType,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            userEmail: user.email
           }).catch(console.error);
           
           // Mark this task as opened for this user session
           openedTasks.add(taskId);
           
-          // Set up return detection for this task
-          taskReturnTimers.set(taskId, setTimeout(() => {
-            // Auto-show claim button after 10 seconds if user doesn't return
+          // **FIX: Force immediate button update**
+          setTimeout(() => {
             updateTaskButtons(taskId, taskType);
-            showEnhancedNotification('✅ Task opened! You can now claim your reward.', 'success', 3000);
+          }, 500);
+          
+          // Set up automatic claim button show after reasonable time
+          taskReturnTimers.set(taskId, setTimeout(() => {
+            updateTaskButtons(taskId, taskType);
+            showEnhancedNotification('✅ Task time completed! You can now claim your reward.', 'success', 3000);
             taskReturnTimers.delete(taskId);
-          }, 10000));
+          }, 15000)); // 15 seconds for task completion
         }
       } catch (error) {
         console.error('Error tracking task activity:', error);
@@ -2519,7 +2640,7 @@
         showEnhancedNotification('Please allow popups to open task links', 'error');
       } else {
         // Track when user switches to the new tab
-        showEnhancedNotification('⏱️ Complete the task and return here to claim your reward!', 'info', 3000);
+        showEnhancedNotification('⏱️ Complete the task and return here within 15 seconds to claim your reward!', 'info', 4000);
       }
     };
 
