@@ -1630,6 +1630,21 @@
           return;
         }
         
+        // Get task details to check completion requirement
+        const taskDoc = await db.collection('tasks').doc(taskId).get();
+        const taskData = taskDoc.data();
+        
+        // If external task, check if it was completed
+        if (taskData && taskData.type !== 'simple') {
+          const completionId = `completion_${user.uid}_${taskId}`;
+          const wasCompleted = localStorage.getItem(completionId);
+          
+          if (!wasCompleted) {
+            showEnhancedNotification('⚠️ Please complete the task first by clicking "Open Link" and following instructions', 'error');
+            return;
+          }
+        }
+        
         const userRef = db.collection('users').doc(user.uid);
         const taskRef = db.collection('tasks').doc(taskId);
         
@@ -1689,6 +1704,12 @@
         });
         
         showEnhancedNotification(`🎉 Task completed successfully! +${coins} coins earned`, 'success');
+        
+        // Remove completion tracking after successful claim
+        if (taskData && taskData.type !== 'simple') {
+          const completionId = `completion_${user.uid}_${taskId}`;
+          localStorage.removeItem(completionId);
+        }
         
         // Update UI - mark task as completed
         const taskElement = document.getElementById(`task-${taskId}`);
@@ -1754,8 +1775,15 @@
       }
     }
     
-    // Mark task as completed and enable claim button
+    // Mark task as completed and enable claim button with tracking
     function markTaskAsCompleted(taskId) {
+      const user = auth.currentUser;
+      if (!user) return;
+      
+      // Store completion in localStorage for tracking
+      const completionId = `completion_${user.uid}_${taskId}`;
+      localStorage.setItem(completionId, Date.now().toString());
+      
       const claimButton = document.getElementById(`claim-${taskId}`);
       if (claimButton) {
         claimButton.disabled = false;
@@ -2439,6 +2467,8 @@
               // Check if user has completed this task
               const user = auth.currentUser;
               let hasCompleted = false;
+              let hasOpenedLink = false;
+              
               if (user) {
                 try {
                   const completionCheck = await db.collection('user_task_completions')
@@ -2446,6 +2476,12 @@
                     .where('taskId', '==', doc.id)
                     .get();
                   hasCompleted = !completionCheck.empty;
+                  
+                  // Check if external task link was opened
+                  if (data.type !== 'simple') {
+                    const completionId = `completion_${user.uid}_${doc.id}`;
+                    hasOpenedLink = localStorage.getItem(completionId) !== null;
+                  }
                 } catch (error) {
                   console.log('Could not check task completion status:', error);
                 }
@@ -2476,20 +2512,38 @@
                   </div>
                 `;
               } else if (data.link && data.type !== 'simple') {
-                // External task - needs to complete first
-                taskButtons = `
-                  <div style="display: flex; gap: 8px; flex-direction: column;">
-                    <button class="btn" onclick="openTaskLink('${data.link}', '${doc.id}', '${data.type}')" 
-                            style="font-size: 12px; padding: 8px 16px; background: linear-gradient(135deg, #667eea, #764ba2);">
-                      ${taskIcon} Open ${data.type === 'youtube' ? 'Video' : data.type === 'survey' ? 'Survey' : 'Link'}
-                    </button>
-                    <button class="btn" onclick="claimTask('${doc.id}', ${data.coins || 0})" 
-                            disabled id="claim-${doc.id}"
-                            style="font-size: 12px; padding: 8px 16px; background: #ccc; color: #666; cursor: not-allowed;">
-                      🎁 Complete Task First
-                    </button>
-                  </div>
-                `;
+                // External task - check if link was opened
+                if (hasOpenedLink) {
+                  // Link opened, can claim now
+                  taskButtons = `
+                    <div style="display: flex; gap: 8px; flex-direction: column;">
+                      <button class="btn" onclick="openTaskLink('${data.link}', '${doc.id}', '${data.type}')" 
+                              style="font-size: 12px; padding: 8px 16px; background: #ccc; color: #666;">
+                        ${taskIcon} Link Opened
+                      </button>
+                      <button class="btn" onclick="claimTask('${doc.id}', ${data.coins || 0})" 
+                              id="claim-${doc.id}"
+                              style="font-size: 12px; padding: 8px 16px; background: linear-gradient(135deg, #51cf66, #40c057); color: white;">
+                        🎁 Claim ${data.coins || 0} Coins
+                      </button>
+                    </div>
+                  `;
+                } else {
+                  // Need to open link first
+                  taskButtons = `
+                    <div style="display: flex; gap: 8px; flex-direction: column;">
+                      <button class="btn" onclick="openTaskLink('${data.link}', '${doc.id}', '${data.type}')" 
+                              style="font-size: 12px; padding: 8px 16px; background: linear-gradient(135deg, #667eea, #764ba2);">
+                        ${taskIcon} Open ${data.type === 'youtube' ? 'Video' : data.type === 'survey' ? 'Survey' : 'Link'}
+                      </button>
+                      <button class="btn" onclick="claimTask('${doc.id}', ${data.coins || 0})" 
+                              disabled id="claim-${doc.id}"
+                              style="font-size: 12px; padding: 8px 16px; background: #ccc; color: #666; cursor: not-allowed;">
+                        🎁 Complete Task First
+                      </button>
+                    </div>
+                  `;
+                }
               } else {
                 // Simple task - can claim directly
                 taskButtons = `
