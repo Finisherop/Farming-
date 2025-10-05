@@ -698,20 +698,6 @@
       
       <div id="auth-message" class="form-message"></div>
       
-      <!-- Debug Panel (can be hidden in production) -->
-      <div id="debug-panel" style="margin-top: 16px; padding: 12px; background: #f8f9fa; border-radius: 8px; font-size: 12px; color: #666; display: none;">
-        <div style="font-weight: 600; margin-bottom: 8px;">🔧 Debug Info:</div>
-        <div id="debug-firebase">Firebase: <span id="firebase-status">Checking...</span></div>
-        <div id="debug-auth">Auth: <span id="auth-status">Checking...</span></div>
-        <div id="debug-db">Database: <span id="db-status">Checking...</span></div>
-        <div id="debug-network">Network: <span id="network-status">Checking...</span></div>
-        <button onclick="toggleDebug()" style="margin-top: 8px; padding: 4px 8px; font-size: 10px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">Hide Debug</button>
-      </div>
-      
-      <!-- Show Debug Button -->
-      <div style="text-align: center; margin-top: 12px;">
-        <button id="show-debug-btn" onclick="showDebugPanel()" style="padding: 4px 8px; font-size: 10px; background: transparent; color: #999; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">Show Debug Info</button>
-      </div>
     </div>
   </div>
 
@@ -791,90 +777,98 @@
               color: white;
               text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
             ">
-              <!-- Reward Values on Wheel -->
+              <!-- Reward Values on Wheel - Perfectly Centered -->
+              <!-- Top Center (0°) - 10 coins -->
               <div style="
                 position: absolute;
-                top: 15px;
+                top: 20px;
                 left: 50%;
                 transform: translateX(-50%);
-                font-size: 14px;
+                font-size: 16px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
               ">10</div>
               
+              <!-- Top Right (45°) - 25 coins -->
+              <div style="
+                position: absolute;
+                top: 35px;
+                right: 35px;
+                font-size: 16px;
+                font-weight: bold;
+                color: white;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+              ">25</div>
+              
+              <!-- Right Center (90°) - 5 coins -->
               <div style="
                 position: absolute;
                 top: 50%;
-                right: 15px;
+                right: 20px;
                 transform: translateY(-50%);
-                font-size: 14px;
+                font-size: 16px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
               ">5</div>
               
+              <!-- Bottom Right (135°) - 20 coins -->
               <div style="
                 position: absolute;
-                bottom: 15px;
+                bottom: 35px;
                 right: 35px;
-                font-size: 14px;
+                font-size: 16px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
               ">20</div>
               
+              <!-- Bottom Center (180°) - 0 coins -->
               <div style="
                 position: absolute;
-                bottom: 15px;
+                bottom: 20px;
                 left: 50%;
                 transform: translateX(-50%);
-                font-size: 14px;
+                font-size: 16px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
               ">0</div>
               
+              <!-- Bottom Left (225°) - 50 coins -->
               <div style="
                 position: absolute;
-                bottom: 15px;
+                bottom: 35px;
                 left: 35px;
-                font-size: 14px;
+                font-size: 16px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
               ">50</div>
               
+              <!-- Left Center (270°) - 15 coins -->
               <div style="
                 position: absolute;
                 top: 50%;
-                left: 15px;
+                left: 20px;
                 transform: translateY(-50%);
-                font-size: 14px;
+                font-size: 16px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
               ">15</div>
               
+              <!-- Top Left (315°) - 0 coins -->
               <div style="
                 position: absolute;
-                top: 15px;
+                top: 35px;
                 left: 35px;
-                font-size: 14px;
+                font-size: 16px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
               ">0</div>
-              
-              <div style="
-                position: absolute;
-                top: 15px;
-                right: 35px;
-                font-size: 14px;
-                font-weight: bold;
-                color: white;
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-              ">25</div>
               
               <!-- Center Icon -->
               <div style="
@@ -1347,29 +1341,18 @@
       }
     }
 
-    // Debug Functions
+    // Debug Functions (removed in production)
     function showDebugPanel() {
-      const debugPanel = document.getElementById('debug-panel');
-      const showBtn = document.getElementById('show-debug-btn');
-      
-      if (debugPanel && showBtn) {
-        debugPanel.style.display = 'block';
-        showBtn.style.display = 'none';
-        updateDebugStatus();
-      }
+      // Debug functionality removed
     }
 
     function toggleDebug() {
-      const debugPanel = document.getElementById('debug-panel');
-      const showBtn = document.getElementById('show-debug-btn');
-      
-      if (debugPanel && showBtn) {
-        debugPanel.style.display = 'none';
-        showBtn.style.display = 'inline-block';
-      }
+      // Debug functionality removed
     }
 
     function updateDebugStatus() {
+      // Debug functionality removed
+    }
       // Firebase status
       const firebaseStatus = document.getElementById('firebase-status');
       if (firebaseStatus) {
