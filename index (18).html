@@ -811,15 +811,15 @@
               color: white;
               text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
             ">
-              <!-- Reward Values on Wheel - Fixed Centering -->
+              <!-- Reward Values on Wheel - Properly Centered -->
               
               <!-- Top Center (0 degrees) - 10 coins -->
               <div style="
                 position: absolute;
-                top: 20px;
+                top: 15px;
                 left: 50%;
                 transform: translateX(-50%);
-                font-size: 16px;
+                font-size: 18px;
                 font-weight: bold;
                 color: white;
                 text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
@@ -829,25 +829,22 @@
               <!-- Top Right (45 degrees) - 25 coins -->
               <div style="
                 position: absolute;
-                top: 25px;
-                right: 25px;
-                transform: translate(50%, -50%) rotate(45deg);
-                font-size: 16px;
+                top: 35px;
+                right: 35px;
+                font-size: 18px;
                 font-weight: bold;
                 color: white;
                 text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
                 z-index: 2;
-              ">
-                <span style="transform: rotate(-45deg); display: block;">25</span>
-              </div>
+              ">25</div>
               
               <!-- Right Center (90 degrees) - 5 coins -->
               <div style="
                 position: absolute;
                 top: 50%;
-                right: 20px;
+                right: 15px;
                 transform: translateY(-50%);
-                font-size: 16px;
+                font-size: 18px;
                 font-weight: bold;
                 color: white;
                 text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
@@ -857,25 +854,22 @@
               <!-- Bottom Right (135 degrees) - 20 coins -->
               <div style="
                 position: absolute;
-                bottom: 25px;
-                right: 25px;
-                transform: translate(50%, 50%) rotate(135deg);
-                font-size: 16px;
+                bottom: 35px;
+                right: 35px;
+                font-size: 18px;
                 font-weight: bold;
                 color: white;
                 text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
                 z-index: 2;
-              ">
-                <span style="transform: rotate(-135deg); display: block;">20</span>
-              </div>
+              ">20</div>
               
               <!-- Bottom Center (180 degrees) - 0 coins -->
               <div style="
                 position: absolute;
-                bottom: 20px;
+                bottom: 15px;
                 left: 50%;
                 transform: translateX(-50%);
-                font-size: 16px;
+                font-size: 18px;
                 font-weight: bold;
                 color: white;
                 text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
@@ -885,25 +879,22 @@
               <!-- Bottom Left (225 degrees) - 50 coins -->
               <div style="
                 position: absolute;
-                bottom: 25px;
-                left: 25px;
-                transform: translate(-50%, 50%) rotate(225deg);
-                font-size: 16px;
+                bottom: 35px;
+                left: 35px;
+                font-size: 18px;
                 font-weight: bold;
                 color: white;
                 text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
                 z-index: 2;
-              ">
-                <span style="transform: rotate(-225deg); display: block;">50</span>
-              </div>
+              ">50</div>
               
               <!-- Left Center (270 degrees) - 15 coins -->
               <div style="
                 position: absolute;
                 top: 50%;
-                left: 20px;
+                left: 15px;
                 transform: translateY(-50%);
-                font-size: 16px;
+                font-size: 18px;
                 font-weight: bold;
                 color: white;
                 text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
@@ -913,17 +904,14 @@
               <!-- Top Left (315 degrees) - 0 coins -->
               <div style="
                 position: absolute;
-                top: 25px;
-                left: 25px;
-                transform: translate(-50%, -50%) rotate(315deg);
-                font-size: 16px;
+                top: 35px;
+                left: 35px;
+                font-size: 18px;
                 font-weight: bold;
                 color: white;
                 text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
                 z-index: 2;
-              ">
-                <span style="transform: rotate(-315deg); display: block;">0</span>
-              </div>
+              ">0</div>
               
               <!-- Center Icon -->
               <div style="
@@ -1607,6 +1595,16 @@
       if (!user) {
         showToast('Please sign in first', 'error');
         return;
+      }
+
+      // Check if task needs to be opened first (for external link tasks)
+      const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+      if (taskElement) {
+        const hasOpenButton = taskElement.querySelector('button[onclick*="openTaskLink"]');
+        if (hasOpenButton && !openedTasks.has(taskId)) {
+          showEnhancedNotification('❌ Please open and complete the task first before claiming reward!', 'error');
+          return;
+        }
       }
       
       try {
@@ -2325,7 +2323,10 @@
             snapshot.forEach(doc => {
               const data = doc.data();
               const taskItem = document.createElement('div');
-              taskItem.className = 'list-item';
+              taskItem.className = 'list-item task-item';
+              taskItem.setAttribute('data-task-id', doc.id);
+              taskItem.setAttribute('data-coins', data.coins || 0);
+              taskItem.style.cssText = 'background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; transition: all 0.3s ease;';
               
               // Task type icons and styles
               const taskIcons = {
@@ -2341,24 +2342,27 @@
               // Create task buttons based on type
               let taskButtons = '';
               if (data.link && data.type !== 'simple') {
+                // Initially only show "Open Link" button
                 taskButtons = `
-                  <div style="display: flex; gap: 8px; flex-direction: column;">
+                  <div class="task-buttons" style="display: flex; gap: 8px; flex-direction: column;">
                     <button class="btn" onclick="openTaskLink('${data.link}', '${doc.id}', '${data.type}')" 
                             style="font-size: 12px; padding: 8px 16px; background: linear-gradient(135deg, #667eea, #764ba2);">
                       ${taskIcon} Open ${data.type === 'youtube' ? 'Video' : data.type === 'survey' ? 'Survey' : 'Link'}
                     </button>
-                    <button class="btn" onclick="claimTask('${doc.id}', ${data.coins || 0})" 
-                            style="font-size: 12px; padding: 8px 16px; background: linear-gradient(135deg, #51cf66, #40c057);">
-                      🎁 Claim ${data.coins || 0} Coins
-                    </button>
+                    <div style="font-size: 11px; color: var(--text-secondary); text-align: center;">
+                      Complete the task first to unlock claim button
+                    </div>
                   </div>
                 `;
               } else {
+                // Simple tasks can be claimed immediately
                 taskButtons = `
-                  <button class="btn" onclick="claimTask('${doc.id}', ${data.coins || 0})" 
-                          style="font-size: 12px; padding: 8px 16px;">
-                    ${taskIcon} Claim ${data.coins || 0} Coins
-                  </button>
+                  <div class="task-buttons">
+                    <button class="btn" onclick="claimTask('${doc.id}', ${data.coins || 0})" 
+                            style="font-size: 12px; padding: 8px 16px;">
+                      ${taskIcon} Claim ${data.coins || 0} Coins
+                    </button>
+                  </div>
                 `;
               }
               
@@ -2404,6 +2408,9 @@
       }
     }
 
+    // Track opened tasks per user session
+    let openedTasks = new Set();
+
     // Open Task Link Function
     window.openTaskLink = function(link, taskId, taskType) {
       if (!link) {
@@ -2422,6 +2429,15 @@
             taskType: taskType,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
           }).catch(console.error);
+          
+          // Mark this task as opened for this user session
+          openedTasks.add(taskId);
+          
+          // Update the UI to show claim button
+          setTimeout(() => {
+            updateTaskButtons(taskId, taskType);
+            showEnhancedNotification('✅ Task opened! You can now claim your reward after completing the task.', 'success', 3000);
+          }, 2000); // Wait 2 seconds before allowing claim
         }
       } catch (error) {
         console.error('Error tracking task activity:', error);
@@ -2451,6 +2467,34 @@
         showEnhancedNotification('Please allow popups to open task links', 'error');
       }
     };
+
+    // Function to update task buttons after task is opened
+    function updateTaskButtons(taskId, taskType) {
+      const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+      if (taskElement) {
+        const buttonContainer = taskElement.querySelector('.task-buttons');
+        if (buttonContainer) {
+          const taskIcon = getTaskIcon(taskType);
+          buttonContainer.innerHTML = `
+            <button class="btn" onclick="claimTask('${taskId}', ${taskElement.dataset.coins || 0})" 
+                    style="font-size: 12px; padding: 8px 16px; background: linear-gradient(135deg, #51cf66, #40c057);">
+              🎁 Claim ${taskElement.dataset.coins || 0} Coins
+            </button>
+          `;
+        }
+      }
+    }
+
+    // Function to get task icon
+    function getTaskIcon(taskType) {
+      switch(taskType) {
+        case 'youtube': return '📺';
+        case 'survey': return '📋';
+        case 'social': return '📱';
+        case 'external': return '🔗';
+        default: return '🎯';
+      }
+    }
 
     function escapeHtml(text) {
       const div = document.createElement('div');
