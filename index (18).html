@@ -339,10 +339,39 @@
 
     /* Responsive */
     @media (max-width: 480px) {
-      .auth-container { padding: 20px; }
-      .login-card { padding: 24px; }
-      .app-title { font-size: 24px; }
-      .logo-icon { width: 70px; height: 70px; font-size: 28px; }
+      .auth-container { 
+        padding: 20px; 
+      }
+      .login-card { 
+        padding: 24px;
+        margin: 0 8px;
+        max-width: calc(100% - 16px);
+      }
+      .app-title { 
+        font-size: 24px; 
+      }
+      .logo-icon { 
+        width: 70px; 
+        height: 70px; 
+        font-size: 28px; 
+      }
+      
+      /* Enhanced mobile form styles */
+      .input-field {
+        height: 52px; /* Increased for better touch targets */
+        font-size: 16px; /* Prevents zoom on iOS */
+        padding: 0 20px;
+      }
+      
+      .btn-primary, .btn-secondary {
+        height: 52px; /* Better touch targets */
+        font-size: 16px;
+      }
+      
+      /* Prevent zoom on form focus */
+      .input-field:focus {
+        font-size: 16px;
+      }
     }
 
     /* Hide Elements */
@@ -782,90 +811,119 @@
               color: white;
               text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
             ">
-              <!-- Reward Values on Wheel -->
+              <!-- Reward Values on Wheel - Fixed Centering -->
+              
+              <!-- Top Center (0 degrees) - 10 coins -->
               <div style="
                 position: absolute;
-                top: 15px;
+                top: 20px;
                 left: 50%;
                 transform: translateX(-50%);
-                font-size: 14px;
+                font-size: 16px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                z-index: 2;
               ">10</div>
               
+              <!-- Top Right (45 degrees) - 25 coins -->
+              <div style="
+                position: absolute;
+                top: 25px;
+                right: 25px;
+                transform: translate(50%, -50%) rotate(45deg);
+                font-size: 16px;
+                font-weight: bold;
+                color: white;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                z-index: 2;
+              ">
+                <span style="transform: rotate(-45deg); display: block;">25</span>
+              </div>
+              
+              <!-- Right Center (90 degrees) - 5 coins -->
               <div style="
                 position: absolute;
                 top: 50%;
-                right: 15px;
+                right: 20px;
                 transform: translateY(-50%);
-                font-size: 14px;
+                font-size: 16px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                z-index: 2;
               ">5</div>
               
+              <!-- Bottom Right (135 degrees) - 20 coins -->
               <div style="
                 position: absolute;
-                bottom: 15px;
-                right: 35px;
-                font-size: 14px;
+                bottom: 25px;
+                right: 25px;
+                transform: translate(50%, 50%) rotate(135deg);
+                font-size: 16px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-              ">20</div>
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                z-index: 2;
+              ">
+                <span style="transform: rotate(-135deg); display: block;">20</span>
+              </div>
               
+              <!-- Bottom Center (180 degrees) - 0 coins -->
               <div style="
                 position: absolute;
-                bottom: 15px;
+                bottom: 20px;
                 left: 50%;
                 transform: translateX(-50%);
-                font-size: 14px;
+                font-size: 16px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                z-index: 2;
               ">0</div>
               
+              <!-- Bottom Left (225 degrees) - 50 coins -->
               <div style="
                 position: absolute;
-                bottom: 15px;
-                left: 35px;
-                font-size: 14px;
+                bottom: 25px;
+                left: 25px;
+                transform: translate(-50%, 50%) rotate(225deg);
+                font-size: 16px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-              ">50</div>
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                z-index: 2;
+              ">
+                <span style="transform: rotate(-225deg); display: block;">50</span>
+              </div>
               
+              <!-- Left Center (270 degrees) - 15 coins -->
               <div style="
                 position: absolute;
                 top: 50%;
-                left: 15px;
+                left: 20px;
                 transform: translateY(-50%);
-                font-size: 14px;
+                font-size: 16px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                z-index: 2;
               ">15</div>
               
+              <!-- Top Left (315 degrees) - 0 coins -->
               <div style="
                 position: absolute;
-                top: 15px;
-                left: 35px;
-                font-size: 14px;
+                top: 25px;
+                left: 25px;
+                transform: translate(-50%, -50%) rotate(315deg);
+                font-size: 16px;
                 font-weight: bold;
                 color: white;
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-              ">0</div>
-              
-              <div style="
-                position: absolute;
-                top: 15px;
-                right: 35px;
-                font-size: 14px;
-                font-weight: bold;
-                color: white;
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-              ">25</div>
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                z-index: 2;
+              ">
+                <span style="transform: rotate(-315deg); display: block;">0</span>
+              </div>
               
               <!-- Center Icon -->
               <div style="
@@ -1213,6 +1271,10 @@
           loadTasks();
           loadWithdrawHistory(user.uid);
           loadActivity(user.uid);
+          
+          // Setup real-time system and user listeners
+          setupSystemListeners();
+          setupUserStatusListener(user.uid);
           
         } else {
           // User signed out
@@ -2396,48 +2458,97 @@
       return div.innerHTML;
     }
 
-    // Load Withdrawal History
+    // Enhanced Load Withdrawal History with Real-Time Updates
     async function loadWithdrawHistory(uid) {
       try {
-        const withdrawalsSnapshot = await db.collection('withdraw_requests')
+        // Set up real-time listener for withdrawal history
+        const unsubscribeWithdrawals = db.collection('withdraw_requests')
           .where('userId', '==', uid)
           .orderBy('createdAt', 'desc')
           .limit(10)
-          .get();
+          .onSnapshot(snapshot => {
+            const historyContainer = document.getElementById('withdraw-history');
+            
+            if (snapshot.empty) {
+              historyContainer.innerHTML = '<div class="small">No withdrawals yet.</div>';
+              document.getElementById('profile-withdrawals').textContent = '0';
+              return;
+            }
+            
+            historyContainer.innerHTML = '';
+            let count = 0;
+            
+            snapshot.forEach(doc => {
+              count++;
+              const data = doc.data();
+              const item = document.createElement('div');
+              item.className = 'list-item';
+              
+              // Enhanced status display
+              let statusBadge = '';
+              let statusColor = '';
+              
+              switch(data.status) {
+                case 'approved':
+                  statusBadge = '✅ Approved';
+                  statusColor = 'var(--success)';
+                  break;
+                case 'rejected':
+                  statusBadge = '❌ Rejected';
+                  statusColor = 'var(--error)';
+                  break;
+                case 'pending':
+                default:
+                  statusBadge = '⏳ Pending';
+                  statusColor = '#f39c12';
+                  break;
+              }
+              
+              item.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <strong>${data.method} - ${data.coins} coins</strong>
+                    <div class="small">${data.createdAt?.toDate()?.toLocaleDateString() || 'Recent'}</div>
+                    ${data.rejectionReason ? `<div class="small" style="color: var(--error);">Reason: ${data.rejectionReason}</div>` : ''}
+                  </div>
+                  <div style="color: ${statusColor}; font-weight: 600; text-transform: uppercase; font-size: 12px;">
+                    ${statusBadge}
+                  </div>
+                </div>
+              `;
+              
+              historyContainer.appendChild(item);
+            });
+            
+            document.getElementById('profile-withdrawals').textContent = count.toString();
+            
+            // Show notification for status changes (except on initial load)
+            if (!window.withdrawalHistoryInitialized) {
+              window.withdrawalHistoryInitialized = true;
+            } else {
+              // Check for recent status changes
+              snapshot.docChanges().forEach(change => {
+                if (change.type === 'modified') {
+                  const data = change.doc.data();
+                  if (data.status === 'approved') {
+                    showEnhancedNotification(`✅ Your withdrawal of ${data.coins} coins has been approved!`, 'success');
+                  } else if (data.status === 'rejected') {
+                    const reason = data.rejectionReason ? ` (${data.rejectionReason})` : '';
+                    showEnhancedNotification(`❌ Your withdrawal was rejected${reason}`, 'error');
+                  }
+                }
+              });
+            }
+          }, error => {
+            console.error('Error loading withdrawal history:', error);
+            historyContainer.innerHTML = '<div class="small" style="color: var(--error);">Error loading withdrawal history</div>';
+          });
           
-        const historyContainer = document.getElementById('withdraw-history');
+        // Store unsubscribe function for cleanup
+        window.unsubscribeWithdrawals = unsubscribeWithdrawals;
         
-        if (withdrawalsSnapshot.empty) {
-          historyContainer.innerHTML = '<div class="small">No withdrawals yet.</div>';
-          document.getElementById('profile-withdrawals').textContent = '0';
-          return;
-        }
-        
-        historyContainer.innerHTML = '';
-        let count = 0;
-        
-        withdrawalsSnapshot.forEach(doc => {
-          count++;
-          const data = doc.data();
-          const item = document.createElement('div');
-          item.className = 'list-item';
-          item.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <div>
-                <strong>${data.method} - ${data.coins} coins</strong>
-                <div class="small">${data.createdAt?.toDate()?.toLocaleDateString() || 'Recent'}</div>
-              </div>
-              <div style="color: var(--warning); font-weight: 600; text-transform: uppercase; font-size: 12px;">
-                ${data.status}
-              </div>
-            </div>
-          `;
-          historyContainer.appendChild(item);
-        });
-        
-        document.getElementById('profile-withdrawals').textContent = count.toString();
       } catch (error) {
-        console.error('Error loading withdrawal history:', error);
+        console.error('Error setting up withdrawal history listener:', error);
       }
     }
 
@@ -2454,6 +2565,141 @@
       if (refCode) {
         localStorage.setItem('pending_referral', refCode);
         showToast(`Using referral code: ${refCode}`);
+      }
+    }
+
+    // Real-Time Configuration and System Updates Listener
+    function setupSystemListeners() {
+      try {
+        // Listen for app configuration changes
+        const unsubscribeConfig = db.collection('system_config').doc('app_settings')
+          .onSnapshot(doc => {
+            if (doc.exists) {
+              const config = doc.data();
+              console.log('📱 App configuration updated:', config);
+              
+              // Update daily reward amounts, minimum withdrawal limits, etc.
+              if (config.dailyReward) {
+                window.appConfig = window.appConfig || {};
+                window.appConfig.dailyReward = config.dailyReward;
+              }
+              
+              if (config.referralBonus) {
+                window.appConfig = window.appConfig || {};
+                window.appConfig.referralBonus = config.referralBonus;
+              }
+              
+              // Update withdrawal minimums
+              if (config.withdrawalLimits) {
+                const withdrawBtns = document.querySelectorAll('.withdraw-btn');
+                withdrawBtns.forEach(btn => {
+                  const method = btn.dataset.method;
+                  if (config.withdrawalLimits[method]) {
+                    btn.dataset.min = config.withdrawalLimits[method];
+                    const parentDiv = btn.closest('div');
+                    const minDisplay = parentDiv.querySelector('.small');
+                    if (minDisplay) {
+                      minDisplay.textContent = `Min: ${config.withdrawalLimits[method]} coins`;
+                    }
+                  }
+                });
+              }
+            }
+          }, error => {
+            console.error('System config listener error:', error);
+          });
+
+        // Listen for global notifications
+        const unsubscribeNotifications = db.collection('global_notifications')
+          .where('active', '==', true)
+          .where('expiresAt', '>', new Date())
+          .onSnapshot(snapshot => {
+            snapshot.docChanges().forEach(change => {
+              if (change.type === 'added') {
+                const notification = change.doc.data();
+                showEnhancedNotification(notification.message, notification.type || 'info');
+                
+                // Mark notification as seen (optional)
+                setTimeout(() => {
+                  change.doc.ref.update({
+                    seenBy: firebase.firestore.FieldValue.arrayUnion(auth.currentUser?.uid)
+                  }).catch(() => {
+                    // Ignore errors for seen tracking
+                  });
+                }, 2000);
+              }
+            });
+          }, error => {
+            console.error('Global notifications listener error:', error);
+          });
+
+        // Store unsubscribe functions for cleanup
+        window.unsubscribeSystemConfig = unsubscribeConfig;
+        window.unsubscribeNotifications = unsubscribeNotifications;
+        
+        console.log('✅ System listeners initialized');
+      } catch (error) {
+        console.error('Error setting up system listeners:', error);
+      }
+    }
+
+    // Enhanced user status listener for ban/VIP status
+    function setupUserStatusListener(userId) {
+      try {
+        const userRef = db.collection('users').doc(userId);
+        
+        const unsubscribeUserStatus = userRef.onSnapshot(doc => {
+          if (doc.exists) {
+            const userData = doc.data();
+            
+            // Check for ban status
+            if (userData.banned) {
+              showEnhancedNotification('⚠️ Your account has been suspended. Contact support.', 'error');
+              // Optionally redirect to support page or disable functionality
+              document.body.style.pointerEvents = 'none';
+              return;
+            }
+            
+            // Check for VIP status changes
+            if (userData.isVIP && !window.wasVIP) {
+              showEnhancedNotification('🎉 Congratulations! You are now a VIP member!', 'success');
+              window.wasVIP = true;
+              // Add VIP badge or special UI elements
+              addVIPBadge();
+            }
+            
+            // Real-time coin updates (already handled by existing listener)
+            updateUI(userData, auth.currentUser);
+          }
+        }, error => {
+          console.error('User status listener error:', error);
+        });
+        
+        window.unsubscribeUserStatus = unsubscribeUserStatus;
+        
+      } catch (error) {
+        console.error('Error setting up user status listener:', error);
+      }
+    }
+
+    // Add VIP Badge to UI
+    function addVIPBadge() {
+      const userEmail = document.getElementById('user-email');
+      if (userEmail && !userEmail.querySelector('.vip-badge')) {
+        const vipBadge = document.createElement('span');
+        vipBadge.className = 'vip-badge';
+        vipBadge.innerHTML = '👑 VIP';
+        vipBadge.style.cssText = `
+          background: linear-gradient(45deg, #ffd700, #ffed4e);
+          color: #333;
+          padding: 2px 8px;
+          border-radius: 12px;
+          font-size: 10px;
+          font-weight: 600;
+          margin-left: 8px;
+          box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+        `;
+        userEmail.appendChild(vipBadge);
       }
     }
 

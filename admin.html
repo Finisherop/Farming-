@@ -16,18 +16,99 @@
       padding: 0;
       box-sizing: border-box;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
     
     body {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
       color: #333;
+      overflow-x: hidden;
     }
     
     .admin-container {
       max-width: 1200px;
       margin: 0 auto;
+      padding: 0 16px 20px;
+      padding-top: 80px;
+    }
+    
+    /* Mobile-First Tabbed Navigation */
+    .tab-navigation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+      z-index: 1000;
+      padding: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+    
+    .tab-container {
+      display: flex;
+      overflow-x: auto;
+      gap: 8px;
+      padding: 4px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    
+    .tab-container::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .tab-button {
+      background: transparent;
+      border: 2px solid #e1e8ed;
+      color: #666;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      min-width: fit-content;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .tab-button.active {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border-color: #667eea;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+    
+    .tab-button:hover:not(.active) {
+      border-color: #667eea;
+      color: #667eea;
+      background: rgba(102, 126, 234, 0.05);
+    }
+    
+    /* Section Container */
+    .admin-section {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
       padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      display: none;
+    }
+    
+    .admin-section.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     
     .admin-header {
@@ -37,6 +118,7 @@
       border-radius: 16px;
       margin-bottom: 20px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      position: relative;
     }
     
     .admin-title {
@@ -229,71 +311,323 @@
       pointer-events: none;
     }
     
+    /* Mobile-First Responsive Design */
     @media (max-width: 768px) {
       .admin-container {
-        padding: 10px;
+        padding: 0 12px 20px;
+        padding-top: 80px;
       }
       
       .stats-grid {
         grid-template-columns: 1fr 1fr;
+        gap: 12px;
       }
       
       .admin-section {
         padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+      }
+      
+      .tab-button {
+        padding: 8px 12px;
+        font-size: 12px;
+        min-width: 100px;
+      }
+      
+      /* Mobile Table Styles */
+      .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 8px;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       }
       
       .table {
         font-size: 12px;
+        min-width: 600px;
+      }
+      
+      .table th,
+      .table td {
+        padding: 8px;
+        white-space: nowrap;
+      }
+      
+      /* Card-based view for mobile */
+      .mobile-card {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-left: 4px solid #667eea;
+      }
+      
+      .mobile-card-header {
+        font-weight: 600;
+        color: #667eea;
+        margin-bottom: 8px;
+        font-size: 14px;
+      }
+      
+      .mobile-card-content {
+        font-size: 13px;
+        line-height: 1.4;
+        color: #666;
+      }
+      
+      .mobile-card-actions {
+        margin-top: 12px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      
+      .mobile-card-actions .btn {
+        padding: 6px 12px;
+        font-size: 11px;
+        flex: 1;
+        min-width: 80px;
+      }
+      
+      /* Form improvements for mobile */
+      .form-input, .btn {
+        min-height: 44px;
+        font-size: 16px; /* Prevents zoom on iOS */
+      }
+      
+      .btn {
+        padding: 12px 20px;
+        touch-action: manipulation;
+      }
+      
+      /* Two-column form layout for mobile */
+      .form-grid {
+        display: grid;
+        gap: 16px;
+      }
+      
+      .form-group {
+        margin-bottom: 16px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .tab-button {
+        padding: 6px 10px;
+        font-size: 11px;
+        min-width: 80px;
+      }
+      
+      .admin-section {
+        padding: 12px;
+      }
+      
+      .mobile-card {
+        padding: 12px;
+      }
+    }
+    
+    /* Tablet Styles */
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .tab-container {
+        justify-content: center;
+        flex-wrap: wrap;
+        overflow-x: visible;
+      }
+      
+      .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+    
+    /* Desktop Styles */
+    @media (min-width: 1025px) {
+      .tab-container {
+        justify-content: center;
+        flex-wrap: wrap;
+        overflow-x: visible;
+      }
+      
+      .admin-container {
+        padding: 0 20px 20px;
+        padding-top: 100px;
+      }
+      
+      .tab-navigation {
+        padding: 12px 20px;
+      }
+      
+      .tab-button {
+        padding: 12px 24px;
+        font-size: 14px;
       }
     }
   </style>
 </head>
 
 <body>
+  <!-- Mobile-First Tabbed Navigation -->
+  <nav class="tab-navigation">
+    <div class="tab-container">
+      <button class="tab-button" onclick="showSection('dashboard')">
+        📊 Dashboard
+      </button>
+      <button class="tab-button active" onclick="showSection('withdrawals')">
+        💸 Withdrawals
+      </button>
+      <button class="tab-button" onclick="showSection('users')">
+        👥 Users
+      </button>
+      <button class="tab-button" onclick="showSection('tasks')">
+        🎯 Tasks
+      </button>
+      <button class="tab-button" onclick="showSection('activities')">
+        📋 Activities
+      </button>
+      <button class="tab-button" onclick="showSection('settings')">
+        ⚙️ Settings
+      </button>
+    </div>
+  </nav>
+
   <div class="admin-container">
-    <!-- Header -->
-    <div class="admin-header">
-      <h1 class="admin-title">🎯 Mreward PRO Admin Dashboard</h1>
-      <p class="admin-subtitle">Complete control over your rewards platform</p>
-      
-      <!-- Real-time Stats -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-value" id="total-users">0</div>
-          <div class="stat-label">👥 Total Users</div>
+    <!-- Dashboard Section -->
+    <div id="dashboard-section" class="admin-section">
+      <!-- Header with Stats -->
+      <div class="admin-header">
+        <h1 class="admin-title">🎯 Mreward PRO Admin Dashboard</h1>
+        <p class="admin-subtitle">Complete control over your rewards platform</p>
+        
+        <!-- Real-time Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="total-users">0</div>
+            <div class="stat-label">👥 Total Users</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="total-coins">0</div>
+            <div class="stat-label">💰 Total Coins</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="total-tasks">0</div>
+            <div class="stat-label">🎯 Active Tasks</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="pending-withdrawals">0</div>
+            <div class="stat-label">💸 Pending Withdrawals</div>
+          </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-value" id="total-coins">0</div>
-          <div class="stat-label">💰 Total Coins</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="total-tasks">0</div>
-          <div class="stat-label">🎯 Active Tasks</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="pending-withdrawals">0</div>
-          <div class="stat-label">💸 Pending Withdrawals</div>
+        
+        <!-- Quick Actions -->
+        <div style="margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
+          <button class="btn btn-success" onclick="loadStats()">🔄 Refresh Stats</button>
+          <button class="btn" onclick="exportUsers()">📊 Export Users</button>
+          <button class="btn btn-danger" onclick="clearOldTasks()">🧹 Clear Old Tasks</button>
         </div>
       </div>
     </div>
 
-    <!-- Task Management -->
-    <div class="admin-section">
+    <!-- Withdrawals Section (Default Active - Most Critical) -->
+    <div id="withdrawals-section" class="admin-section active">
+      <h2 class="section-title">💸 Withdrawal Management</h2>
+      
+      <!-- Withdrawal Statistics -->
+      <div class="stats-grid" style="margin-bottom: 24px;">
+        <div class="stat-card">
+          <div class="stat-value" id="pending-count">0</div>
+          <div class="stat-label">⏳ Pending</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="approved-count">0</div>
+          <div class="stat-label">✅ Approved</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="rejected-count">0</div>
+          <div class="stat-label">❌ Rejected</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="total-amount">0</div>
+          <div class="stat-label">💰 Total Amount</div>
+        </div>
+      </div>
+      
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Method</th>
+              <th>Amount</th>
+              <th>Destination</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="withdrawals-tbody">
+            <tr>
+              <td colspan="7" style="text-align: center;">Loading withdrawal requests...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Users Section -->
+    <div id="users-section" class="admin-section">
+      <h2 class="section-title">👥 User Management</h2>
+      
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Coins</th>
+              <th>Tasks Completed</th>
+              <th>Total Earned</th>
+              <th>Joined</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody">
+            <tr>
+              <td colspan="6" style="text-align: center;">Loading users...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tasks Section -->
+    <div id="tasks-section" class="admin-section">
       <h2 class="section-title">🎯 Task Management</h2>
       
       <!-- Add New Task Form -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+      <div class="form-grid" style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 30px;">
         <div>
           <h3 style="margin-bottom: 16px;">➕ Add New Task</h3>
-          <div class="form-group">
-            <label class="form-label">Task Type</label>
-            <select id="task-type" class="form-input" onchange="handleTaskTypeChange()">
-              <option value="simple">Simple Task (No Link)</option>
-              <option value="external">External Link Task</option>
-              <option value="youtube">YouTube Video Task</option>
-              <option value="survey">Survey Task</option>
-              <option value="social">Social Media Task</option>
-            </select>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+            <div class="form-group">
+              <label class="form-label">Task Type</label>
+              <select id="task-type" class="form-input" onchange="handleTaskTypeChange()">
+                <option value="simple">Simple Task (No Link)</option>
+                <option value="external">External Link Task</option>
+                <option value="youtube">YouTube Video Task</option>
+                <option value="survey">Survey Task</option>
+                <option value="social">Social Media Task</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Reward (Coins)</label>
+              <input type="number" id="task-coins" class="form-input" placeholder="25" min="1" max="1000">
+            </div>
           </div>
           <div class="form-group">
             <label class="form-label">Task Title</label>
@@ -309,126 +643,72 @@
             <small style="color: #666; font-size: 12px;">Users will be redirected to this link to complete the task</small>
           </div>
           <div class="form-group">
-            <label class="form-label">Reward (Coins)</label>
-            <input type="number" id="task-coins" class="form-input" placeholder="25" min="1" max="1000">
-          </div>
-          <div class="form-group">
             <label class="form-label">Task Instructions</label>
             <textarea id="task-instructions" class="form-input" rows="3" placeholder="Step by step instructions for users..."></textarea>
           </div>
-          <button class="btn" onclick="addTask()">🎯 Add Task</button>
-        </div>
-        
-        <div>
-          <h3 style="margin-bottom: 16px;">⚡ Quick Actions</h3>
-          <button class="btn btn-success" onclick="loadStats()" style="margin: 8px; width: 200px;">🔄 Refresh Stats</button>
-          <button class="btn" onclick="exportUsers()" style="margin: 8px; width: 200px;">📊 Export Users</button>
-          <button class="btn btn-danger" onclick="clearOldTasks()" style="margin: 8px; width: 200px;">🧹 Clear Old Tasks</button>
+          <button class="btn" onclick="addTask()" style="width: 100%;">🎯 Add Task</button>
         </div>
       </div>
       
       <!-- Active Tasks List -->
       <h3>📋 Active Tasks</h3>
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Type</th>
-            <th>Title</th>
-            <th>Description</th>
-            <th>Link</th>
-            <th>Reward</th>
-            <th>Completed</th>
-            <th>Created</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="tasks-tbody">
-          <tr>
-            <td colspan="5" style="text-align: center;">Loading tasks...</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Title</th>
+              <th>Description</th>
+              <th>Link</th>
+              <th>Reward</th>
+              <th>Completed</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tasks-tbody">
+            <tr>
+              <td colspan="8" style="text-align: center;">Loading tasks...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <!-- User Management -->
-    <div class="admin-section">
-      <h2 class="section-title">👥 User Management</h2>
-      
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Email</th>
-            <th>Coins</th>
-            <th>Tasks Completed</th>
-            <th>Total Earned</th>
-            <th>Joined</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="users-tbody">
-          <tr>
-            <td colspan="6" style="text-align: center;">Loading users...</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Withdrawal Requests -->
-    <div class="admin-section">
-      <h2 class="section-title">💸 Withdrawal Requests</h2>
-      
-      <table class="table">
-        <thead>
-          <tr>
-            <th>User</th>
-            <th>Method</th>
-            <th>Amount</th>
-            <th>Destination</th>
-            <th>Status</th>
-            <th>Date</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="withdrawals-tbody">
-          <tr>
-            <td colspan="7" style="text-align: center;">Loading withdrawal requests...</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Task Activities Monitor -->
-    <div class="admin-section">
+    <!-- Activities Section -->
+    <div id="activities-section" class="admin-section">
       <h2 class="section-title">📊 Task Activities Monitor</h2>
       
-      <div style="margin-bottom: 20px;">
-        <button class="btn" onclick="loadTaskActivities()" style="margin-right: 10px;">🔄 Refresh Activities</button>
-        <button class="btn" onclick="exportActivities()" style="margin-right: 10px;">📄 Export Activities</button>
+      <div style="margin-bottom: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
+        <button class="btn" onclick="loadTaskActivities()">🔄 Refresh Activities</button>
+        <button class="btn" onclick="exportActivities()">📄 Export Activities</button>
       </div>
       
-      <table class="table">
-        <thead>
-          <tr>
-            <th>User</th>
-            <th>Task ID</th>
-            <th>Action</th>
-            <th>Coins Earned</th>
-            <th>Time</th>
-          </tr>
-        </thead>
-        <tbody id="activities-tbody">
-          <tr>
-            <td colspan="5" style="text-align: center;">Loading activities...</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Task ID</th>
+              <th>Action</th>
+              <th>Coins Earned</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="activities-tbody">
+            <tr>
+              <td colspan="5" style="text-align: center;">Loading activities...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <!-- System Settings -->
-    <div class="admin-section">
+    <!-- Settings Section -->
+    <div id="settings-section" class="admin-section">
       <h2 class="section-title">⚙️ System Settings</h2>
       
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
         <div>
           <h3 style="margin-bottom: 16px;">💰 Reward Settings</h3>
           <div class="form-group">
@@ -439,14 +719,14 @@
             <label class="form-label">Referral Bonus</label>
             <input type="number" id="referral-bonus" class="form-input" value="100" min="1" max="1000">
           </div>
-          <button class="btn" onclick="updateSettings()">💾 Save Settings</button>
+          <button class="btn" onclick="updateSettings()" style="width: 100%;">💾 Save Settings</button>
         </div>
         
         <div>
           <h3 style="margin-bottom: 16px;">🔧 Platform Actions</h3>
-          <button class="btn" onclick="sendNotificationToAll()" style="margin: 8px; width: 100%;">📢 Send Global Notification</button>
-          <button class="btn btn-success" onclick="giveCoinsToAll()" style="margin: 8px; width: 100%;">🎁 Give Bonus to All Users</button>
-          <button class="btn btn-danger" onclick="resetDatabase()" style="margin: 8px; width: 100%;">⚠️ Reset Database</button>
+          <button class="btn" onclick="sendNotificationToAll()" style="margin-bottom: 12px; width: 100%;">📢 Send Global Notification</button>
+          <button class="btn btn-success" onclick="giveCoinsToAll()" style="margin-bottom: 12px; width: 100%;">🎁 Give Bonus to All Users</button>
+          <button class="btn btn-danger" onclick="resetDatabase()" style="margin-bottom: 12px; width: 100%;">⚠️ Reset Database</button>
         </div>
       </div>
     </div>
@@ -482,6 +762,80 @@
     } catch (error) {
       console.error('❌ Firebase initialization error:', error);
       alert('Firebase connection failed: ' + error.message);
+    }
+
+    // Tab Navigation Function
+    function showSection(sectionId) {
+      // Hide all sections
+      const sections = document.querySelectorAll('.admin-section');
+      sections.forEach(section => {
+        section.classList.remove('active');
+      });
+      
+      // Remove active class from all tabs
+      const tabs = document.querySelectorAll('.tab-button');
+      tabs.forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // Show selected section
+      const targetSection = document.getElementById(sectionId + '-section');
+      if (targetSection) {
+        targetSection.classList.add('active');
+      }
+      
+      // Add active class to clicked tab
+      event.target.classList.add('active');
+      
+      // Load section-specific data
+      switch(sectionId) {
+        case 'dashboard':
+          loadStats();
+          break;
+        case 'withdrawals':
+          loadWithdrawals();
+          loadWithdrawalStats();
+          break;
+        case 'users':
+          loadUsers();
+          break;
+        case 'tasks':
+          loadTasks();
+          break;
+        case 'activities':
+          loadTaskActivities();
+          break;
+        case 'settings':
+          // Settings are static for now
+          break;
+      }
+    }
+
+    // Enhanced Withdrawal Statistics
+    async function loadWithdrawalStats() {
+      try {
+        const snapshot = await db.collection('withdraw_requests').get();
+        let pending = 0, approved = 0, rejected = 0, totalAmount = 0;
+        
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const amount = data.coins || 0;
+          totalAmount += amount;
+          
+          switch(data.status) {
+            case 'pending': pending++; break;
+            case 'approved': approved++; break;
+            case 'rejected': rejected++; break;
+          }
+        });
+        
+        document.getElementById('pending-count').textContent = pending;
+        document.getElementById('approved-count').textContent = approved;
+        document.getElementById('rejected-count').textContent = rejected;
+        document.getElementById('total-amount').textContent = totalAmount.toLocaleString();
+      } catch (error) {
+        console.error('Error loading withdrawal stats:', error);
+      }
     }
 
     // Utility Functions
@@ -786,7 +1140,7 @@
       }
     }
 
-    // Load Withdrawal Requests
+    // Load Withdrawal Requests with Enhanced Controls
     function loadWithdrawals() {
       const tbody = document.getElementById('withdrawals-tbody');
       
@@ -802,70 +1156,158 @@
           const data = doc.data();
           const row = document.createElement('tr');
           
-          const statusClass = data.status === 'approved' ? 'status-approved' : 
-                             data.status === 'rejected' ? 'status-rejected' : 'status-pending';
+          // Enhanced status badges
+          let statusBadge = '';
+          let actionButtons = '';
           
-          row.innerHTML = `
-            <td>${data.email || 'N/A'}</td>
-            <td><strong>${data.method || 'N/A'}</strong></td>
-            <td><span style="color: #667eea; font-weight: 600;">${(data.coins || 0).toLocaleString()} coins</span></td>
-            <td>${data.destination || 'N/A'}</td>
-            <td><span class="status-badge ${statusClass}">${data.status || 'pending'}</span></td>
-            <td>${formatDate(data.createdAt)}</td>
-            <td>
-              ${data.status === 'pending' ? `
-                <button class="btn btn-success" onclick="approveWithdrawal('${doc.id}')" style="padding: 4px 8px; font-size: 11px; margin-right: 4px;">
+          switch(data.status) {
+            case 'approved':
+              statusBadge = '<span class="status-badge status-approved">✅ Approved</span>';
+              actionButtons = '<span style="color: #666;">Completed</span>';
+              break;
+            case 'rejected':
+              statusBadge = '<span class="status-badge status-rejected">❌ Rejected</span>';
+              if (data.rejectionReason) {
+                actionButtons = `<small style="color: #666;">Reason: ${data.rejectionReason}</small>`;
+              } else {
+                actionButtons = '<span style="color: #666;">Rejected</span>';
+              }
+              break;
+            case 'pending':
+            default:
+              statusBadge = '<span class="status-badge status-pending">⏳ Pending</span>';
+              actionButtons = `
+                <button class="btn btn-success" onclick="approveWithdrawal('${doc.id}')" style="padding: 6px 12px; font-size: 11px; margin-right: 4px;">
                   ✅ Approve
                 </button>
-                <button class="btn btn-danger" onclick="rejectWithdrawal('${doc.id}')" style="padding: 4px 8px; font-size: 11px;">
+                <button class="btn btn-danger" onclick="rejectWithdrawal('${doc.id}')" style="padding: 6px 12px; font-size: 11px;">
                   ❌ Reject
                 </button>
-              ` : 'N/A'}
+              `;
+              break;
+          }
+          
+          row.innerHTML = `
+            <td><strong>${data.email || 'N/A'}</strong></td>
+            <td>
+              <span style="background: #e3f2fd; color: #1976d2; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: 600;">
+                ${data.method || 'N/A'}
+              </span>
             </td>
+            <td><span style="color: #667eea; font-weight: 600; font-size: 16px;">${(data.coins || 0).toLocaleString()}</span></td>
+            <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis;" title="${data.destination || 'N/A'}">${data.destination || 'N/A'}</td>
+            <td>${statusBadge}</td>
+            <td>${formatDate(data.createdAt)}</td>
+            <td>${actionButtons}</td>
           `;
           
           tbody.appendChild(row);
         });
+        
+        // Update stats after loading data
+        loadWithdrawalStats();
+      }, error => {
+        console.error('Error loading withdrawals:', error);
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: red;">Error loading withdrawal requests. Please refresh.</td></tr>';
       });
     }
 
-    // Approve Withdrawal
+    // Enhanced Approve Withdrawal with Confirmation
     async function approveWithdrawal(requestId) {
       try {
+        // Get withdrawal details for confirmation
+        const doc = await db.collection('withdraw_requests').doc(requestId).get();
+        const data = doc.data();
+        
+        if (!confirm(`Approve withdrawal of ${data.coins} coins to ${data.email}?\n\nMethod: ${data.method}\nDestination: ${data.destination}`)) {
+          return;
+        }
+
         await db.collection('withdraw_requests').doc(requestId).update({
           status: 'approved',
-          approvedAt: firebase.firestore.FieldValue.serverTimestamp()
+          approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          approvedBy: 'admin'
         });
         
-        showToast('Withdrawal request approved!', 'success');
-        loadStats();
+        showToast(`✅ Withdrawal of ${data.coins} coins approved for ${data.email}!`, 'success');
+        
+        // Optional: Add activity log
+        try {
+          await db.collection('admin_activities').add({
+            action: 'withdrawal_approved',
+            withdrawalId: requestId,
+            userEmail: data.email,
+            amount: data.coins,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            adminId: 'admin'
+          });
+        } catch (logError) {
+          console.log('Activity logging failed:', logError);
+        }
+        
       } catch (error) {
         console.error('Error approving withdrawal:', error);
-        showToast('Error approving withdrawal', 'error');
+        showToast('Error approving withdrawal: ' + error.message, 'error');
       }
     }
 
-    // Reject Withdrawal
+    // Enhanced Reject Withdrawal with Reason
     async function rejectWithdrawal(requestId) {
-      const reason = prompt('Enter rejection reason (optional):');
-      
       try {
+        // Get withdrawal details
+        const doc = await db.collection('withdraw_requests').doc(requestId).get();
+        const data = doc.data();
+        
+        const reason = prompt(`Reject withdrawal of ${data.coins} coins from ${data.email}?\n\nEnter rejection reason (optional):`);
+        
+        if (reason === null) return; // User cancelled
+        
         const updateData = {
           status: 'rejected',
-          rejectedAt: firebase.firestore.FieldValue.serverTimestamp()
+          rejectedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          rejectedBy: 'admin'
         };
         
-        if (reason) {
-          updateData.rejectionReason = reason;
+        if (reason.trim()) {
+          updateData.rejectionReason = reason.trim();
         }
         
         await db.collection('withdraw_requests').doc(requestId).update(updateData);
         
-        showToast('Withdrawal request rejected!', 'success');
-        loadStats();
+        // Return coins to user account
+        try {
+          const userQuery = await db.collection('users').where('email', '==', data.email).get();
+          if (!userQuery.empty) {
+            const userDoc = userQuery.docs[0];
+            await userDoc.ref.update({
+              coins: firebase.firestore.FieldValue.increment(data.coins)
+            });
+          }
+        } catch (coinError) {
+          console.error('Error returning coins to user:', coinError);
+          showToast('Withdrawal rejected but failed to return coins to user account', 'error');
+        }
+        
+        showToast(`❌ Withdrawal rejected${reason ? ' - ' + reason : ''}`, 'success');
+        
+        // Optional: Add activity log
+        try {
+          await db.collection('admin_activities').add({
+            action: 'withdrawal_rejected',
+            withdrawalId: requestId,
+            userEmail: data.email,
+            amount: data.coins,
+            reason: reason || 'No reason provided',
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            adminId: 'admin'
+          });
+        } catch (logError) {
+          console.log('Activity logging failed:', logError);
+        }
+        
       } catch (error) {
         console.error('Error rejecting withdrawal:', error);
-        showToast('Error rejecting withdrawal', 'error');
+        showToast('Error rejecting withdrawal: ' + error.message, 'error');
       }
     }
 
@@ -1030,18 +1472,38 @@
     document.addEventListener('DOMContentLoaded', function() {
       showToast('🚀 Admin Dashboard Loaded Successfully!', 'success');
       
-      // Load all data
+      // Load Dashboard data by default
       loadStats();
-      loadTasks();
-      loadUsers();
-      loadWithdrawals();
-      loadTaskActivities();
       
       // Auto-refresh stats every 30 seconds
-      setInterval(loadStats, 30000);
+      setInterval(() => {
+        // Only refresh if dashboard is active
+        const dashboardSection = document.getElementById('dashboard-section');
+        if (dashboardSection && dashboardSection.classList.contains('active')) {
+          loadStats();
+        }
+      }, 30000);
       
       // Auto-refresh activities every 60 seconds
-      setInterval(loadTaskActivities, 60000);
+      setInterval(() => {
+        // Only refresh if activities section is active
+        const activitiesSection = document.getElementById('activities-section');
+        if (activitiesSection && activitiesSection.classList.contains('active')) {
+          loadTaskActivities();
+        }
+      }, 60000);
+      
+      // Auto-refresh withdrawals every 15 seconds (most critical)
+      setInterval(() => {
+        const withdrawalsSection = document.getElementById('withdrawals-section');
+        if (withdrawalsSection && withdrawalsSection.classList.contains('active')) {
+          loadWithdrawals();
+          loadWithdrawalStats();
+        }
+      }, 15000);
+      
+      // Set default active section to withdrawals (most critical)
+      showSection('withdrawals');
     });
 
     // Update Settings
