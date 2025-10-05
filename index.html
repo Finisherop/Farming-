@@ -1117,18 +1117,138 @@
       console.log('🔐 Auth object:', auth);
       console.log('💾 Database object:', db);
       
+      // Set up authentication state change handler immediately
+      auth.onAuthStateChanged(async user => {
+        console.log('🔄 Auth state changed:', user ? user.email : 'No user');
+        
+        if (user) {
+          // User signed in - IMMEDIATE redirect
+          console.log('✅ User signed in, redirecting to main app...');
+          console.log('👤 User UID:', user.uid);
+          console.log('📧 User email:', user.email);
+          
+          // IMMEDIATE redirect - no delay
+          const authContainer = document.getElementById('auth-container');
+          const mainApp = document.getElementById('main-app');
+          
+          if (authContainer) authContainer.classList.add('hidden');
+          if (mainApp) mainApp.classList.add('visible');
+          
+          const userInfo = document.getElementById('user-info');
+          if (userInfo) userInfo.textContent = `Hi, ${user.email.split('@')[0]}!`;
+          
+          // Reset button states
+          const signinBtn = document.getElementById('signin-btn');
+          const signupBtn = document.getElementById('signup-btn');
+          if (signinBtn) {
+            signinBtn.textContent = 'Sign In';
+            signinBtn.disabled = false;
+          }
+          if (signupBtn) {
+            signupBtn.textContent = 'Create Account';
+            signupBtn.disabled = false;
+          }
+          
+          // Initialize user data with proper error handling
+          const userRef = db.collection('users').doc(user.uid);
+          console.log('📄 User document reference:', userRef.path);
+          
+          // Check if user document exists first
+          try {
+            console.log('🔍 Checking if user document exists...');
+            const userDoc = await userRef.get();
+            
+            if (userDoc.exists) {
+              console.log('📋 User document already exists');
+              const existingData = userDoc.data();
+              console.log('📊 Existing user data:', existingData);
+              
+              // Just update last seen
+              await userRef.update({
+                lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+                email: user.email // Ensure email is up to date
+              });
+              console.log('✅ User last seen updated');
+            } else {
+              console.log('📝 User document does not exist, creating new one...');
+              // Create new user document with welcome bonus
+              const newUserData = {
+                email: user.email,
+                coins: 500, // Welcome bonus
+                totalTasks: 0,
+                totalEarned: 500,
+                referralCode: generateReferralCode(),
+                lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                uid: user.uid,
+                emailVerified: user.emailVerified || false
+              };
+              
+              console.log('💾 Creating user document with data:', newUserData);
+              await userRef.set(newUserData);
+              console.log('✅ New user document created successfully');
+            }
+          } catch (error) {
+            console.error('❌ Error handling user document:', error);
+            console.error('🔍 Database error details:', {
+              code: error.code,
+              message: error.message,
+              name: error.name
+            });
+          }
+
+          // Set up real-time listener with error handling
+          const unsubscribe = userRef.onSnapshot(doc => {
+            if (doc.exists) {
+              const data = doc.data();
+              console.log('📊 User data updated via listener:', data);
+              
+              // Update UI safely
+              updateUI(data, user);
+            }
+          }, error => {
+            console.error('🔥 Firestore listener error:', error);
+            
+            // Fallback to default values for UI
+            console.log('⚠️ Using fallback UI values due to listener error');
+            updateUI({
+              coins: 0,
+              totalTasks: 0,
+              totalEarned: 0,
+              referralCode: generateReferralCode()
+            }, user);
+          });
+
+          loadTasks();
+          loadWithdrawHistory(user.uid);
+          loadActivity(user.uid);
+          
+        } else {
+          // User signed out
+          console.log('🚪 User signed out, showing login...');
+          const authContainer = document.getElementById('auth-container');
+          const mainApp = document.getElementById('main-app');
+          
+          if (authContainer) authContainer.classList.remove('hidden');
+          if (mainApp) mainApp.classList.remove('visible');
+          
+          // Reset form
+          const emailInput = document.getElementById('email-input');
+          const passwordInput = document.getElementById('password-input');
+          const authMessage = document.getElementById('auth-message');
+          
+          if (emailInput) emailInput.value = '';
+          if (passwordInput) passwordInput.value = '';
+          if (authMessage) authMessage.textContent = '';
+        }
+      });
+      
       // Test Firebase connection
       db.enableNetwork().then(() => {
         console.log('🌐 Firestore network enabled');
         updateDebugStatus();
       }).catch(error => {
         console.error('⚠️ Firestore network error:', error);
-        updateDebugStatus();
-      });
-      
-      // Test authentication service
-      auth.onAuthStateChanged(() => {
-        console.log('🔄 Auth state listener active');
         updateDebugStatus();
       });
       
@@ -1723,12 +1843,8 @@
         authMessage.className = 'form-message success';
         showToast('Welcome back! 👋');
         
-        // Force redirect to main app
-        setTimeout(() => {
-          console.log('🔄 Forcing redirect to main app...');
-          authContainer.classList.add('hidden');
-          mainApp.classList.add('visible');
-        }, 1000);
+        // Auth state change handler will handle the redirect automatically
+        console.log('🔄 Waiting for auth state change to redirect...');
         
       } catch (error) {
         console.error('❌ Sign in error:', error);
@@ -1857,12 +1973,8 @@
         authMessage.className = 'form-message success';
         showToast('Welcome! You got 500 bonus coins! 🎉');
         
-        // Force redirect to main app
-        setTimeout(() => {
-          console.log('🔄 Forcing redirect to main app...');
-          authContainer.classList.add('hidden');
-          mainApp.classList.add('visible');
-        }, 1000);
+        // Auth state change handler will handle the redirect automatically
+        console.log('🔄 Waiting for auth state change to redirect...');
         
       } catch (error) {
         console.error('❌ Sign up error:', error);
@@ -1901,157 +2013,6 @@
         signupBtn.disabled = false;
       }
     }
-
-    // Authentication with enhanced debugging
-    auth.onAuthStateChanged(async user => {
-      console.log('🔄 Auth state changed:', user ? user.email : 'No user');
-      
-      if (user) {
-        // User signed in
-        console.log('✅ User signed in, redirecting to main app...');
-        console.log('👤 User UID:', user.uid);
-        console.log('📧 User email:', user.email);
-        console.log('🕐 Creation time:', user.metadata.creationTime);
-        console.log('🕐 Last sign in time:', user.metadata.lastSignInTime);
-        
-        // Hide auth container and show main app
-        authContainer.classList.add('hidden');
-        mainApp.classList.add('visible');
-        
-        document.getElementById('user-info').textContent = `Hi, ${user.email.split('@')[0]}!`;
-        
-        // Initialize user data with proper error handling
-        const userRef = db.collection('users').doc(user.uid);
-        console.log('📄 User document reference:', userRef.path);
-        
-        // Check if user document exists first
-        try {
-          console.log('🔍 Checking if user document exists...');
-          const userDoc = await userRef.get();
-          
-          if (userDoc.exists) {
-            console.log('📋 User document already exists');
-            const existingData = userDoc.data();
-            console.log('📊 Existing user data:', existingData);
-            
-            // Just update last seen
-            await userRef.update({
-              lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-              email: user.email // Ensure email is up to date
-            });
-            console.log('✅ User last seen updated');
-          } else {
-            console.log('📝 User document does not exist, creating new one...');
-            // Create new user document with welcome bonus
-            const newUserData = {
-              email: user.email,
-              coins: 500, // Welcome bonus
-              totalTasks: 0,
-              totalEarned: 500,
-              referralCode: generateReferralCode(),
-              lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-              uid: user.uid,
-              emailVerified: user.emailVerified || false
-            };
-            
-            console.log('💾 Creating user document with data:', newUserData);
-            await userRef.set(newUserData);
-            console.log('✅ New user document created successfully');
-          }
-        } catch (error) {
-          console.error('❌ Error handling user document:', error);
-          console.error('🔍 Database error details:', {
-            code: error.code,
-            message: error.message,
-            name: error.name
-          });
-          
-          // Fallback: try to create with merge
-          console.log('⚠️ Attempting fallback user document creation...');
-          try {
-            await userRef.set({
-              email: user.email,
-              coins: 0,
-              totalTasks: 0,
-              totalEarned: 0,
-              referralCode: generateReferralCode(),
-              lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-              createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
-            console.log('✅ Fallback user document created');
-          } catch (fallbackError) {
-            console.error('❌ Fallback also failed:', fallbackError);
-          }
-        }
-
-        // Set up real-time listener with error handling
-        const unsubscribe = userRef.onSnapshot(doc => {
-          if (doc.exists) {
-            const data = doc.data();
-            console.log('📊 User data updated via listener:', data);
-            
-            // Update UI safely
-            updateUI(data, user);
-          } else {
-            console.log('📝 Listener: User document does not exist, creating fallback...');
-            // This should rarely happen if our auth state logic above works
-            console.warn('⚠️ This indicates a potential issue with user document creation');
-            
-            // Create minimal fallback document
-            userRef.set({
-              email: user.email,
-              coins: 100, // Minimal bonus since we're not sure about signup bonus
-              totalTasks: 0,
-              totalEarned: 100,
-              referralCode: generateReferralCode(),
-              lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-              fallbackCreated: true // Flag to indicate this was a fallback creation
-            }).then(() => {
-              console.log('✅ Fallback user document created by listener');
-            }).catch(error => {
-              console.error('❌ Fallback creation failed:', error);
-            });
-          }
-        }, error => {
-          console.error('🔥 Firestore listener error:', error);
-          console.error('🔍 Listener error details:', {
-            code: error.code,
-            message: error.message,
-            name: error.name
-          });
-          
-          // Fallback to default values for UI
-          console.log('⚠️ Using fallback UI values due to listener error');
-          updateUI({
-            coins: 0,
-            totalTasks: 0,
-            totalEarned: 0,
-            referralCode: generateReferralCode()
-          }, user);
-        });
-
-        loadTasks();
-        loadWithdrawHistory(user.uid);
-        loadActivity(user.uid);
-        
-      } else {
-        // User signed out
-        console.log('🚪 User signed out, showing login...');
-        authContainer.classList.remove('hidden');
-        mainApp.classList.remove('visible');
-        
-        // Reset form
-        const emailInput = document.getElementById('email-input');
-        const passwordInput = document.getElementById('password-input');
-        const authMessage = document.getElementById('auth-message');
-        
-        if (emailInput) emailInput.value = '';
-        if (passwordInput) passwordInput.value = '';
-        if (authMessage) authMessage.textContent = '';
-      }
-    });
 
     // Navigation
     navItems.forEach(item => {
