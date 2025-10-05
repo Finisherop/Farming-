@@ -135,6 +135,11 @@
       color: var(--text-secondary);
     }
 
+    #form-hint {
+      transition: opacity 0.3s ease, margin-top 0.3s ease;
+      opacity: 0;
+    }
+
     .input-group {
       margin-bottom: 20px;
     }
@@ -673,6 +678,9 @@
       <div class="form-header">
         <h2 class="form-title">Welcome Back</h2>
         <p class="form-subtitle">Sign in to continue earning rewards</p>
+        <div id="form-hint" class="small" style="color: #667eea; margin-top: 8px; display: none;">
+          💡 <span id="hint-text"></span>
+        </div>
       </div>
       
       <div class="input-group">
@@ -689,6 +697,21 @@
       <button id="signup-btn" class="btn-secondary">Create Account</button>
       
       <div id="auth-message" class="form-message"></div>
+      
+      <!-- Debug Panel (can be hidden in production) -->
+      <div id="debug-panel" style="margin-top: 16px; padding: 12px; background: #f8f9fa; border-radius: 8px; font-size: 12px; color: #666; display: none;">
+        <div style="font-weight: 600; margin-bottom: 8px;">🔧 Debug Info:</div>
+        <div id="debug-firebase">Firebase: <span id="firebase-status">Checking...</span></div>
+        <div id="debug-auth">Auth: <span id="auth-status">Checking...</span></div>
+        <div id="debug-db">Database: <span id="db-status">Checking...</span></div>
+        <div id="debug-network">Network: <span id="network-status">Checking...</span></div>
+        <button onclick="toggleDebug()" style="margin-top: 8px; padding: 4px 8px; font-size: 10px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">Hide Debug</button>
+      </div>
+      
+      <!-- Show Debug Button -->
+      <div style="text-align: center; margin-top: 12px;">
+        <button id="show-debug-btn" onclick="showDebugPanel()" style="padding: 4px 8px; font-size: 10px; background: transparent; color: #999; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">Show Debug Info</button>
+      </div>
     </div>
   </div>
 
@@ -1097,8 +1120,16 @@
       // Test Firebase connection
       db.enableNetwork().then(() => {
         console.log('🌐 Firestore network enabled');
+        updateDebugStatus();
       }).catch(error => {
         console.error('⚠️ Firestore network error:', error);
+        updateDebugStatus();
+      });
+      
+      // Test authentication service
+      auth.onAuthStateChanged(() => {
+        console.log('🔄 Auth state listener active');
+        updateDebugStatus();
       });
       
     } catch (error) {
@@ -1107,7 +1138,7 @@
       // Show user-friendly error
       const authMessage = document.getElementById('auth-message');
       if (authMessage) {
-        authMessage.textContent = 'Connection failed. Please refresh page and try again.';
+        authMessage.textContent = '🌐 Connection failed. Please check your internet connection and refresh the page.';
         authMessage.className = 'form-message error';
       }
       
@@ -1116,14 +1147,27 @@
       const signupBtn = document.getElementById('signup-btn');
       if (signinBtn) {
         signinBtn.disabled = true;
-        signinBtn.textContent = 'Connection Error';
+        signinBtn.textContent = '🌐 Connection Error';
+        signinBtn.style.opacity = '0.6';
       }
       if (signupBtn) {
         signupBtn.disabled = true;
-        signupBtn.textContent = 'Connection Error';
+        signupBtn.textContent = '🌐 Connection Error';
+        signupBtn.style.opacity = '0.6';
       }
       
-      alert('Firebase connection failed: ' + error.message + '\n\nPlease refresh page and try again.');
+      // Show debug panel automatically on error
+      setTimeout(() => {
+        showDebugPanel();
+      }, 1000);
+      
+      // Show detailed error in console
+      console.error('🔧 Debug info:', {
+        userAgent: navigator.userAgent,
+        online: navigator.onLine,
+        firebase: typeof firebase !== 'undefined',
+        error: error.message
+      });
     }
 
     // UI Elements
@@ -1163,6 +1207,96 @@
         toast.style.opacity = '0';
         setTimeout(() => toast.style.display = 'none', 300);
       }, duration);
+    }
+
+    function showFormHint(message, duration = 6000) {
+      const formHint = document.getElementById('form-hint');
+      const hintText = document.getElementById('hint-text');
+      
+      if (formHint && hintText) {
+        hintText.textContent = message;
+        formHint.style.display = 'block';
+        formHint.style.opacity = '1';
+        
+        setTimeout(() => {
+          formHint.style.opacity = '0';
+          setTimeout(() => {
+            formHint.style.display = 'none';
+          }, 300);
+        }, duration);
+      }
+    }
+
+    // Debug Functions
+    function showDebugPanel() {
+      const debugPanel = document.getElementById('debug-panel');
+      const showBtn = document.getElementById('show-debug-btn');
+      
+      if (debugPanel && showBtn) {
+        debugPanel.style.display = 'block';
+        showBtn.style.display = 'none';
+        updateDebugStatus();
+      }
+    }
+
+    function toggleDebug() {
+      const debugPanel = document.getElementById('debug-panel');
+      const showBtn = document.getElementById('show-debug-btn');
+      
+      if (debugPanel && showBtn) {
+        debugPanel.style.display = 'none';
+        showBtn.style.display = 'inline-block';
+      }
+    }
+
+    function updateDebugStatus() {
+      // Firebase status
+      const firebaseStatus = document.getElementById('firebase-status');
+      if (firebaseStatus) {
+        if (typeof firebase !== 'undefined') {
+          firebaseStatus.textContent = '✅ Loaded';
+          firebaseStatus.style.color = 'green';
+        } else {
+          firebaseStatus.textContent = '❌ Not loaded';
+          firebaseStatus.style.color = 'red';
+        }
+      }
+
+      // Auth status
+      const authStatus = document.getElementById('auth-status');
+      if (authStatus) {
+        if (auth) {
+          authStatus.textContent = '✅ Initialized';
+          authStatus.style.color = 'green';
+        } else {
+          authStatus.textContent = '❌ Not initialized';
+          authStatus.style.color = 'red';
+        }
+      }
+
+      // Database status
+      const dbStatus = document.getElementById('db-status');
+      if (dbStatus) {
+        if (db) {
+          dbStatus.textContent = '✅ Connected';
+          dbStatus.style.color = 'green';
+        } else {
+          dbStatus.textContent = '❌ Not connected';
+          dbStatus.style.color = 'red';
+        }
+      }
+
+      // Network status
+      const networkStatus = document.getElementById('network-status');
+      if (networkStatus) {
+        if (navigator.onLine) {
+          networkStatus.textContent = '✅ Online';
+          networkStatus.style.color = 'green';
+        } else {
+          networkStatus.textContent = '❌ Offline';
+          networkStatus.style.color = 'red';
+        }
+      }
     }
 
     function showEnhancedNotification(message, type = 'success', duration = 4000) {
@@ -1573,9 +1707,17 @@
         authMessage.className = 'form-message info';
         
         console.log('📡 Calling Firebase signInWithEmailAndPassword...');
+        console.log('🔐 Auth object status:', auth ? 'Available' : 'Not available');
+        console.log('💾 DB object status:', db ? 'Available' : 'Not available');
+        console.log('📧 Attempting login with email:', email);
+        
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
         console.log('✅ Sign in successful:', userCredential.user.uid);
         console.log('👤 User object:', userCredential.user);
+        console.log('📧 User email:', userCredential.user.email);
+        console.log('✅ User email verified:', userCredential.user.emailVerified);
+        console.log('🕐 Last sign in time:', userCredential.user.metadata.lastSignInTime);
+        console.log('🗓️ Creation time:', userCredential.user.metadata.creationTime);
         
         authMessage.textContent = 'Signed in successfully! Loading app...';
         authMessage.className = 'form-message success';
@@ -1598,13 +1740,25 @@
         
         let errorMsg = 'Sign in failed: ';
         if (error.code === 'auth/user-not-found') {
-          errorMsg = 'No account found with this email. Please sign up first.';
+          errorMsg = '🔍 No account found with this email. Please use the "Create Account" button to sign up first.';
+          // Auto-highlight the sign up button to guide user
+          showFormHint('Try clicking the "Create Account" button below instead');
+          setTimeout(() => {
+            signupBtn.style.animation = 'pulse 2s infinite';
+            signupBtn.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+              signupBtn.style.animation = '';
+              signupBtn.style.transform = '';
+            }, 4000);
+          }, 1000);
         } else if (error.code === 'auth/wrong-password') {
-          errorMsg = 'Incorrect password. Please try again.';
+          errorMsg = '🔑 Incorrect password. Please check your password and try again.';
         } else if (error.code === 'auth/invalid-email') {
-          errorMsg = 'Invalid email address format.';
+          errorMsg = '📧 Invalid email address format. Please enter a valid email.';
         } else if (error.code === 'auth/network-request-failed') {
-          errorMsg = 'Network error. Please check your internet connection.';
+          errorMsg = '🌐 Network error. Please check your internet connection and try again.';
+        } else if (error.code === 'auth/too-many-requests') {
+          errorMsg = '🚫 Too many failed attempts. Please wait a few minutes before trying again.';
         } else {
           errorMsg += error.message;
         }
@@ -1658,21 +1812,46 @@
         authMessage.className = 'form-message info';
         
         console.log('📡 Calling Firebase createUserWithEmailAndPassword...');
+        console.log('🔐 Auth object status:', auth ? 'Available' : 'Not available');
+        console.log('💾 DB object status:', db ? 'Available' : 'Not available');
+        
         const cred = await auth.createUserWithEmailAndPassword(email, password);
         console.log('✅ Sign up successful:', cred.user.uid);
         console.log('👤 User object:', cred.user);
+        console.log('📧 User email:', cred.user.email);
+        console.log('✅ User email verified:', cred.user.emailVerified);
         
         // Initialize user with welcome bonus
         console.log('💾 Creating user document...');
-        await db.collection('users').doc(cred.user.uid).set({
+        console.log('📄 User document path:', `users/${cred.user.uid}`);
+        
+        const userData = {
           email: cred.user.email,
           coins: 500,
           totalTasks: 0,
           totalEarned: 500,
           referralCode: generateReferralCode(),
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        console.log('✅ User document created');
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          uid: cred.user.uid,
+          emailVerified: cred.user.emailVerified || false,
+          lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        console.log('💾 User data to save:', userData);
+        
+        try {
+          await db.collection('users').doc(cred.user.uid).set(userData);
+          console.log('✅ User document created successfully');
+        } catch (dbError) {
+          console.error('❌ Failed to create user document:', dbError);
+          console.error('🔍 Database error details:', {
+            code: dbError.code,
+            message: dbError.message,
+            name: dbError.name
+          });
+          // Continue anyway as user authentication succeeded
+          console.log('⚠️ Continuing with authentication success despite database error');
+        }
         
         authMessage.textContent = 'Account created! Welcome bonus: 500 coins! 🎉';
         authMessage.className = 'form-message success';
@@ -1695,13 +1874,23 @@
         
         let errorMsg = 'Account creation failed: ';
         if (error.code === 'auth/email-already-in-use') {
-          errorMsg = 'Email already registered. Please sign in instead.';
+          errorMsg = '✉️ This email is already registered! Please use the "Sign In" button instead.';
+          // Auto-highlight the sign in button to guide user
+          showFormHint('Try clicking the "Sign In" button above instead');
+          setTimeout(() => {
+            signinBtn.style.animation = 'pulse 2s infinite';
+            signinBtn.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+              signinBtn.style.animation = '';
+              signinBtn.style.transform = '';
+            }, 4000);
+          }, 1000);
         } else if (error.code === 'auth/invalid-email') {
-          errorMsg = 'Invalid email address format.';
+          errorMsg = '📧 Invalid email address format. Please enter a valid email.';
         } else if (error.code === 'auth/weak-password') {
-          errorMsg = 'Password too weak. Use at least 6 characters.';
+          errorMsg = '🔒 Password too weak. Please use at least 6 characters.';
         } else if (error.code === 'auth/network-request-failed') {
-          errorMsg = 'Network error. Please check your internet connection.';
+          errorMsg = '🌐 Network error. Please check your internet connection and try again.';
         } else {
           errorMsg += error.message;
         }
@@ -1720,6 +1909,10 @@
       if (user) {
         // User signed in
         console.log('✅ User signed in, redirecting to main app...');
+        console.log('👤 User UID:', user.uid);
+        console.log('📧 User email:', user.email);
+        console.log('🕐 Creation time:', user.metadata.creationTime);
+        console.log('🕐 Last sign in time:', user.metadata.lastSignInTime);
         
         // Hide auth container and show main app
         authContainer.classList.add('hidden');
@@ -1729,47 +1922,108 @@
         
         // Initialize user data with proper error handling
         const userRef = db.collection('users').doc(user.uid);
+        console.log('📄 User document reference:', userRef.path);
         
-        // Create user document if it doesn't exist
+        // Check if user document exists first
         try {
-          await userRef.set({
-            email: user.email,
-            coins: 0,
-            totalTasks: 0,
-            totalEarned: 0,
-            referralCode: generateReferralCode(),
-            lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          }, { merge: true });
-          console.log('✅ User document initialized');
-        } catch (error) {
-          console.log('⚠️ User document creation skipped:', error);
-        }
-
-        // Set up real-time listener with error handling
-        const unsubscribe = userRef.onSnapshot(doc => {
-          if (doc.exists) {
-            const data = doc.data();
-            console.log('📊 User data updated:', data);
+          console.log('🔍 Checking if user document exists...');
+          const userDoc = await userRef.get();
+          
+          if (userDoc.exists) {
+            console.log('📋 User document already exists');
+            const existingData = userDoc.data();
+            console.log('📊 Existing user data:', existingData);
             
-            // Update UI safely
-            updateUI(data, user);
+            // Just update last seen
+            await userRef.update({
+              lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+              email: user.email // Ensure email is up to date
+            });
+            console.log('✅ User last seen updated');
           } else {
-            console.log('📝 Creating new user document...');
-            // Document doesn't exist, create it
-            userRef.set({
+            console.log('📝 User document does not exist, creating new one...');
+            // Create new user document with welcome bonus
+            const newUserData = {
               email: user.email,
               coins: 500, // Welcome bonus
               totalTasks: 0,
               totalEarned: 500,
               referralCode: generateReferralCode(),
               lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+              uid: user.uid,
+              emailVerified: user.emailVerified || false
+            };
+            
+            console.log('💾 Creating user document with data:', newUserData);
+            await userRef.set(newUserData);
+            console.log('✅ New user document created successfully');
+          }
+        } catch (error) {
+          console.error('❌ Error handling user document:', error);
+          console.error('🔍 Database error details:', {
+            code: error.code,
+            message: error.message,
+            name: error.name
+          });
+          
+          // Fallback: try to create with merge
+          console.log('⚠️ Attempting fallback user document creation...');
+          try {
+            await userRef.set({
+              email: user.email,
+              coins: 0,
+              totalTasks: 0,
+              totalEarned: 0,
+              referralCode: generateReferralCode(),
+              lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
               createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            }).catch(console.error);
+            }, { merge: true });
+            console.log('✅ Fallback user document created');
+          } catch (fallbackError) {
+            console.error('❌ Fallback also failed:', fallbackError);
+          }
+        }
+
+        // Set up real-time listener with error handling
+        const unsubscribe = userRef.onSnapshot(doc => {
+          if (doc.exists) {
+            const data = doc.data();
+            console.log('📊 User data updated via listener:', data);
+            
+            // Update UI safely
+            updateUI(data, user);
+          } else {
+            console.log('📝 Listener: User document does not exist, creating fallback...');
+            // This should rarely happen if our auth state logic above works
+            console.warn('⚠️ This indicates a potential issue with user document creation');
+            
+            // Create minimal fallback document
+            userRef.set({
+              email: user.email,
+              coins: 100, // Minimal bonus since we're not sure about signup bonus
+              totalTasks: 0,
+              totalEarned: 100,
+              referralCode: generateReferralCode(),
+              lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+              fallbackCreated: true // Flag to indicate this was a fallback creation
+            }).then(() => {
+              console.log('✅ Fallback user document created by listener');
+            }).catch(error => {
+              console.error('❌ Fallback creation failed:', error);
+            });
           }
         }, error => {
           console.error('🔥 Firestore listener error:', error);
-          // Fallback to default values
+          console.error('🔍 Listener error details:', {
+            code: error.code,
+            message: error.message,
+            name: error.name
+          });
+          
+          // Fallback to default values for UI
+          console.log('⚠️ Using fallback UI values due to listener error');
           updateUI({
             coins: 0,
             totalTasks: 0,
