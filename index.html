@@ -1079,13 +1079,51 @@
 
     // Initialize Firebase with error handling
     try {
+      console.log('🔥 Initializing Firebase...');
+      
+      // Check if Firebase is loaded
+      if (typeof firebase === 'undefined') {
+        throw new Error('Firebase SDK not loaded. Please check your internet connection.');
+      }
+      
       firebase.initializeApp(firebaseConfig);
       auth = firebase.auth();
       db = firebase.firestore();
+      
       console.log('✅ Firebase initialized successfully');
+      console.log('🔐 Auth object:', auth);
+      console.log('💾 Database object:', db);
+      
+      // Test Firebase connection
+      db.enableNetwork().then(() => {
+        console.log('🌐 Firestore network enabled');
+      }).catch(error => {
+        console.error('⚠️ Firestore network error:', error);
+      });
+      
     } catch (error) {
       console.error('❌ Firebase initialization error:', error);
-      alert('Firebase connection failed: ' + error.message);
+      
+      // Show user-friendly error
+      const authMessage = document.getElementById('auth-message');
+      if (authMessage) {
+        authMessage.textContent = 'Connection failed. Please refresh page and try again.';
+        authMessage.className = 'form-message error';
+      }
+      
+      // Disable buttons if Firebase fails
+      const signinBtn = document.getElementById('signin-btn');
+      const signupBtn = document.getElementById('signup-btn');
+      if (signinBtn) {
+        signinBtn.disabled = true;
+        signinBtn.textContent = 'Connection Error';
+      }
+      if (signupBtn) {
+        signupBtn.disabled = true;
+        signupBtn.textContent = 'Connection Error';
+      }
+      
+      alert('Firebase connection failed: ' + error.message + '\n\nPlease refresh page and try again.');
     }
 
     // UI Elements
@@ -1493,10 +1531,15 @@
       if (totalEarned) totalEarned.textContent = (currentUserData.totalEarned || 0).toLocaleString();
     }
 
-    // Authentication
+    // Authentication with enhanced debugging
     auth.onAuthStateChanged(async user => {
+      console.log('🔄 Auth state changed:', user ? user.email : 'No user');
+      
       if (user) {
         // User signed in
+        console.log('✅ User signed in, redirecting to main app...');
+        
+        // Hide auth container and show main app
         authContainer.classList.add('hidden');
         mainApp.classList.add('visible');
         
@@ -1516,18 +1559,21 @@
             lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           }, { merge: true });
+          console.log('✅ User document initialized');
         } catch (error) {
-          console.log('User document creation skipped:', error);
+          console.log('⚠️ User document creation skipped:', error);
         }
 
         // Set up real-time listener with error handling
         const unsubscribe = userRef.onSnapshot(doc => {
           if (doc.exists) {
             const data = doc.data();
+            console.log('📊 User data updated:', data);
             
             // Update UI safely
             updateUI(data, user);
           } else {
+            console.log('📝 Creating new user document...');
             // Document doesn't exist, create it
             userRef.set({
               email: user.email,
@@ -1540,7 +1586,7 @@
             }).catch(console.error);
           }
         }, error => {
-          console.error('Firestore listener error:', error);
+          console.error('🔥 Firestore listener error:', error);
           // Fallback to default values
           updateUI({
             coins: 0,
@@ -1556,31 +1602,57 @@
         
       } else {
         // User signed out
+        console.log('🚪 User signed out, showing login...');
         authContainer.classList.remove('hidden');
         mainApp.classList.remove('visible');
+        
+        // Reset form
+        const emailInput = document.getElementById('email-input');
+        const passwordInput = document.getElementById('password-input');
+        const authMessage = document.getElementById('auth-message');
+        
+        if (emailInput) emailInput.value = '';
+        if (passwordInput) passwordInput.value = '';
+        if (authMessage) authMessage.textContent = '';
       }
     });
 
     // Sign In with enhanced debugging
-    signinBtn.addEventListener('click', async () => {
+    signinBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      console.log('🔐 Sign in button clicked!');
+      
+      // Check if auth is initialized
+      if (!auth) {
+        console.error('❌ Auth not initialized');
+        authMessage.textContent = 'Authentication not ready. Please refresh page.';
+        authMessage.className = 'form-message error';
+        return;
+      }
+      
       const email = emailInput.value.trim();
       const password = passwordInput.value;
       
       console.log('🔐 Attempting sign in with:', email);
+      console.log('📧 Email input element:', emailInput);
+      console.log('🔑 Password input element:', passwordInput);
       
       if (!email || password.length < 6) {
         authMessage.textContent = 'Please enter valid email and password (min 6 chars)';
         authMessage.className = 'form-message error';
+        console.log('❌ Validation failed');
         return;
       }
       
       if (!email.includes('@')) {
         authMessage.textContent = 'Please enter a valid email address';
         authMessage.className = 'form-message error';
+        console.log('❌ Invalid email format');
         return;
       }
       
       try {
+        console.log('🚀 Starting sign in process...');
         signinBtn.textContent = 'Signing in...';
         signinBtn.disabled = true;
         authMessage.textContent = 'Connecting to server...';
@@ -1589,15 +1661,28 @@
         console.log('📡 Calling Firebase signInWithEmailAndPassword...');
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
         console.log('✅ Sign in successful:', userCredential.user.uid);
+        console.log('👤 User object:', userCredential.user);
         
         authMessage.textContent = 'Signed in successfully! Loading app...';
         authMessage.className = 'form-message success';
         showToast('Welcome back! 👋');
         
+        // Force redirect to main app
+        setTimeout(() => {
+          console.log('🔄 Forcing redirect to main app...');
+          authContainer.classList.add('hidden');
+          mainApp.classList.add('visible');
+        }, 1000);
+        
       } catch (error) {
         console.error('❌ Sign in error:', error);
+        console.error('🔍 Error details:', {
+          code: error.code,
+          message: error.message,
+          stack: error.stack
+        });
         
-        let errorMsg = 'Sign in failed. ';
+        let errorMsg = 'Sign in failed: ';
         if (error.code === 'auth/user-not-found') {
           errorMsg = 'No account found with this email. Please sign up first.';
         } else if (error.code === 'auth/wrong-password') {
@@ -1617,22 +1702,54 @@
       }
     });
 
-    // Sign Up
-    signupBtn.addEventListener('click', async () => {
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
+    // Sign Up with enhanced debugging
+    signupBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      console.log('📝 Sign up button clicked!');
       
-      if (!email || password.length < 6) {
-        authMessage.textContent = 'Please enter valid email and password (min 6 chars)';
+      // Check if auth is initialized
+      if (!auth) {
+        console.error('❌ Auth not initialized');
+        authMessage.textContent = 'Authentication not ready. Please refresh page.';
         authMessage.className = 'form-message error';
         return;
       }
       
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      
+      console.log('📝 Attempting sign up with:', email);
+      console.log('📧 Email input element:', emailInput);
+      console.log('🔑 Password input element:', passwordInput);
+      
+      if (!email || password.length < 6) {
+        authMessage.textContent = 'Please enter valid email and password (min 6 chars)';
+        authMessage.className = 'form-message error';
+        console.log('❌ Validation failed');
+        return;
+      }
+      
+      if (!email.includes('@')) {
+        authMessage.textContent = 'Please enter a valid email address';
+        authMessage.className = 'form-message error';
+        console.log('❌ Invalid email format');
+        return;
+      }
+      
       try {
+        console.log('🚀 Starting sign up process...');
         signupBtn.textContent = 'Creating account...';
+        signupBtn.disabled = true;
+        authMessage.textContent = 'Creating your account...';
+        authMessage.className = 'form-message info';
+        
+        console.log('📡 Calling Firebase createUserWithEmailAndPassword...');
         const cred = await auth.createUserWithEmailAndPassword(email, password);
+        console.log('✅ Sign up successful:', cred.user.uid);
+        console.log('👤 User object:', cred.user);
         
         // Initialize user with welcome bonus
+        console.log('💾 Creating user document...');
         await db.collection('users').doc(cred.user.uid).set({
           email: cred.user.email,
           coins: 500,
@@ -1641,14 +1758,44 @@
           referralCode: generateReferralCode(),
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
+        console.log('✅ User document created');
         
         authMessage.textContent = 'Account created! Welcome bonus: 500 coins! 🎉';
         authMessage.className = 'form-message success';
         showToast('Welcome! You got 500 bonus coins! 🎉');
+        
+        // Force redirect to main app
+        setTimeout(() => {
+          console.log('🔄 Forcing redirect to main app...');
+          authContainer.classList.add('hidden');
+          mainApp.classList.add('visible');
+        }, 1000);
+        
       } catch (error) {
-        authMessage.textContent = error.message;
+        console.error('❌ Sign up error:', error);
+        console.error('🔍 Error details:', {
+          code: error.code,
+          message: error.message,
+          stack: error.stack
+        });
+        
+        let errorMsg = 'Account creation failed: ';
+        if (error.code === 'auth/email-already-in-use') {
+          errorMsg = 'Email already registered. Please sign in instead.';
+        } else if (error.code === 'auth/invalid-email') {
+          errorMsg = 'Invalid email address format.';
+        } else if (error.code === 'auth/weak-password') {
+          errorMsg = 'Password too weak. Use at least 6 characters.';
+        } else if (error.code === 'auth/network-request-failed') {
+          errorMsg = 'Network error. Please check your internet connection.';
+        } else {
+          errorMsg += error.message;
+        }
+        
+        authMessage.textContent = errorMsg;
         authMessage.className = 'form-message error';
         signupBtn.textContent = 'Create Account';
+        signupBtn.disabled = false;
       }
     });
 
@@ -2108,13 +2255,56 @@
 
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
+      console.log('🚀 DOM Content Loaded - Starting debug checks...');
+      
+      // Debug check all elements
+      const elements = {
+        'auth-container': document.getElementById('auth-container'),
+        'main-app': document.getElementById('main-app'),
+        'email-input': document.getElementById('email-input'),
+        'password-input': document.getElementById('password-input'),
+        'signin-btn': document.getElementById('signin-btn'),
+        'signup-btn': document.getElementById('signup-btn'),
+        'auth-message': document.getElementById('auth-message')
+      };
+      
+      console.log('🔍 Element check results:');
+      for (const [name, element] of Object.entries(elements)) {
+        if (element) {
+          console.log(`✅ ${name}: Found`);
+        } else {
+          console.error(`❌ ${name}: NOT Found`);
+        }
+      }
+      
+      // Check Firebase objects
+      console.log('🔍 Firebase objects check:');
+      console.log('🔥 firebase object:', typeof firebase !== 'undefined' ? '✅ Loaded' : '❌ Not loaded');
+      console.log('🔐 auth object:', auth ? '✅ Initialized' : '❌ Not initialized');
+      console.log('💾 db object:', db ? '✅ Initialized' : '❌ Not initialized');
+      
+      // Check if event listeners are attached
+      const signinBtn = document.getElementById('signin-btn');
+      const signupBtn = document.getElementById('signup-btn');
+      
+      if (signinBtn) {
+        console.log('🔐 Sign in button found, listeners should be attached');
+      }
+      
+      if (signupBtn) {
+        console.log('📝 Sign up button found, listeners should be attached');  
+      }
+      
       handleReferralOnSignup();
       
       // Spin & Win Button Event Listener
       const spinBtn = document.getElementById('spin-btn');
       if (spinBtn) {
         spinBtn.addEventListener('click', handleSpin);
+        console.log('🎰 Spin button listener attached');
       }
+      
+      console.log('✅ Initialization complete!');
     });
   </script>
 </body>
