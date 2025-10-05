@@ -135,6 +135,11 @@
       color: var(--text-secondary);
     }
 
+    #form-hint {
+      transition: opacity 0.3s ease, margin-top 0.3s ease;
+      opacity: 0;
+    }
+
     .input-group {
       margin-bottom: 20px;
     }
@@ -673,6 +678,9 @@
       <div class="form-header">
         <h2 class="form-title">Welcome Back</h2>
         <p class="form-subtitle">Sign in to continue earning rewards</p>
+        <div id="form-hint" class="small" style="color: #667eea; margin-top: 8px; display: none;">
+          💡 <span id="hint-text"></span>
+        </div>
       </div>
       
       <div class="input-group">
@@ -1165,6 +1173,24 @@
       }, duration);
     }
 
+    function showFormHint(message, duration = 6000) {
+      const formHint = document.getElementById('form-hint');
+      const hintText = document.getElementById('hint-text');
+      
+      if (formHint && hintText) {
+        hintText.textContent = message;
+        formHint.style.display = 'block';
+        formHint.style.opacity = '1';
+        
+        setTimeout(() => {
+          formHint.style.opacity = '0';
+          setTimeout(() => {
+            formHint.style.display = 'none';
+          }, 300);
+        }, duration);
+      }
+    }
+
     function showEnhancedNotification(message, type = 'success', duration = 4000) {
       const container = document.getElementById('notification-container') || createNotificationContainer();
       
@@ -1598,13 +1624,25 @@
         
         let errorMsg = 'Sign in failed: ';
         if (error.code === 'auth/user-not-found') {
-          errorMsg = 'No account found with this email. Please sign up first.';
+          errorMsg = '🔍 No account found with this email. Please use the "Create Account" button to sign up first.';
+          // Auto-highlight the sign up button to guide user
+          showFormHint('Try clicking the "Create Account" button below instead');
+          setTimeout(() => {
+            signupBtn.style.animation = 'pulse 2s infinite';
+            signupBtn.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+              signupBtn.style.animation = '';
+              signupBtn.style.transform = '';
+            }, 4000);
+          }, 1000);
         } else if (error.code === 'auth/wrong-password') {
-          errorMsg = 'Incorrect password. Please try again.';
+          errorMsg = '🔑 Incorrect password. Please check your password and try again.';
         } else if (error.code === 'auth/invalid-email') {
-          errorMsg = 'Invalid email address format.';
+          errorMsg = '📧 Invalid email address format. Please enter a valid email.';
         } else if (error.code === 'auth/network-request-failed') {
-          errorMsg = 'Network error. Please check your internet connection.';
+          errorMsg = '🌐 Network error. Please check your internet connection and try again.';
+        } else if (error.code === 'auth/too-many-requests') {
+          errorMsg = '🚫 Too many failed attempts. Please wait a few minutes before trying again.';
         } else {
           errorMsg += error.message;
         }
@@ -1695,13 +1733,23 @@
         
         let errorMsg = 'Account creation failed: ';
         if (error.code === 'auth/email-already-in-use') {
-          errorMsg = 'Email already registered. Please sign in instead.';
+          errorMsg = '✉️ This email is already registered! Please use the "Sign In" button instead.';
+          // Auto-highlight the sign in button to guide user
+          showFormHint('Try clicking the "Sign In" button above instead');
+          setTimeout(() => {
+            signinBtn.style.animation = 'pulse 2s infinite';
+            signinBtn.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+              signinBtn.style.animation = '';
+              signinBtn.style.transform = '';
+            }, 4000);
+          }, 1000);
         } else if (error.code === 'auth/invalid-email') {
-          errorMsg = 'Invalid email address format.';
+          errorMsg = '📧 Invalid email address format. Please enter a valid email.';
         } else if (error.code === 'auth/weak-password') {
-          errorMsg = 'Password too weak. Use at least 6 characters.';
+          errorMsg = '🔒 Password too weak. Please use at least 6 characters.';
         } else if (error.code === 'auth/network-request-failed') {
-          errorMsg = 'Network error. Please check your internet connection.';
+          errorMsg = '🌐 Network error. Please check your internet connection and try again.';
         } else {
           errorMsg += error.message;
         }
