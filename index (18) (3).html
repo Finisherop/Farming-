@@ -932,23 +932,26 @@
               <div style="
                 width: 0;
                 height: 0;
-                border-left: 20px solid transparent;
-                border-right: 20px solid transparent;
-                border-bottom: 35px solid #333;
+                border-left: 25px solid transparent;
+                border-right: 25px solid transparent;
+                border-bottom: 40px solid #333;
                 position: relative;
                 z-index: 10;
+                filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
               ">
                 <!-- Number inside triangle -->
                 <div id="spinner-result" style="
                   position: absolute;
-                  top: 8px;
+                  top: 12px;
                   left: 50%;
                   transform: translateX(-50%);
                   color: white;
-                  font-size: 14px;
+                  font-size: 16px;
                   font-weight: bold;
                   text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
                   z-index: 11;
+                  width: 40px;
+                  text-align: center;
                 ">?</div>
               </div>
             </div>
@@ -1138,9 +1141,46 @@
     
     // Spin & Win Configuration
     const SPIN_COST = 5;
-    const REWARDS = [10, 5, 20, 0, 50, 15, 0, 25]; // 8 segments
+    const REWARDS = [10, 25, 5, 20, 0, 50, 15, 0]; // 8 segments - matching visual wheel layout clockwise
     let isSpinning = false;
     let currentUserData = {};
+    
+    // Task tracking
+    let openedTasks = new Set();
+    let completedTasks = new Set();
+    let taskReturnTimers = new Map();
+    
+    // Load task states from localStorage
+    function loadTaskStates() {
+      try {
+        const savedOpened = localStorage.getItem('openedTasks');
+        const savedCompleted = localStorage.getItem('completedTasks');
+        
+        if (savedOpened) {
+          openedTasks = new Set(JSON.parse(savedOpened));
+        }
+        if (savedCompleted) {
+          completedTasks = new Set(JSON.parse(savedCompleted));
+        }
+        
+        console.log('📱 Loaded task states:', {
+          opened: Array.from(openedTasks),
+          completed: Array.from(completedTasks)
+        });
+      } catch (error) {
+        console.error('Error loading task states:', error);
+      }
+    }
+    
+    // Save task states to localStorage
+    function saveTaskStates() {
+      try {
+        localStorage.setItem('openedTasks', JSON.stringify(Array.from(openedTasks)));
+        localStorage.setItem('completedTasks', JSON.stringify(Array.from(completedTasks)));
+      } catch (error) {
+        console.error('Error saving task states:', error);
+      }
+    }
     
     // Firebase Config
     const firebaseConfig = {
@@ -1625,6 +1665,12 @@
         }
       }
       
+      // Check if task is already completed (prevent double claims)
+      if (completedTasks.has(taskId)) {
+        showEnhancedNotification('✅ This task has already been completed!', 'info');
+        return;
+      }
+      
       try {
         showEnhancedNotification('Processing task claim...', 'info');
         
@@ -1680,6 +1726,22 @@
         animateCoinBalance();
         addBounceEffect(document.getElementById('coin-balance'));
         
+        // Update task UI to show completed status
+        updateTaskCompletedStatus(taskId);
+        
+        // Update local data
+        if (currentUserData) {
+          currentUserData.coins = (currentUserData.coins || 0) + coins;
+          currentUserData.totalTasks = (currentUserData.totalTasks || 0) + 1;
+          currentUserData.totalEarned = (currentUserData.totalEarned || 0) + coins;
+          updateProfileUI();
+        }
+        
+        // Remove from opened tasks and add to completed tasks
+        openedTasks.delete(taskId);
+        completedTasks.add(taskId);
+        saveTaskStates();
+        
       } catch (error) {
         console.error('Task claim error:', error);
         
@@ -1691,6 +1753,34 @@
         } else {
           showEnhancedNotification('Error claiming task. Please try again.', 'error');
         }
+      }
+    }
+
+    // Function to update task UI after completion
+    function updateTaskCompletedStatus(taskId) {
+      const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+      if (taskElement) {
+        const buttonContainer = taskElement.querySelector('.task-buttons');
+        if (buttonContainer) {
+          buttonContainer.innerHTML = `
+            <div class="btn completed-task" style="
+              background: linear-gradient(135deg, #51cf66, #40c057);
+              color: white;
+              font-size: 12px;
+              padding: 8px 16px;
+              border-radius: 8px;
+              border: none;
+              cursor: default;
+              opacity: 0.8;
+            ">
+              ✅ Completed
+            </div>
+          `;
+        }
+        
+        // Add completed styling to the task element
+        taskElement.style.opacity = '0.7';
+        taskElement.style.background = 'linear-gradient(135deg, #f8f9fa, #e9ecef)';
       }
     }
     
@@ -1775,18 +1865,44 @@
         
         // Calculate rotation angle (each segment is 45 degrees)
         const segmentAngle = 360 / REWARDS.length; // 45 degrees
-        const baseAngle = winningIndex * segmentAngle;
-        const randomOffset = Math.random() * (segmentAngle * 0.8) + (segmentAngle * 0.1); // Random within segment
-        const finalAngle = 1440 + (360 - baseAngle - randomOffset); // 4 full rotations + landing position
+        
+        // Arrow points to top (0 degrees), so we need to rotate wheel to align winning segment with arrow
+        // Segments are positioned clockwise starting from top: 0°, 45°, 90°, 135°, 180°, 225°, 270°, 315°
+        const segmentPosition = winningIndex * segmentAngle;
+        
+        // Calculate how much to rotate to align winning segment with top arrow (0 degrees)
+        // We want the winning segment to be at the top, so rotate by negative segment position
+        const targetAngle = -segmentPosition;
+        
+        // Add random offset within the segment for natural feel (±10 degrees)
+        const randomOffset = (Math.random() - 0.5) * 20; // -10 to +10 degrees
+        
+        // Add multiple full rotations for spinning effect (4-6 rotations)
+        const fullRotations = 1440 + (Math.random() * 720); // 4-6 full rotations
+        
+        const finalAngle = fullRotations + targetAngle + randomOffset;
         
         // Apply rotation
         wheel.style.transform = `rotate(${finalAngle}deg)`;
         
+        console.log(`🎰 Spin Details:
+        - Winning Index: ${winningIndex}
+        - Winning Reward: ${reward}
+        - Segment Position: ${segmentPosition}°
+        - Target Angle: ${targetAngle}°
+        - Final Angle: ${finalAngle}°`);
+        
+        // Update triangle display immediately to show what we're spinning for
+        const spinnerResult = document.getElementById('spinner-result');
+        if (spinnerResult) {
+          spinnerResult.textContent = '🎯';
+          spinnerResult.style.color = '#fff';
+        }
+        
         // Wait for animation to complete
         await new Promise(resolve => setTimeout(resolve, 4500));
         
-        // Update triangle display with result
-        const spinnerResult = document.getElementById('spinner-result');
+        // Update triangle display with final result
         if (spinnerResult) {
           spinnerResult.textContent = reward;
           spinnerResult.style.color = reward > 0 ? '#51cf66' : '#ff6b6b';
@@ -2364,21 +2480,54 @@
               
               const taskIcon = taskIcons[data.type] || '🎯';
               
-              // Create task buttons based on type
+              // Create task buttons based on type and completion state
               let taskButtons = '';
-              if (data.link && data.type !== 'simple') {
-                // Initially only show "Open Link" button
+              
+              // Check if task is already completed
+              if (completedTasks.has(doc.id)) {
                 taskButtons = `
-                  <div class="task-buttons" style="display: flex; gap: 8px; flex-direction: column;">
-                    <button class="btn" onclick="openTaskLink('${data.link}', '${doc.id}', '${data.type}')" 
-                            style="font-size: 12px; padding: 8px 16px; background: linear-gradient(135deg, #667eea, #764ba2);">
-                      ${taskIcon} Open ${data.type === 'youtube' ? 'Video' : data.type === 'survey' ? 'Survey' : 'Link'}
-                    </button>
-                    <div style="font-size: 11px; color: var(--text-secondary); text-align: center;">
-                      Complete the task first to unlock claim button
+                  <div class="task-buttons">
+                    <div class="btn completed-task" style="
+                      background: linear-gradient(135deg, #51cf66, #40c057);
+                      color: white;
+                      font-size: 12px;
+                      padding: 8px 16px;
+                      border-radius: 8px;
+                      border: none;
+                      cursor: default;
+                      opacity: 0.8;
+                    ">
+                      ✅ Completed
                     </div>
                   </div>
                 `;
+                taskItem.style.opacity = '0.7';
+                taskItem.style.background = 'linear-gradient(135deg, #f8f9fa, #e9ecef)';
+              } else if (data.link && data.type !== 'simple') {
+                // Check if task is opened and ready to claim
+                if (openedTasks.has(doc.id)) {
+                  taskButtons = `
+                    <div class="task-buttons">
+                      <button class="btn" onclick="claimTask('${doc.id}', ${data.coins || 0})" 
+                              style="font-size: 12px; padding: 8px 16px; background: linear-gradient(135deg, #51cf66, #40c057);">
+                        🎁 Claim ${data.coins || 0} Coins
+                      </button>
+                    </div>
+                  `;
+                } else {
+                  // Initially only show "Open Link" button
+                  taskButtons = `
+                    <div class="task-buttons" style="display: flex; gap: 8px; flex-direction: column;">
+                      <button class="btn" onclick="openTaskLink('${data.link}', '${doc.id}', '${data.type}')" 
+                              style="font-size: 12px; padding: 8px 16px; background: linear-gradient(135deg, #667eea, #764ba2);">
+                        ${taskIcon} Open ${data.type === 'youtube' ? 'Video' : data.type === 'survey' ? 'Survey' : 'Link'}
+                      </button>
+                      <div style="font-size: 11px; color: var(--text-secondary); text-align: center;">
+                        Complete the task first to unlock claim button
+                      </div>
+                    </div>
+                  `;
+                }
               } else {
                 // Simple tasks can be claimed immediately
                 taskButtons = `
@@ -2433,10 +2582,6 @@
       }
     }
 
-    // Track opened tasks per user session and detect when user returns
-    let openedTasks = new Set();
-    let taskReturnTimers = new Map();
-
     // Function to detect when user returns to page (from task completion)
     function detectUserReturn() {
       document.addEventListener('visibilitychange', function() {
@@ -2482,6 +2627,7 @@
           
           // Mark this task as opened for this user session
           openedTasks.add(taskId);
+          saveTaskStates();
           
           // Set up return detection for this task
           taskReturnTimers.set(taskId, setTimeout(() => {
@@ -2805,6 +2951,9 @@
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
       console.log('🚀 DOM Content Loaded - Starting debug checks...');
+      
+      // Initialize task states
+      loadTaskStates();
       
       // Debug check all elements
       const elements = {
