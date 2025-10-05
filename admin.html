@@ -806,7 +806,7 @@
           loadTaskActivities();
           break;
         case 'settings':
-          // Settings are static for now
+          loadSystemSettings(); // Load actual settings from Firebase
           break;
       }
     }
@@ -1467,12 +1467,65 @@
       });
     }
 
+    // Load System Settings from Firebase
+    async function loadSystemSettings() {
+      try {
+        console.log('🔧 Loading system settings from Firebase...');
+        
+        // Load settings from Firebase
+        const settingsDoc = await db.collection('settings').doc('global').get();
+        
+        if (settingsDoc.exists) {
+          const settings = settingsDoc.data();
+          
+          // Update settings form with real data
+          const dailyRewardInput = document.getElementById('daily-reward');
+          const referralBonusInput = document.getElementById('referral-bonus');
+          
+          if (dailyRewardInput) {
+            dailyRewardInput.value = settings.dailyReward || 50;
+          }
+          
+          if (referralBonusInput) {
+            referralBonusInput.value = settings.referralBonus || 100;
+          }
+          
+          console.log('✅ Settings loaded:', settings);
+          showToast('Settings loaded successfully', 'success');
+        } else {
+          console.log('⚠️ No settings found, creating default settings...');
+          
+          // Create default settings
+          await db.collection('settings').doc('global').set({
+            dailyReward: 50,
+            referralBonus: 100,
+            minWithdrawal: 2000,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          
+          showToast('Default settings created', 'info');
+        }
+      } catch (error) {
+        console.error('Error loading settings:', error);
+        showToast('Error loading settings: ' + error.message, 'error');
+      }
+    }
+
     // Initialize Dashboard with all components
     document.addEventListener('DOMContentLoaded', function() {
       showToast('🚀 Admin Dashboard Loaded Successfully!', 'success');
       
-      // Load Dashboard data by default
+      // Load all critical data immediately
       loadStats();
+      loadWithdrawals();
+      loadWithdrawalStats();
+      loadUsers();
+      loadTasks();
+      loadTaskActivities();
+      loadSystemSettings();
+      
+      console.log('📊 All admin data loading initiated...');
       
       // Auto-refresh stats every 30 seconds
       setInterval(() => {
@@ -1505,16 +1558,74 @@
       showSection('withdrawals');
     });
 
-    // Update Settings
-    function updateSettings() {
-      showToast('Settings updated! (Feature coming soon)', 'info');
+    // Update Settings - Save to Firebase
+    async function updateSettings() {
+      try {
+        console.log('💾 Saving settings to Firebase...');
+        
+        const dailyReward = parseInt(document.getElementById('daily-reward').value) || 50;
+        const referralBonus = parseInt(document.getElementById('referral-bonus').value) || 100;
+        
+        // Validate inputs
+        if (dailyReward < 1 || dailyReward > 500) {
+          showToast('Daily reward must be between 1-500 coins', 'error');
+          return;
+        }
+        
+        if (referralBonus < 1 || referralBonus > 1000) {
+          showToast('Referral bonus must be between 1-1000 coins', 'error');
+          return;
+        }
+        
+        // Save to Firebase
+        await db.collection('settings').doc('global').set({
+          dailyReward: dailyReward,
+          referralBonus: referralBonus,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          updatedBy: 'admin'
+        }, { merge: true });
+        
+        showToast(`✅ Settings updated successfully! Daily: ${dailyReward}, Referral: ${referralBonus}`, 'success');
+        console.log('✅ Settings saved successfully');
+        
+      } catch (error) {
+        console.error('Error updating settings:', error);
+        showToast('Error updating settings: ' + error.message, 'error');
+      }
     }
 
-    // Send Global Notification
-    function sendNotificationToAll() {
+    // Send Global Notification - Real Implementation
+    async function sendNotificationToAll() {
       const message = prompt('Enter notification message for all users:');
-      if (message) {
-        showToast('Global notification sent! (Feature coming soon)', 'info');
+      if (!message || message.trim() === '') return;
+      
+      try {
+        console.log('📢 Sending global notification...');
+        showToast('Sending notification to all users...', 'info');
+        
+        // Save notification to Firebase
+        const notificationData = {
+          message: message.trim(),
+          type: 'global',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          createdBy: 'admin',
+          active: true
+        };
+        
+        await db.collection('notifications').add(notificationData);
+        
+        // Also save to a global announcements collection for persistent display
+        await db.collection('announcements').add({
+          ...notificationData,
+          priority: 'high'
+        });
+        
+        showToast(`✅ Global notification sent: "${message}"`, 'success');
+        console.log('✅ Global notification sent successfully');
+        
+      } catch (error) {
+        console.error('Error sending notification:', error);
+        showToast('Error sending notification: ' + error.message, 'error');
       }
     }
 
